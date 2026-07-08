@@ -6,7 +6,7 @@
     <title>TACTICAL MATRIX SYSTEM</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace, "System-UI", sans-serif; }
-        body, html { width: 100%; height: 100%; background-color: #020608; color: #00f0ff; overflow: hidden; position: relative; }
+        body, html { width: 100%; min-height: 100%; background-color: #020608; color: #00f0ff; position: relative; }
         
         body::before {
             content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
@@ -18,43 +18,34 @@
             background: radial-gradient(circle, rgba(0,0,0,0) 50%, rgba(2,6,8,0.9) 100%); z-index: 2; pointer-events: none;
         }
 
-        /* 🚨 獨立出來的超級重整按鈕，確保在最上層、絕對點得到 */
-        .global-sync-btn {
-            position: fixed; bottom: 20px; right: 20px; z-index: 99999;
-            background: #00ffaa; color: #020608; border: 2px solid #00ffaa;
-            padding: 12px 24px; font-size: 14px; font-weight: 900; cursor: pointer;
-            box-shadow: 0 0 15px rgba(0, 255, 170, 0.4);
-            clip-path: polygon(0 0, 90% 0, 100% 30%, 100% 100%, 10% 100%, 0 70%);
-            transition: all 0.2s ease;
+        .main-container {
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; position: relative; z-index: 10;
         }
-        .global-sync-btn:hover {
-            background: #020608; color: #00ffaa; box-shadow: 0 0 25px rgba(0, 255, 170, 0.8);
-        }
-        .global-sync-btn:active { transform: scale(0.95); }
 
+        /* 💻 電腦版：標準科幻網格 */
         .hud-screen {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 95vw; height: 95vw; max-width: 850px; max-height: 850px; z-index: 10;
-            background: rgba(4, 10, 15, 0.85); border: 2px solid rgba(0, 240, 255, 0.3);
+            position: relative; width: 95vw; max-width: 850px; min-height: 650px;
+            background: rgba(4, 10, 15, 0.9); border: 2px solid rgba(0, 240, 255, 0.3);
             box-shadow: 0 0 40px rgba(0, 240, 255, 0.1), inset 0 0 30px rgba(0, 240, 255, 0.05);
-            display: grid; grid-template-columns: 1.3fr 1.9fr 1.4fr; grid-template-rows: 0.6fr 2fr 0.8fr; padding: 25px; gap: 20px;
+            display: grid; grid-template-columns: 1.3fr 1.6fr 1.4fr; grid-template-rows: auto 1fr auto; padding: 25px; gap: 20px;
         }
         .hud-border-svg { position: absolute; top: -2px; left: -2px; width: calc(100% + 4px); height: calc(100% + 4px); pointer-events: none; stroke: currentColor; fill: none; stroke-width: 2; opacity: 0.8; }
-        .top-left-panel { grid-column: 1; grid-row: 1; display: flex; align-items: center; }
-        .team-title { font-size: 18px; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 10px currentColor; line-height: 1.3; }
+        
+        .top-left-panel { grid-column: 1 / span 2; grid-row: 1; display: flex; align-items: center; }
+        .team-title { font-size: 20px; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 10px currentColor; line-height: 1.3; }
 
-        .mid-left-panel { display: flex; justify-content: space-around; align-items: flex-end; grid-column: 1; grid-row: 2; height: 100%; padding: 10px 5px; border: 1px solid rgba(0, 240, 255, 0.15); background: rgba(0,0,0,0.2); }
+        .mid-left-panel { display: flex; justify-content: space-around; align-items: flex-end; grid-column: 1; grid-row: 2; min-height: 250px; padding: 15px 5px; border: 1px solid rgba(0, 240, 255, 0.15); background: rgba(0,0,0,0.2); }
         .vertical-bar-container { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 30%; height: 100%; gap: 8px; }
-        .v-bar-val { font-size: 11px; font-weight: bold; font-family: monospace; text-align: center; color: #fff; }
-        .v-bar-outer { width: 22px; flex-grow: 1; border: 2px solid rgba(0, 240, 255, 0.4); padding: 2px; background: rgba(0,0,0,0.6); position: relative; display: flex; align-items: flex-end; }
+        .v-bar-val { font-size: 12px; font-weight: bold; font-family: monospace; text-align: center; color: #fff; }
+        .v-bar-outer { width: 24px; flex-grow: 1; min-height: 150px; border: 2px solid rgba(0, 240, 255, 0.4); padding: 2px; background: rgba(0,0,0,0.6); position: relative; display: flex; align-items: flex-end; }
         .v-bar-inner { width: 100%; background: currentColor; transition: height 0.6s cubic-bezier(0.1, 0.8, 0.3, 1); filter: drop-shadow(0 0 6px currentColor); }
         .v-bar-grid { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, transparent 70%, #020608 70%); background-size: 100% 10px; pointer-events: none; }
-        .v-bar-label { font-size: 13px; font-weight: 900; text-shadow: 0 0 8px currentColor; text-align: center; writing-mode: vertical-lr; letter-spacing: 2px; }
+        .v-bar-label { font-size: 13px; font-weight: 900; text-shadow: 0 0 8px currentColor; text-align: center; margin-top: 4px; }
         
-        .bottom-left-panel { grid-column: 1; grid-row: 3; border: 1px solid rgba(0, 240, 255, 0.2); background: rgba(0,0,0,0.3); position: relative; }
+        .bottom-left-panel { grid-column: 1; grid-row: 3; border: 1px solid rgba(0, 240, 255, 0.2); background: rgba(0,0,0,0.3); position: relative; min-height: 60px; }
 
-        .center-core { grid-column: 2; grid-row: 1 / span 3; display: flex; justify-content: center; align-items: center; position: relative; }
-        .radar-group { width: 95%; height: 95%; }
+        .center-core { grid-column: 2; grid-row: 2; display: flex; justify-content: center; align-items: center; position: relative; }
+        .radar-group { width: 90%; height: 90%; max-width: 220px; }
         .radar-circle { fill: none; stroke: currentColor; stroke-width: 1.5; transform-origin: center; }
         .radar-rotate-fast { animation: rotateRadar 12s linear infinite; }
         .radar-rotate-slow { animation: rotateRadar 25s linear reverse infinite; }
@@ -63,11 +54,11 @@
             grid-column: 3; grid-row: 1 / span 2; border: 2px solid rgba(0, 240, 255, 0.3); 
             background: rgba(3, 12, 20, 0.7); padding: 18px; position: relative;
             clip-path: polygon(0 0, 85% 0, 100% 10%, 100% 100%, 0 100%);
-            display: flex; flex-direction: column; gap: 10px; justify-content: center;
+            display: flex; flex-direction: column; gap: 12px; justify-content: flex-start;
         }
-        .mission-content { font-size: 14px; line-height: 1.5; color: #ffffff; font-weight: bold; }
+        .mission-content { font-size: 14px; line-height: 1.6; color: #ffffff; font-weight: bold; }
         
-        .action-box { display: flex; flex-direction: column; margin-top: 10px; }
+        .action-box { display: flex; flex-direction: column; margin-top: auto; }
         .hud-btn {
             display: block; width: 100%; padding: 12px 12px; background: rgba(0, 240, 255, 0.1);
             border: 2px solid currentColor; color: currentColor; text-align: center; cursor: pointer; font-size: 13px; font-weight: 900;
@@ -75,44 +66,74 @@
         }
         .hud-btn:hover { background: currentColor; color: #020608; box-shadow: 0 0 15px currentColor; }
 
-        .bottom-right-panel { grid-column: 3; grid-row: 3; border: 1px solid rgba(0, 240, 255, 0.2); padding: 12px; display: flex; flex-direction: column; justify-content: center; gap: 4px; clip-path: polygon(0 0, 100% 0, 100% 75%, 85% 100%, 0 100%); }
-        .status-line { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; color: rgba(0,240,255,0.8); }
+        .bottom-right-panel { 
+            grid-column: 3; grid-row: 3; border: 1px solid rgba(0, 240, 255, 0.2); padding: 10px; 
+            display: flex; flex-direction: column; justify-content: space-between; gap: 6px; 
+            clip-path: polygon(0 0, 100% 0, 100% 75%, 85% 100%, 0 100%); background: rgba(0,0,0,0.2);
+        }
+        .status-line { display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; color: rgba(0,240,255,0.6); }
+        
+        .panel-sync-btn {
+            width: 100%; background: #00ffaa; color: #020608; border: none;
+            padding: 8px 0; font-size: 13px; font-weight: 900; cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 170, 0.3); transition: all 0.15s ease;
+            text-align: center; margin-top: 2px;
+        }
+        .panel-sync-btn:hover { background: #fff; color: #000; box-shadow: 0 0 15px #00ffaa; }
 
+        /* 📱 📱 📱 終極手機直向優化（Responsive RWD） */
+        @media (max-width: 600px) {
+            .main-container { padding: 10px; align-items: flex-start; }
+            .hud-screen {
+                display: flex; flex-direction: column; /* 改為單欄垂直垂直排列 */
+                width: 100%; min-height: auto; height: auto; padding: 15px; gap: 15px;
+            }
+            .top-left-panel { order: 1; }
+            .mid-left-panel { order: 3; min-height: 18px; padding: 15px 10px; } /* 狀態條空間優化 */
+            .v-bar-outer { min-height: 120px; }
+            .center-core { order: 2; padding: 10px 0; } /* 雷達移到中上部點綴 */
+            .radar-group { max-width: 120px; }
+            .top-right-panel { order: 4; clip-path: none; min-height: auto; } /* 解策區移到中下部 */
+            .bottom-left-panel { display: none; } /* 手機版隱藏沒裝飾的空框 */
+            .bottom-right-panel { order: 5; clip-path: none; margin-top: 5px; } /* 重整區固定在最底部 */
+            .panel-sync-btn { padding: 12px 0; font-size: 15px; } /* 手機按鈕放大更好按 */
+        }
+
+        /* 主持人介面 */
         .host-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100;
-            background: #040d14; padding: 25px; overflow-y: auto; color: #00f0ff; padding-bottom: 100px;
+            position: absolute; top: 0; left: 0; width: 100%; min-height: 100%; z-index: 100;
+            background: #040d14; padding: 25px; color: #00f0ff; padding-bottom: 100px;
         }
         .host-top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00f0ff; padding-bottom: 10px; margin-bottom: 20px; }
         .host-header { font-size: 26px; font-weight: 900; color: #ff7300; text-shadow: 0 0 10px #ff7300; }
         .sync-indicator { font-size: 13px; color: #00ffaa; margin-left: 15px; font-weight: normal; }
-        .reset-btn { background: #ff3333; color: #fff; border: none; padding: 8px 16px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; box-shadow: 0 0 10px rgba(255,51,51,0.4); transition: background 0.2s; }
-        .reset-btn:hover { background: #ff5555; }
+        .reset-btn { background: #ff3333; color: #fff; border: none; padding: 8px 16px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; }
         
-        .round-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 12px; background: #0b1d28; border: 1px solid #00f0ff; color: #00f0ff; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .round-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab-btn { flex: 1; min-width: 80px; padding: 12px; background: #0b1d28; border: 1px solid #00f0ff; color: #00f0ff; font-weight: bold; cursor: pointer; }
         .tab-btn.active { background: #ff7300; color: #000; border-color: #ff7300; }
         
         .host-grid { display: grid; grid-template-columns: 1.2fr 1.1fr; gap: 20px; }
-        .control-panel-box { border: 2px solid rgba(0,240,255,0.3); background: rgba(0,0,0,0.4); padding: 20px; border-radius: 4px; }
+        @media (max-width: 900px) { .host-grid { grid-template-columns: 1fr; } }
+        .control-panel-box { border: 2px solid rgba(0,240,255,0.3); background: rgba(0,0,0,0.4); padding: 20px; }
         .panel-title { font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 15px; border-left: 4px solid #ff7300; padding-left: 8px; }
         
         .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
         .input-group { display: flex; flex-direction: column; gap: 5px; }
-        .input-group label { font-size: 14px; font-weight: bold; color: rgba(0,240,255,0.8); }
-        .host-select { background: #07141e; color: #fff; border: 1px solid #00f0ff; padding: 10px; font-size: 16px; font-weight: bold; }
+        .host-select { background: #07141e; color: #fff; border: 1px solid #00f0ff; padding: 10px; font-size: 16px; font-weight: bold; width: 100%; }
         
         .action-bar { border-top: 1px dashed rgba(0,240,255,0.3); padding-top: 15px; margin-top: 15px; }
-        .primary-btn { width: 100%; padding: 14px; background: #ff7300; color: #fff; border: none; font-size: 18px; font-weight: bold; cursor: pointer; text-shadow: 0 1px 2px #000; }
-        .primary-btn:hover { background: #ff8c24; }
+        .primary-btn { width: 100%; padding: 14px; background: #ff7300; color: #fff; border: none; font-size: 18px; font-weight: bold; cursor: pointer; }
         
         .flow-tracker { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-        .flow-step { padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); font-size: 15px; font-weight: bold; display: flex; justify-content: space-between; }
-        .flow-step.active { background: rgba(0,240,255,0.25); border-color: #00f0ff; color: #fff; box-shadow: 0 0 10px rgba(0,240,255,0.2); }
-        .flow-step.done { color: rgba(255,255,255,0.4); border-color: rgba(255,255,255,0.05); background: rgba(0,0,0,0.4); }
+        .flow-step { padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); font-size: 15px; display: flex; justify-content: space-between; }
+        .flow-step.active { background: rgba(0,240,255,0.25); border-color: #00f0ff; color: #fff; }
+        .flow-step.done { color: rgba(255,255,255,0.4); background: rgba(0,0,0,0.4); }
 
-        .log-box { background: #020609; border: 1px solid rgba(0,240,255,0.2); padding: 15px; height: 220px; overflow-y: auto; font-size: 13px; line-height: 1.6; font-family: monospace; }
+        .log-box { background: #020609; border: 1px solid rgba(0,240,255,0.2); padding: 15px; height: 220px; overflow-y: auto; font-size: 13px; line-height: 1.6; }
         
         .score-board { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        @media (max-width: 500px) { .score-board { grid-template-columns: 1fr; } }
         .score-card { background: rgba(7, 20, 30, 0.8); border: 1px solid rgba(0,240,255,0.3); padding: 10px; }
         .score-card-title { font-size: 13px; font-weight: bold; margin-bottom: 5px; }
         .score-card-vals { font-size: 12px; color: #fff; display: flex; justify-content: space-between; }
@@ -130,10 +151,9 @@
 </head>
 <body>
 
-    <!-- 🌐 全域最上層強制重新整理按鈕 -->
-    <button class="global-sync-btn" onclick="triggerManualSync()">⚡ 強制重整資料</button>
-
-    <div id="mainView"></div>
+    <div class="main-container" id="mainContainer">
+        <div id="mainView" style="width: 100%; display: flex; justify-content: center;"></div>
+    </div>
 
     <script>
         const API_URL = "https://bacon.pico.sh/matrix_ultra_speed_991";
@@ -188,28 +208,29 @@
             } catch (e) {}
         }
 
-        // 🔄 手動觸發強制重整的視覺與邏輯回饋
         async function triggerManualSync() {
-            const btn = document.querySelector('.global-sync-btn');
-            btn.innerText = "⏳ 正在拉取...";
-            btn.style.background = "#ff7300";
-            btn.style.borderColor = "#ff7300";
-            
+            const btn = document.getElementById('panelSyncBtn');
+            if(btn) {
+                btn.innerText = "⏳ 同步中...";
+                btn.style.background = "#ff7300";
+            }
             await fetchState();
-            
             setTimeout(() => {
-                btn.innerText = "✅ 重整成功！";
-                btn.style.background = "#00ffaa";
-                btn.style.borderColor = "#00ffaa";
-                setTimeout(() => {
-                    btn.innerText = "⚡ 強制重整資料";
-                }, 1000);
+                if(btn) {
+                    btn.innerText = "✅ 同步成功";
+                    btn.style.background = "#ffffff";
+                    setTimeout(() => {
+                        btn.innerText = "⚡ 強制重整";
+                        btn.style.background = "#00ffaa";
+                    }, 800);
+                }
             }, 300);
         }
 
-        setInterval(fetchState, 400);
+        setInterval(fetchState, 500);
 
         if (mode === 'host') {
+            document.getElementById('mainContainer').style.display = "block";
             document.body.className = "";
             renderHostView();
         } else {
@@ -301,8 +322,8 @@
                         </div>
                     </div>
                     <div class="bottom-right-panel">
-                        <div class="status-line"><span>ROUND:</span><span>0${rIdx} / 04</span></div>
-                        <div class="status-line"><span>MATRIX:</span><span>CONNECTED</span></div>
+                        <div class="status-line"><span>ROUND: 0${rIdx} / 04</span><span>MATRIX: CON.</span></div>
+                        <button class="panel-sync-btn" id="panelSyncBtn" onclick="triggerManualSync()">⚡ 強制重整</button>
                     </div>
                 </div>
             `;
@@ -386,14 +407,14 @@
             mainView.innerHTML = `
                 <div class="host-screen">
                     <div class="host-top-bar">
-                        <div class="host-header">🌌 量子核心主控台 <span class="sync-indicator">📡 零延遲光纖儲存直連中</span></div>
+                        <div class="host-header">🌌 量子核心主控台 <span class="sync-indicator">📡 雲端即時連線中</span></div>
                         <div style="display:flex; gap:10px;">
-                           <button class="reset-btn" onclick="resetSystem()">🚨 核心系統重製 (RESET)</button>
+                           <button class="reset-btn" onclick="resetSystem()">🚨 RESET</button>
                         </div>
                     </div>
                     
                     <div class="round-tabs">
-                        ${[1,2,3,4].map(num => `<button class="tab-btn ${rIdx === num ? 'active' : ''}" onclick="switchRound(${num})">第 0${num} 輪戰局</button>`).join('')}
+                        ${[1,2,3,4].map(num => `<button class="tab-btn ${rIdx === num ? 'active' : ''}" onclick="switchRound(${num})">第 0${num} 輪</button>`).join('')}
                     </div>
 
                     <div class="score-board">
@@ -417,24 +438,24 @@
 
                     <div class="host-grid">
                         <div class="control-panel-box">
-                            <div class="panel-title">第一步：配置本輪順位名單 (目前狀態: <span style="color:#ff7300">${rData.status}</span>)</div>
+                            <div class="panel-title">配置本輪順位 (狀態: <span style="color:#ff7300">${rData.status}</span>)</div>
                             <div class="input-row">
                                 <div class="input-group">
                                     <label>👑 第一順位</label>
                                     <select class="host-select" id="w1">
-                                        <option value="A" ${rData.w1==='A'?'selected':''}>A 隊 - 政府高層</option>
-                                        <option value="B" ${rData.w1==='B'?'selected':''}>B 隊 - 社團科學家</option>
-                                        <option value="C" ${rData.w1==='C'?'selected':''}>C 隊 - 工廠資方</option>
-                                        <option value="D" ${rData.w1==='D'?'selected':''}>D 隊 - 底層勞工</option>
+                                        <option value="A" ${rData.w1==='A'?'selected':''}>A 政府高層</option>
+                                        <option value="B" ${rData.w1==='B'?'selected':''}>B 社團科學家</option>
+                                        <option value="C" ${rData.w1==='C'?'selected':''}>C 工廠資方</option>
+                                        <option value="D" ${rData.w1==='D'?'selected':''}>D 底層勞工</option>
                                     </select>
                                 </div>
                                 <div class="input-group">
                                     <label>👑 第二順位</label>
                                     <select class="host-select" id="w2">
-                                        <option value="B" ${rData.w2==='B'?'selected':''}>B 隊 - 社團科學家</option>
-                                        <option value="A" ${rData.w2==='A'?'selected':''}>A 隊 - 政府高層</option>
-                                        <option value="C" ${rData.w2==='C'?'selected':''}>C 隊 - 工廠資方</option>
-                                        <option value="D" ${rData.w2==='D'?'selected':''}>D 隊 - 底層勞工</option>
+                                        <option value="B" ${rData.w2==='B'?'selected':''}>B 社團科學家</option>
+                                        <option value="A" ${rData.w2==='A'?'selected':''}>A 政府高層</option>
+                                        <option value="C" ${rData.w2==='C'?'selected':''}>C 工廠資方</option>
+                                        <option value="D" ${rData.w2==='D'?'selected':''}>D 底層勞工</option>
                                     </select>
                                 </div>
                             </div>
@@ -442,39 +463,39 @@
                                 <div class="input-group">
                                     <label>⚠️ 第三順位</label>
                                     <select class="host-select" id="l1">
-                                        <option value="C" ${rData.l1==='C'?'selected':''}>C 隊 - 工廠資方</option>
-                                        <option value="A" ${rData.l1==='A'?'selected':''}>A 隊 - 政府高層</option>
-                                        <option value="B" ${rData.l1==='B'?'selected':''}>B 隊 - 社團科學家</option>
-                                        <option value="D" ${rData.l1==='D'?'selected':''}>D 隊 - 底層勞工</option>
+                                        <option value="C" ${rData.l1==='C'?'selected':''}>C 工廠資方</option>
+                                        <option value="A" ${rData.l1==='A'?'selected':''}>A 政府高層</option>
+                                        <option value="B" ${rData.l1==='B'?'selected':''}>B 社團科學家</option>
+                                        <option value="D" ${rData.l1==='D'?'selected':''}>D 底層勞工</option>
                                     </select>
                                 </div>
                                 <div class="input-group">
                                     <label>⚠️ 第四順位</label>
                                     <select class="host-select" id="l2">
-                                        <option value="D" ${rData.l2==='D'?'selected':''}>D 隊 - 底層勞工</option>
-                                        <option value="A" ${rData.l2==='A'?'selected':''}>A 隊 - 政府高層</option>
-                                        <option value="B" ${rData.l2==='B'?'selected':''}>B 隊 - 社團科學家</option>
-                                        <option value="C" ${rData.l2==='C'?'selected':''}>C 隊 - 工廠資方</option>
+                                        <option value="D" ${rData.l2==='D'?'selected':''}>D 底層勞工</option>
+                                        <option value="A" ${rData.l2==='A'?'selected':''}>A 政府高層</option>
+                                        <option value="B" ${rData.l2==='B'?'selected':''}>B 社團科學家</option>
+                                        <option value="C" ${rData.l2==='C'?'selected':''}>C 工廠資方</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <button class="primary-btn" onclick="applyRoundSettings()">📡 闖關結束：廣播同步本輪順位</button>
+                            <button class="primary-btn" onclick="applyRoundSettings()">廣播同步本輪順位</button>
 
                             <div class="action-bar">
-                                <div class="panel-title">第二步：選擇進度監視 (系統即時同步)</div>
+                                <div class="panel-title">進度監視</div>
                                 <div class="flow-tracker" style="${rData.status === '闖關中' ? 'opacity:0.4; pointer-events:none;' : ''}">
                                     <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===0?'active':(rData.currentTurnIdx>0?'done':'')}">
-                                        <span>① 👑 第一順位 ➔ [ ${n_w1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===0?'◀ 正在作答':'✅ 已提交')}
+                                        <span>① [ ${n_w1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===0?'作答中':'✅ 已提')}
                                     </div>
                                     <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===1?'active':(rData.currentTurnIdx>1?'done':'')}">
-                                        <span>② 👑 第二順位 ➔ [ ${n_w2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===1?'◀ 正在作答':(rData.currentTurnIdx>1?'✅ 已提交':'⏳ 等待中'))}
+                                        <span>② [ ${n_w2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===1?'作答中':(rData.currentTurnIdx>1?'✅ 已提':'⏳ 等待'))}
                                     </div>
                                     <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===2?'active':(rData.currentTurnIdx>2?'done':'')}">
-                                        <span>③ ⚠️ 第三順位 ➔ [ ${n_l1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===2?'◀ 正在作答':(rData.currentTurnIdx>2?'✅ 已提交':'⏳ 等待中'))}
+                                        <span>③ [ ${n_l1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===2?'作答中':(rData.currentTurnIdx>2?'✅ 已提':'⏳ 等待'))}
                                     </div>
                                     <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===3?'active':(rData.currentTurnIdx>3?'done':'')}">
-                                        <span>④ ⚠️ 第四順位 ➔ [ ${n_l2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===3?'◀ 正在作答':(rData.currentTurnIdx>3?'✅ 已提交':'⏳ 等待中'))}
+                                        <span>④ [ ${n_l2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===3?'作答中':(rData.currentTurnIdx>3?'✅ 已提':'⏳ 等待'))}
                                     </div>
                                 </div>
                                 <button class="primary-btn" style="background:#00f0ff; color:#000; margin-top:12px;" ${rData.status === '闖關中' || rData.currentTurnIdx > 3 ? 'disabled' : ''} onclick="forceNextTurn()">⏭️ 強制推進下一順位</button>
@@ -482,7 +503,7 @@
                         </div>
 
                         <div class="control-panel-box">
-                            <div class="panel-title">📊 量子通訊即時連鎖日誌</div>
+                            <div class="panel-title">📊 即時日誌</div>
                             <div class="log-box" id="hostLogs">
                                 ${systemState.logs.map(l => `> ${l}<br>`).join('')}
                             </div>
