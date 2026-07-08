@@ -163,7 +163,7 @@
     </div>
 
     <script>
-        // 🛰️ 使用 ntfy.sh 即時快取通道（免註冊、高頻率、不鎖限制）
+        // 🛰️ 使用 ntfy.sh 即時通道
         const CHANNEL_ID = "matrix_tactical_sync_core_9955";
         const API_URL = `https://ntfy.sh/${CHANNEL_ID}`;
 
@@ -196,7 +196,7 @@
         const mainView = document.getElementById('mainView');
 
         let isLocked = false;
-        let isFetching = false;
+        let sseSource = null;
 
         function updateNetIndicator(isOK) {
             cloudOnline = isOK;
@@ -212,10 +212,39 @@
             }
         }
 
-        // 🛰️ NDJSON 快取通道抓取器
-        async function fetchState() {
-            if (isLocked || isFetching) return; 
-            isFetching = true;
+        // 📡 改用 SSE (Server-Sent Events) 天眼監聽機制，不敲門、不耗能、超穩定！
+        function startSSESync() {
+            if (sseSource) { sseSource.close(); }
+            
+            // 建立一條不中斷的專屬監聽通道
+            sseSource = new EventSource(`${API_URL}/sse`);
+            
+            sseSource.onmessage = (event) => {
+                try {
+                    const packet = JSON.parse(event.data);
+                    if (packet.event === 'message' && packet.message) {
+                        const incomingState = JSON.parse(packet.message);
+                        if (incomingState && typeof incomingState.version === 'number') {
+                            // 只有雲端版本比本地新時才觸發渲染
+                            if (incomingState.version > systemState.version) {
+                                systemState = incomingState;
+                                executeRender();
+                            }
+                        }
+                    }
+                    updateNetIndicator(true);
+                } catch (e) {
+                    console.error("解析快取失敗", e);
+                }
+            };
+
+            sseSource.onerror = () => {
+                updateNetIndicator(false);
+            };
+        }
+
+        // 單次主動拉取（用在初始載入與強制重整）
+        async function fetchStateOnce() {
             try {
                 const res = await fetch(`${API_URL}/json?poll=1`, { cache: "no-store" });
                 if (res.ok) {
@@ -229,31 +258,24 @@
                                 const packet = JSON.parse(line);
                                 if (packet.event === 'message' && packet.message) {
                                     const state = JSON.parse(packet.message);
-                                    if (state && typeof state.version === 'number') {
-                                        if (!latest || state.version > latest.version) {
-                                            latest = state;
-                                        }
+                                    if (state && (!latest || state.version > latest.version)) {
+                                        latest = state;
                                     }
                                 }
                             } catch(e){}
                         }
                         if (latest && latest.version > systemState.version) {
                             systemState = latest;
-                            executeRender();
                         }
                     }
                     updateNetIndicator(true);
-                } else {
-                    updateNetIndicator(false);
                 }
             } catch (e) {
                 updateNetIndicator(false);
-            } finally {
-                isFetching = false;
             }
         }
 
-        // ⚡ 本地優先修改流（絕對不卡畫面）
+        // ⚡ 本地變更並同步流
         async function mutateAndSyncState(mutationFn) {
             if (isLocked) return;
             isLocked = true; 
@@ -261,14 +283,13 @@
 
             try {
                 mutationFn();
-                // 斷尾機制：防止日誌無限增長塞爆傳輸上限
                 if (systemState.logs && systemState.logs.length > 8) {
                     systemState.logs = systemState.logs.slice(0, 8);
                 }
                 systemState.version = (systemState.version || 0) + 1;
                 executeRender(); 
             } catch (e) {
-                console.error("本地邏輯出錯:", e);
+                console.error("本地修改出錯:", e);
             }
 
             try {
@@ -279,7 +300,7 @@
                 });
                 updateNetIndicator(true);
             } catch (e) {
-                console.error("雲端發布失敗:", e);
+                console.error("雲端推送失敗:", e);
                 updateNetIndicator(false);
             } finally {
                 isLocked = false;
@@ -300,9 +321,9 @@
         async function triggerManualSync() {
             const btn = document.getElementById('panelSyncBtn');
             if(btn) { btn.innerText = "⏳ 同步中..."; btn.style.background = "#ff7300"; }
-            isFetching = false;
-            await fetchState();
+            await fetchStateOnce();
             executeRender();
+            startSSESync(); // 重新校準天眼監聽
             setTimeout(() => {
                 if(btn) {
                     btn.innerText = "✅ 已同步"; btn.style.background = "#ffffff";
@@ -310,9 +331,6 @@
                 }
             }, 100);
         }
-
-        // 每 0.8 秒高速輪詢
-        setInterval(fetchState, 800);
 
         // 初始化
         (async () => {
@@ -322,8 +340,9 @@
             } else {
                 document.body.className = `theme-${teamKey}`;
             }
-            await fetchState();
+            await fetchStateOnce();
             executeRender();
+            startSSESync(); // 開啟天眼監聽連線
         })();
 
         function renderTeamView() {
@@ -498,7 +517,7 @@
                 <div class="host-screen">
                     <div class="host-top-bar">
                         <div class="host-header">🌌 量子核心主控台 
-                            <span class="sync-indicator">📡 萬用廣播同步版 (v${systemState.version || 0})</span>
+                            <span class="sync-indicator">📡 天眼監聽毫秒同步版 (v${systemState.version || 0})</span>
                             <span id="netIndicator" class="net-status-badge" style="margin-left:15px;">${cloudOnline ? '🌐 雲端連線正常':'⚠️ 雲端斷線/更新中'}</span>
                         </div>
                         <div style="display:flex; gap:10px;">
