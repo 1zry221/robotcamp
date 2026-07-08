@@ -31,7 +31,7 @@
         .top-left-panel { grid-column: 1; grid-row: 1; display: flex; align-items: center; }
         .team-title { font-size: 18px; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 10px currentColor; line-height: 1.3; }
 
-        /* 左中：【全新】垂直能量矩陣條 */
+        /* 左中：垂直能量矩陣條 */
         .mid-left-panel { display: flex; justify-content: space-around; align-items: flex-end; grid-column: 1; grid-row: 2; height: 100%; padding: 10px 5px; border: 1px solid rgba(0, 240, 255, 0.15); background: rgba(0,0,0,0.2); }
         .vertical-bar-container { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 30%; height: 100%; gap: 8px; }
         .v-bar-val { font-size: 11px; font-weight: bold; font-family: monospace; text-align: center; color: #fff; }
@@ -78,7 +78,11 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100;
             background: #040d14; padding: 25px; overflow-y: auto; color: #00f0ff;
         }
-        .host-header { font-size: 26px; font-weight: 900; text-align: center; color: #ff7300; text-shadow: 0 0 10px #ff7300; border-bottom: 2px solid #00f0ff; padding-bottom: 10px; margin-bottom: 20px; }
+        .host-top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00f0ff; padding-bottom: 10px; margin-bottom: 20px; }
+        .host-header { font-size: 26px; font-weight: 900; color: #ff7300; text-shadow: 0 0 10px #ff7300; }
+        .reset-btn { background: #ff3333; color: #fff; border: none; padding: 8px 16px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; box-shadow: 0 0 10px rgba(255,51,51,0.4); transition: background 0.2s; }
+        .reset-btn:hover { background: #ff5555; }
+        
         .round-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 12px; background: #0b1d28; border: 1px solid #00f0ff; color: #00f0ff; font-weight: bold; cursor: pointer; font-size: 16px; }
         .tab-btn.active { background: #ff7300; color: #000; border-color: #ff7300; }
@@ -120,7 +124,7 @@
     <div id="mainView"></div>
 
     <script>
-        // 4大陣營初始核心數值（滿分 100）
+        // 4大陣營初始核心數值
         const globalData = {
             A: { name: "🏛️ 政府高層 SYSTEM", funds: 30, stability: 70, tech: 20, textName: "政府高層" }, 
             B: { name: "🧪 社團科學家 SYSTEM", funds: 20, stability: 30, tech: 70, textName: "社團科學家" }, 
@@ -128,16 +132,18 @@
             D: { name: "🛠️ 底層勞工 SYSTEM", funds: 40, stability: 40, tech: 40, textName: "底層勞工" }  
         };
 
-        // 核心狀態，加設 status 區分未指定與已廣播
-        let systemState = {
+        // 初始狀態定義
+        const initialSystemState = {
             currentRound: 1,
             rounds: {
-                1: { status: '闯关中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
-                2: { status: '闯关中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
-                3: { status: '闯关中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
-                4: { status: '闯关中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 }
+                1: { status: '闖關中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
+                2: { status: '闖關中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
+                3: { status: '闖關中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
+                4: { status: '闖關中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 }
             }
         };
+
+        let systemState = JSON.parse(JSON.stringify(initialSystemState));
 
         if (localStorage.getItem('hud_system_state')) {
             systemState = JSON.parse(localStorage.getItem('hud_system_state'));
@@ -173,7 +179,7 @@
         }
 
         // =========================================
-        // 📱 渲染隊員端 HUD 畫面（直式能量條與數值）
+        // 📱 渲染隊員端 HUD 畫面
         // =========================================
         function renderTeamView() {
             const data = globalData[teamKey];
@@ -184,8 +190,7 @@
             let statusText = "";
             let canAction = false;
 
-            // 判斷當前是闖關中還是已經開始連鎖選擇
-            if (rData.status === '闯关中') {
+            if (rData.status === '闖關中') {
                 identityText = "<span style='color:#00ffaa'>【🎮 關卡挑戰階段】</span>";
                 statusText = `<span style="color:#ffffff; opacity: 0.8;">📊 正在進行關卡闖關！<br>請全力取得優勢。等待主持人結算並分配本輪因果修正順位...</span>`;
                 canAction = false;
@@ -217,7 +222,6 @@
                         <div class="team-title">${data.name}</div>
                     </div>
 
-                    <!-- 【全新升級】直式並排能量條（附數字） -->
                     <div class="mid-left-panel">
                         <div class="vertical-bar-container">
                             <span class="v-bar-val">${data.funds}</span>
@@ -278,7 +282,7 @@
 
 
         // =========================================
-        // 🖥️ 渲染中央控制台大螢幕畫面
+        // 🖥️ 渲染中央控制台大螢幕畫面 (新增重製功能)
         // =========================================
         function renderHostView() {
             const rIdx = systemState.currentRound;
@@ -291,7 +295,10 @@
 
             mainView.innerHTML = `
                 <div class="host-screen">
-                    <div class="host-header">🌌 臨界連鎖：量子核心中央主控台</div>
+                    <div class="host-top-bar">
+                        <div class="host-header">🌌 臨界連鎖：量子核心中央主控台</div>
+                        <button class="reset-btn" onclick="resetSystem()">🚨 核心系統重製 (RESET)</button>
+                    </div>
                     
                     <div class="round-tabs">
                         ${[1,2,3,4].map(num => `
@@ -349,21 +356,21 @@
 
                             <div class="action-bar" style="margin-top:25px;">
                                 <div class="panel-title">第二步：因果流選擇動態控制</div>
-                                <div class="flow-tracker" style="${rData.status === '闯关中' ? 'opacity:0.4; pointer-events:none;' : ''}">
-                                    <div class="flow-step ${rData.status!=='闯关中'&&rData.currentTurnIdx===0?'active':(rData.currentTurnIdx>0?'done':'')}" onclick="setTurn(0)">
-                                        <span>① 👑 贏家 A ➔ [ 陣營：${n_w1} ]</span> ${rData.status==='闯关中'?'未開啟':(rData.currentTurnIdx===0?'◀ 正在填寫':'已完成')}
+                                <div class="flow-tracker" style="${rData.status === '闖關中' ? 'opacity:0.4; pointer-events:none;' : ''}">
+                                    <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===0?'active':(rData.currentTurnIdx>0?'done':'')}" onclick="setTurn(0)">
+                                        <span>① 👑 贏家 A ➔ [ 陣營：${n_w1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===0?'◀ 正在填寫':'已完成')}
                                     </div>
-                                    <div class="flow-step ${rData.status!=='闯关中'&&rData.currentTurnIdx===1?'active':(rData.currentTurnIdx>1?'done':'')}" onclick="setTurn(1)">
-                                        <span>② 👑 贏家 B ➔ [ 陣營：${n_w2} ]</span> ${rData.status==='闯关中'?'未開啟':(rData.currentTurnIdx===1?'◀ 正在填寫':(rData.currentTurnIdx>1?'已完成':'等待中'))}
+                                    <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===1?'active':(rData.currentTurnIdx>1?'done':'')}" onclick="setTurn(1)">
+                                        <span>② 👑 贏家 B ➔ [ 陣營：${n_w2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===1?'◀ 正在填寫':(rData.currentTurnIdx>1?'已完成':'等待中'))}
                                     </div>
-                                    <div class="flow-step ${rData.status!=='闯关中'&&rData.currentTurnIdx===2?'active':(rData.currentTurnIdx>2?'done':'')}" onclick="setTurn(2)">
-                                        <span>③ ⚠️ 輸家 A ➔ [ 陣營：${n_l1} ]</span> ${rData.status==='闯关中'?'未開啟':(rData.currentTurnIdx===2?'◀ 正在填寫':(rData.currentTurnIdx>2?'已完成':'等待中'))}
+                                    <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===2?'active':(rData.currentTurnIdx>2?'done':'')}" onclick="setTurn(2)">
+                                        <span>③ ⚠️ 輸家 A ➔ [ 陣營：${n_l1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===2?'◀ 正在填寫':(rData.currentTurnIdx>2?'已完成':'等待中'))}
                                     </div>
-                                    <div class="flow-step ${rData.status!=='闯关中'&&rData.currentTurnIdx===3?'active':''}" onclick="setTurn(3)">
-                                        <span>④ ⚠️ 輸家 B ➔ [ 陣營：${n_l2} ]</span> ${rData.status==='闯关中'?'未開啟':(rData.currentTurnIdx===3?'◀ 正在填寫':'等待中')}
+                                    <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===3?'active':''}" onclick="setTurn(3)">
+                                        <span>④ ⚠️ 輸家 B ➔ [ 陣營：${n_l2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===3?'◀ 正在填寫':'等待中')}
                                     </div>
                                 </div>
-                                <button class="primary-btn" style="background:#00f0ff; color:#000; margin-top:15px;" ${rData.status === '闯关中' ? 'disabled' : ''} onclick="nextTurn()">⏭️ 強制推進至下一順位</button>
+                                <button class="primary-btn" style="background:#00f0ff; color:#000; margin-top:15px;" ${rData.status === '闖關中' ? 'disabled' : ''} onclick="nextTurn()">⏭️ 強制推進至下一順位</button>
                             </div>
                         </div>
 
@@ -403,7 +410,7 @@
 
         function setTurn(idx) {
             const rIdx = systemState.currentRound;
-            if(systemState.rounds[rIdx].status === '闯关中') return;
+            if(systemState.rounds[rIdx].status === '闖關中') return;
             systemState.rounds[rIdx].currentTurnIdx = idx;
             saveState();
             renderHostView();
@@ -411,13 +418,23 @@
 
         function nextTurn() {
             const rIdx = systemState.currentRound;
-            if(systemState.rounds[rIdx].status === '闯关中') return;
+            if(systemState.rounds[rIdx].status === '闖關中') return;
             if (systemState.rounds[rIdx].currentTurnIdx < 3) {
                 systemState.rounds[rIdx].currentTurnIdx++;
                 saveState();
                 renderHostView();
             } else {
                 alert("本輪選擇已全部結束！請點擊上方頁籤切換至下一輪戰局。");
+            }
+        }
+
+        // 一鍵強制重製功能
+        function resetSystem() {
+            if(confirm("🚨 警告：確定要強制重製量子核心系統嗎？\n這將會清除所有回合進度與勝負名單並重新回歸【關卡闖關階段】！")) {
+                systemState = JSON.parse(JSON.stringify(initialSystemState));
+                saveState();
+                renderHostView();
+                alert("系統重製完成，已同步廣播至所有設備。");
             }
         }
     </script>
