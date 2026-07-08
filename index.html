@@ -2,975 +2,280 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>ELITE COMMAND CENTER</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CRITICAL LINKAGE: QUANTUM CORE</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
-        }
-
-        :root {
-            --primary-color: #00ff66;
-            --secondary-color: #00f0ff;
-            --bg-dark: #08080a;
-            --team-color: #ffd700;
-            --text-color: #00ff66;
-            --danger-red: #ff0055;
-            --accent-purple: #b300ff;
-        }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: var(--bg-dark);
-            font-family: 'Courier New', monospace;
-            color: var(--text-color);
-        }
-
-        /* ========== Canvas 背景層 ========== */
-        #quantumCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            display: block;
-        }
-
-        /* ========== Vignette 邊角暗化 ========== */
+        /* 全域賽博朋克底色 */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace, "微軟正黑體"; }
+        body, html { width: 100%; height: 100%; background-color: #050508; color: #00f0ff; overflow: hidden; position: relative; }
+        
+        /* CRT 掃描線與暗角特效 */
         body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
-            pointer-events: none;
-            z-index: 2;
+            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 999; background-size: 100% 4px, 3px 100%; pointer-events: none;
         }
-
-        /* ========== CRT 掃描線 ========== */
         body::after {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(
-                0deg,
-                rgba(0, 0, 0, 0.08),
-                rgba(0, 0, 0, 0.08) 1px,
-                transparent 1px,
-                transparent 2px
-            );
-            pointer-events: none;
-            z-index: 3;
-            animation: scanlines 8s linear infinite;
+            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.8) 100%); z-index: 998; pointer-events: none;
         }
 
-        @keyframes scanlines {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(10px); }
+        /* 背景 Canvas */
+        #particleCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.4; }
+
+        /* 主玻璃面板 */
+        .hud-container {
+            position: absolute; top: 5%; left: 5%; width: 90%; height: 90%; z-index: 10;
+            background: rgba(10, 15, 24, 0.65);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.15), inset 0 0 15px rgba(0, 240, 255, 0.1);
+            clip-path: polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%);
+            display: grid; padding: 20px; gap: 20px;
         }
 
-        /* ========== 主容器 ========== */
-        .container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            z-index: 10;
-            padding: 12px;
-            gap: 12px;
-            overflow: hidden;
+        /* 隊員端佈局 (HUD 圖片還原) */
+        .team-layout { grid-template-columns: 1fr 2fr 1.5fr; grid-template-rows: 1fr 2fr; height: 100%; }
+
+        /* 左側能量條 */
+        .status-bars { grid-row: 1 / span 2; display: flex; flex-direction: column; justify-content: space-around; padding-right: 10px; }
+        .bar-container { display: flex; flex-direction: column; gap: 5px; }
+        .bar-label { font-size: 14px; font-weight: bold; text-shadow: 0 0 5px currentColor; display: flex; justify-content: space-between;}
+        .bar-outer { width: 100%; height: 25px; border: 1px solid rgba(0, 240, 255, 0.5); padding: 2px; background: rgba(0,0,0,0.4); position: relative; }
+        .bar-inner { height: 100%; background: #00f0ff; width: 70%; transition: width 0.8s cubic-bezier(0.1, 0.8, 0.3, 1); box-shadow: 0 0 10px currentColor; }
+        .bar-grid { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent 85%, rgba(5,5,8,0.7) 85%); background-size: 8% 100%; }
+
+        /* 中央雷達與徽章 */
+        .center-radar { grid-row: 1 / span 2; display: flex; justify-content: center; align-items: center; position: relative; }
+        .radar-svg { width: 85%; height: 85%; animation: rotateRadar 20s linear infinite; opacity: 0.7; }
+        .badge-img {
+            position: absolute; width: 45%; height: 45%; object-fit: contain; border-radius: 50%;
+            mix-blend-mode: multiply; filter: drop-shadow(0 0 8px rgba(0,240,255,0.6)) contrast(1.2);
+            z-index: 12; background: rgba(10, 15, 24, 0.1);
         }
 
-        /* ========== 初始化屏幕 ========== */
-        .init-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(8, 8, 10, 0.95);
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 40px;
-            animation: fadeOut 0.5s ease-out 1.5s forwards;
+        /* 右上 MISSION 區塊 */
+        .mission-panel {
+            grid-column: 3; border: 1px solid rgba(0, 240, 255, 0.3); background: rgba(0,0,0,0.3);
+            padding: 15px; clip-path: polygon(0 0, 90% 0, 100% 15%, 100% 100%, 0 100%);
+            display: flex; flex-direction: column; gap: 10px; overflow-y: auto;
         }
-
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
-                visibility: visible;
-            }
-            to {
-                opacity: 0;
-                visibility: hidden;
-            }
+        .mission-title { font-size: 16px; color: #ff7300; text-shadow: 0 0 5px #ff7300; border-bottom: 1px dashed rgba(255,115,0,0.4); padding-bottom: 5px; }
+        .mission-text { font-size: 13px; line-height: 1.4; color: #e0f7fa; min-height: 40px; }
+        .option-btn {
+            display: block; width: 100%; padding: 8px; background: rgba(0, 240, 255, 0.1);
+            border: 1px solid #00f0ff; color: #00f0ff; text-align: left; cursor: pointer; font-size: 12px;
+            transition: all 0.3s; clip-path: polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%);
+            margin-top: 5px;
         }
+        .option-btn:hover { background: rgba(0, 240, 255, 0.3); box-shadow: 0 0 10px rgba(0,240,255,0.5); transform: translateX(3px); }
 
-        .init-text {
-            font-size: 18px;
-            letter-spacing: 3px;
-            color: var(--primary-color);
-            text-shadow: 0 0 20px var(--primary-color);
-            animation: pulse 1s ease-in-out infinite;
+        /* 右下 DECORATION 區塊 */
+        .decor-panel { grid-column: 3; border: 1px solid rgba(0, 240, 255, 0.2); padding: 15px; font-size: 11px; color: rgba(0,240,255,0.5); display: flex; flex-direction: column; justify-content: space-between; }
+        
+        /* 主持人端佈局 */
+        .host-layout { display: flex; flex-direction: column; height: 100%; gap: 15px; }
+        .host-header { font-size: 24px; text-shadow: 0 0 10px #00f0ff; text-align: center; border-bottom: 2px solid #00f0ff; padding-bottom: 10px; }
+        .host-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex-grow: 1; }
+        .control-box { border: 1px dashed rgba(0,240,255,0.5); padding: 15px; background: rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 15px; }
+        .host-btn { padding: 12px; background: #ff7300; border: none; color: white; font-weight: bold; cursor: pointer; text-align: center; box-shadow: 0 0 10px rgba(255,115,0,0.5); }
+        .host-btn:hover { background: #ff9100; }
+        select { background: #0a0f18; color: #00f0ff; border: 1px solid #00f0ff; padding: 8px; width: 100%; font-size: 14px; }
+
+        /* 陣營色彩覆蓋機制 */
+        .theme-A { --color: #ffcc00; color: var(--color); } /* 政府: 金 */
+        .theme-B { --color: #00ffcc; color: var(--color); } /* 科學家: 水藍/綠 */
+        .theme-C { --color: #cc00ff; color: var(--color); } /* 資方: 紫 */
+        .theme-D { --color: #ff3333; color: var(--color); } /* 勞工: 紅 */
+        .theme-A .bar-inner, .theme-A .option-btn { background: rgba(255,204,0,0.1); border-color: var(--color); color: var(--color); box-shadow: 0 0 10px var(--color); }
+        .theme-B .bar-inner, .theme-B .option-btn { background: rgba(0,255,204,0.1); border-color: var(--color); color: var(--color); box-shadow: 0 0 10px var(--color); }
+        .theme-C .bar-inner, .theme-C .option-btn { background: rgba(220,0,255,0.1); border-color: var(--color); color: var(--color); box-shadow: 0 0 10px var(--color); }
+        .theme-D .bar-inner, .theme-D .option-btn { background: rgba(255,51,51,0.1); border-color: var(--color); color: var(--color); box-shadow: 0 0 10px var(--color); }
+        .theme-A .hud-container { border-color: rgba(255,204,0,0.3); }
+        .theme-B .hud-container { border-color: rgba(0,255,204,0.3); }
+        .theme-C .hud-container { border-color: rgba(220,0,255,0.3); }
+        .theme-D .hud-container { border-color: rgba(255,51,51,0.3); }
+
+        /* 動態轉場特效 */
+        @keyframes rotateRadar { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .shake { animation: shakeEffect 0.4s ease-in-out; }
+        @keyframes shakeEffect {
+            0%, 100% { transform: translate(0, 0); }
+            20% { transform: translate(-5px, 5px); border-color: #ff3333; }
+            40% { transform: translate(5px, -5px); }
+            60% { transform: translate(-5px, -5px); }
+            80% { transform: translate(5px, 5px); }
         }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
-        }
-
-        .waveform-container {
-            width: 200px;
-            height: 60px;
-            position: relative;
-        }
-
-        .waveform-bar {
-            position: absolute;
-            bottom: 0;
-            width: 3px;
-            background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
-            border-radius: 2px;
-            box-shadow: 0 0 10px var(--primary-color);
-            animation: wave 0.6s ease-in-out infinite;
-        }
-
-        @keyframes wave {
-            0%, 100% { height: 10px; }
-            50% { height: 50px; }
-        }
-
-        /* ========== 頭部 ========== */
-        .header {
-            text-align: center;
-            padding: 16px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 2px solid var(--team-color);
-            border-radius: 2px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 0 30px rgba(0, 255, 102, 0.2), inset 0 0 20px rgba(0, 255, 102, 0.05);
-            flex-shrink: 0;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            animation: headerShine 3s infinite;
-        }
-
-        @keyframes headerShine {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        .header h1 {
-            font-size: 24px;
-            font-weight: bold;
-            letter-spacing: 4px;
-            text-shadow: 0 0 15px var(--team-color), 0 0 30px var(--team-color);
-            position: relative;
-            z-index: 1;
-            animation: headerGlitch 0.4s ease-in-out;
-        }
-
-        @keyframes headerGlitch {
-            0%, 100% {
-                text-shadow: 0 0 15px var(--team-color), 0 0 30px var(--team-color);
-                transform: translate(0, 0);
-            }
-            25% {
-                text-shadow: -3px 0 #ff0055, 3px 0 #00f0ff;
-                transform: translate(-2px, -2px);
-            }
-            50% {
-                text-shadow: 3px 0 #ff0055, -3px 0 #00f0ff;
-                transform: translate(2px, 2px);
-            }
-            75% {
-                text-shadow: -2px 0 #ff0055, 2px 0 #00f0ff;
-                transform: translate(-1px, 1px);
-            }
-        }
-
-        /* ========== 主面板 ========== */
-        .main-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-right: 4px;
-        }
-
-        .main-panel::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .main-panel::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        .main-panel::-webkit-scrollbar-thumb {
-            background: var(--team-color);
-            border-radius: 2px;
-            box-shadow: 0 0 8px var(--team-color);
-        }
-
-        /* ========== 儀表卡片 ========== */
-        .gauge-card {
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid var(--secondary-color);
-            border-radius: 2px;
-            padding: 16px;
-            box-shadow: 0 0 25px rgba(0, 240, 255, 0.15), inset 0 0 20px rgba(0, 240, 255, 0.05);
-            position: relative;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .gauge-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 2px;
-            height: 100%;
-            background: linear-gradient(180deg, transparent, var(--team-color), transparent);
-            animation: cornerLine 2s ease-in-out infinite;
-        }
-
-        .gauge-card::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 2px;
-            height: 100%;
-            background: linear-gradient(180deg, transparent, var(--team-color), transparent);
-            animation: cornerLine 2s ease-in-out infinite reverse;
-        }
-
-        @keyframes cornerLine {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-
-        .gauge-label {
-            font-size: 12px;
-            letter-spacing: 2px;
-            margin-bottom: 12px;
-            color: var(--secondary-color);
-            text-transform: uppercase;
-            position: relative;
-            z-index: 1;
-        }
-
-        .gauge-label::before {
-            content: '▶ ';
-            color: var(--team-color);
-            margin-right: 4px;
-        }
-
-        .gauge-label::after {
-            content: ' ◀';
-            color: var(--team-color);
-            margin-left: 4px;
-        }
-
-        .gauge-container {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .gauge-svg {
-            width: 100px;
-            height: 100px;
-            flex-shrink: 0;
-        }
-
-        .gauge-info {
-            flex: 1;
-        }
-
-        .gauge-value {
-            font-size: 32px;
-            font-weight: bold;
-            color: var(--team-color);
-            text-shadow: 0 0 15px var(--team-color);
-            margin-bottom: 8px;
-            font-variant-numeric: tabular-nums;
-            letter-spacing: 2px;
-        }
-
-        .gauge-binary {
-            font-size: 10px;
-            color: var(--secondary-color);
-            opacity: 0.6;
-            font-family: monospace;
-            word-break: break-all;
-            line-height: 1.4;
-        }
-
-        /* ========== 警報系統 ========== */
-        .alert-system {
-            background: rgba(0, 0, 0, 0.6);
-            border: 2px solid var(--secondary-color);
-            border-radius: 2px;
-            padding: 12px;
-            height: 140px;
-            overflow-y: auto;
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
-            position: relative;
-            flex-shrink: 0;
-            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
-        }
-
-        .alert-system.critical {
-            border-color: var(--danger-red);
-            background: rgba(255, 0, 85, 0.1);
-            animation: criticalPulse 0.5s ease-in-out infinite;
-        }
-
-        @keyframes criticalPulse {
-            0%, 100% {
-                box-shadow: 0 0 20px rgba(255, 0, 85, 0.3), inset 0 0 20px rgba(255, 0, 85, 0.05);
-            }
-            50% {
-                box-shadow: 0 0 40px rgba(255, 0, 85, 0.6), inset 0 0 40px rgba(255, 0, 85, 0.15);
-            }
-        }
-
-        .alert-title {
-            font-size: 11px;
-            letter-spacing: 2px;
-            margin-bottom: 8px;
-            color: var(--secondary-color);
-            text-transform: uppercase;
-        }
-
-        .alert-log {
-            font-size: 10px;
-            line-height: 1.6;
-            color: var(--text-color);
-            max-height: 100px;
-            overflow-y: auto;
-        }
-
-        .alert-log::-webkit-scrollbar {
-            width: 3px;
-        }
-
-        .alert-log::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        .alert-log::-webkit-scrollbar-thumb {
-            background: var(--secondary-color);
-            border-radius: 1px;
-        }
-
-        .alert-item {
-            margin-bottom: 4px;
-            padding: 4px 8px;
-            border-left: 2px solid var(--team-color);
-            padding-left: 8px;
-            animation: typewriter 0.4s steps(50, end);
-        }
-
-        .alert-item.critical {
-            color: var(--danger-red);
-            border-left-color: var(--danger-red);
-            text-shadow: 0 0 8px var(--danger-red);
-        }
-
-        @keyframes typewriter {
-            from {
-                width: 0;
-                overflow: hidden;
-            }
-            to {
-                width: 100%;
-            }
-        }
-
-        /* ========== 震動特效 ========== */
-        @keyframes shake {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            10% { transform: translate(-3px, -3px) rotate(-0.5deg); }
-            20% { transform: translate(3px, 3px) rotate(0.5deg); }
-            30% { transform: translate(-3px, 3px) rotate(-0.5deg); }
-            40% { transform: translate(3px, -3px) rotate(0.5deg); }
-            50% { transform: translate(-2px, 2px) rotate(-0.3deg); }
-            60% { transform: translate(2px, -2px) rotate(0.3deg); }
-            70% { transform: translate(-2px, -2px) rotate(-0.3deg); }
-            80% { transform: translate(2px, 2px) rotate(0.3deg); }
-            90% { transform: translate(-1px, 1px) rotate(-0.2deg); }
-        }
-
-        .shake {
-            animation: shake 0.4s cubic-bezier(0.36, 0, 0.66, -0.56);
-        }
-
-        /* ========== 響應式設計 ========== */
-        @media (max-width: 600px) {
-            .container {
-                padding: 10px;
-                gap: 10px;
-            }
-
-            .header h1 {
-                font-size: 18px;
-                letter-spacing: 2px;
-            }
-
-            .gauge-card {
-                padding: 12px;
-            }
-
-            .gauge-svg {
-                width: 80px;
-                height: 80px;
-            }
-
-            .gauge-value {
-                font-size: 28px;
-            }
-
-            .gauge-label {
-                font-size: 10px;
-            }
-
-            .alert-system {
-                height: 120px;
-            }
-
-            .alert-log {
-                max-height: 80px;
-            }
-        }
+        .glitch-flash { background: rgba(255, 51, 51, 0.4) !important; transition: background 0.1s; }
     </style>
 </head>
-<body>
-    <!-- 初始化屏幕 -->
-    <div class="init-screen">
-        <div class="init-text">SYSTEM SYNCING...</div>
-        <div class="waveform-container" id="waveformContainer"></div>
-    </div>
+<body class="theme-B"> <!-- 預設為科學家主題，JS會根據動態切換 -->
 
-    <!-- Canvas 背景 -->
-    <canvas id="quantumCanvas"></canvas>
+    <canvas id="particleCanvas"></canvas>
 
-    <!-- 主容器 -->
-    <div class="container">
-        <!-- 頭部 -->
-        <div class="header">
-            <h1 id="teamTitle">ELITE COMMAND</h1>
-        </div>
-
-        <!-- 主面板 -->
-        <div class="main-panel">
-            <!-- 金錢儀表 -->
-            <div class="gauge-card">
-                <div class="gauge-label">💰 資金儲備</div>
-                <div class="gauge-container">
-                    <svg class="gauge-svg" id="moneySVG" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(0, 240, 255, 0.2)" stroke-width="1"/>
-                        <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(0, 240, 255, 0.3)" stroke-width="2"/>
-                        <g id="moneyGauge"></g>
-                        <text x="50" y="55" text-anchor="middle" font-size="16" fill="var(--team-color)" font-weight="bold">0%</text>
-                    </svg>
-                    <div class="gauge-info">
-                        <div class="gauge-value" id="moneyValue">0</div>
-                        <div class="gauge-binary" id="moneyBinary">01010101</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 生命值儀表 -->
-            <div class="gauge-card">
-                <div class="gauge-label">❤️ 生命值</div>
-                <div class="gauge-container">
-                    <svg class="gauge-svg" id="healthSVG" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(0, 240, 255, 0.2)" stroke-width="1"/>
-                        <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(0, 240, 255, 0.3)" stroke-width="2"/>
-                        <g id="healthGauge"></g>
-                        <text x="50" y="55" text-anchor="middle" font-size="16" fill="var(--team-color)" font-weight="bold">0%</text>
-                    </svg>
-                    <div class="gauge-info">
-                        <div class="gauge-value" id="healthValue">0</div>
-                        <div class="gauge-binary" id="healthBinary">11001100</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 科技點儀表 -->
-            <div class="gauge-card">
-                <div class="gauge-label">⚡ 科技點</div>
-                <div class="gauge-container">
-                    <svg class="gauge-svg" id="techSVG" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(0, 240, 255, 0.2)" stroke-width="1"/>
-                        <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(0, 240, 255, 0.3)" stroke-width="2"/>
-                        <g id="techGauge"></g>
-                        <text x="50" y="55" text-anchor="middle" font-size="16" fill="var(--team-color)" font-weight="bold">0%</text>
-                    </svg>
-                    <div class="gauge-info">
-                        <div class="gauge-value" id="techValue">0</div>
-                        <div class="gauge-binary" id="techBinary">10101010</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 警報系統 -->
-        <div class="alert-system">
-            <div class="alert-title">🚨 中央警報系統</div>
-            <div class="alert-log" id="alertLog">
-                <div class="alert-item">系統初始化完成...</div>
-            </div>
-        </div>
+    <!-- 主畫面板區塊 -->
+    <div id="hudMain" class="hud-container">
+        <!-- 內容由 JavaScript 根據網址 ?mode=host 或 ?mode=team 動態渲染 -->
     </div>
 
     <script>
-        // ========== 配置 ==========
-        const TEAM_CONFIG = {
-            A: { name: '政府高層', color: '#ffd700', title: 'GOVERNMENT COMMAND', rgb: 'rgb(255, 215, 0)' },
-            B: { name: '社團科學家', color: '#00b4ff', title: 'SCIENCE DIVISION', rgb: 'rgb(0, 180, 255)' },
-            C: { name: '工廠資方', color: '#ff6b9d', title: 'CAPITAL SECTOR', rgb: 'rgb(255, 107, 157)' },
-            D: { name: '底層勞工', color: '#ff4444', title: 'LABOR FORCE', rgb: 'rgb(255, 68, 68)' }
+        // --- 核心資料庫設定 (模擬後台，串接 GAS API 時可替換為 Fetch) ---
+        let globalData = {
+            A: { name: "🏛️ 政府高層", funds: 80, stability: 90, tech: 40, img: "https://i.imgur.com/KdfE2dL.jpg" }, // 宮殿
+            B: { name: "🧪 社團科學家", funds: 50, stability: 60, tech: 95, img: "https://i.imgur.com/KdfE47L.jpg" }, // 燒瓶
+            C: { name: "🏢 工廠資方", funds: 95, stability: 50, tech: 60, img: "https://i.imgur.com/KdfE4bL.jpg" }, // 財閥工廠
+            D: { name: "🛠️ 底層勞工", funds: 40, stability: 75, tech: 40, img: "https://i.imgur.com/KdfE65L.jpg" }  // 鐵鎬拳頭
         };
 
-        const GAS_URL = 'https://script.google.com/macros/d/YOUR_GAS_DEPLOYMENT_ID/usercontent';
+        // 解析網址參數
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentMode = urlParams.get('mode') || 'team'; // host 或 team
+        const currentTeam = urlParams.get('team') || 'B';    // 預設 B 隊
 
-        // ========== 全域變數 ==========
-        let currentTeam = 'A';
-        let currentStats = { money: 0, health: 0, tech: 0 };
-        let previousStats = { money: 0, health: 0, tech: 0 };
-        let audioContext = null;
-
-        // ========== Canvas 量子網格 ==========
-        class QuantumGrid {
-            constructor(canvas) {
-                this.canvas = canvas;
-                this.ctx = canvas.getContext('2d');
-                this.particles = [];
-                this.resize();
-                this.init();
-                window.addEventListener('resize', () => this.resize());
-            }
-
-            resize() {
-                this.canvas.width = window.innerWidth;
-                this.canvas.height = window.innerHeight;
-            }
-
-            init() {
-                for (let i = 0; i < 50; i++) {
-                    this.particles.push({
-                        x: Math.random() * this.canvas.width,
-                        y: Math.random() * this.canvas.height,
-                        vx: (Math.random() - 0.5) * 0.5,
-                        vy: (Math.random() - 0.5) * 0.5,
-                        size: Math.random() * 1.5,
-                        opacity: Math.random() * 0.5 + 0.2
-                    });
-                }
-                this.animate();
-            }
-
-            animate() {
-                this.ctx.fillStyle = 'rgba(8, 8, 10, 0.1)';
-                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-                this.particles.forEach(p => {
-                    p.x += p.vx;
-                    p.y += p.vy;
-
-                    if (p.x < 0) p.x = this.canvas.width;
-                    if (p.x > this.canvas.width) p.x = 0;
-                    if (p.y < 0) p.y = this.canvas.height;
-                    if (p.y > this.canvas.height) p.y = 0;
-
-                    this.ctx.fillStyle = `rgba(0, 255, 102, ${p.opacity})`;
-                    this.ctx.beginPath();
-                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    this.ctx.fill();
-
-                    // 隨機連線
-                    if (Math.random() > 0.98) {
-                        const other = this.particles[Math.floor(Math.random() * this.particles.length)];
-                        const dx = other.x - p.x;
-                        const dy = other.y - p.y;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-                        if (dist < 150) {
-                            this.ctx.strokeStyle = `rgba(0, 240, 255, ${0.1 * (1 - dist / 150)})`;
-                            this.ctx.lineWidth = 0.5;
-                            this.ctx.beginPath();
-                            this.ctx.moveTo(p.x, p.y);
-                            this.ctx.lineTo(other.x, other.y);
-                            this.ctx.stroke();
-                        }
-                    }
+        // 初始化背景粒子特效
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = [];
+            for(let i=0; i<40; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                    r: Math.random() * 2, speed: Math.random() * 0.5 + 0.2
                 });
-
-                requestAnimationFrame(() => this.animate());
             }
         }
-
-        // ========== 初始化 Canvas ==========
-        const canvas = document.getElementById('quantumCanvas');
-        const grid = new QuantumGrid(canvas);
-
-        // ========== 初始化波形 ==========
-        function initWaveform() {
-            const container = document.getElementById('waveformContainer');
-            for (let i = 0; i < 40; i++) {
-                const bar = document.createElement('div');
-                bar.className = 'waveform-bar';
-                bar.style.left = i * 5 + 'px';
-                bar.style.animationDelay = (i * 0.05) + 's';
-                container.appendChild(bar);
-            }
-        }
-
-        initWaveform();
-
-        // ========== 初始化系統 ==========
-        function init() {
-            const params = new URLSearchParams(window.location.search);
-            currentTeam = params.get('team') || 'A';
-
-            if (!TEAM_CONFIG[currentTeam]) {
-                currentTeam = 'A';
-            }
-
-            applyTheme();
-
-            // 初始化 Audio Context
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-
-            // 延遲後播放初始化音效
-            setTimeout(() => {
-                playInitSound();
-                triggerGlitch();
-            }, 1500);
-
-            // 啟動 API 輪詢
-            setTimeout(() => {
-                startAPIPolling();
-            }, 2000);
-        }
-
-        // ========== 套用主題 ==========
-        function applyTheme() {
-            const config = TEAM_CONFIG[currentTeam];
-            const root = document.documentElement;
-
-            root.style.setProperty('--team-color', config.color);
-            document.getElementById('teamTitle').textContent = config.title;
-        }
-
-        // ========== 播放初始化音效 ==========
-        function playInitSound() {
-            if (!audioContext) return;
-
-            const now = audioContext.currentTime;
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-
-            osc.connect(gain);
-            gain.connect(audioContext.destination);
-
-            osc.frequency.setValueAtTime(800, now);
-            osc.frequency.exponentialRampToValueAtTime(400, now + 0.3);
-
-            gain.gain.setValueAtTime(0.3, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-
-            osc.start(now);
-            osc.stop(now + 0.3);
-        }
-
-        // ========== 觸發 Glitch 特效 ==========
-        function triggerGlitch() {
-            const header = document.querySelector('.header h1');
-            header.style.animation = 'none';
-            setTimeout(() => {
-                header.style.animation = 'headerGlitch 0.4s ease-in-out';
-            }, 10);
-        }
-
-        // ========== 更新 SVG 儀表 ==========
-        function updateGauge(svgId, percentage, color) {
-            const svg = document.getElementById(svgId);
-            const gaugeGroup = svg.querySelector('g');
-            gaugeGroup.innerHTML = '';
-
-            const radius = 40;
-            const circumference = 2 * Math.PI * radius;
-            const offset = circumference * (1 - percentage / 100);
-
-            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            circle.setAttribute('cx', '50');
-            circle.setAttribute('cy', '50');
-            circle.setAttribute('r', radius);
-            circle.setAttribute('fill', 'none');
-            circle.setAttribute('stroke', color);
-            circle.setAttribute('stroke-width', '3');
-            circle.setAttribute('stroke-dasharray', circumference);
-            circle.setAttribute('stroke-dashoffset', offset);
-            circle.setAttribute('stroke-linecap', 'round');
-            circle.setAttribute('style', 'transition: stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); filter: drop-shadow(0 0 8px ' + color + ');');
-
-            gaugeGroup.appendChild(circle);
-
-            // 更新百分比文字
-            const textElement = svg.querySelector('text');
-            textElement.textContent = Math.round(percentage) + '%';
-        }
-
-        // ========== 動畫計數器 ==========
-        function animateCounter(elementId, startValue, endValue, duration = 800) {
-            const element = document.getElementById(elementId);
-            const startTime = performance.now();
-
-            function update(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                const easeProgress = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
-
-                const currentValue = Math.floor(startValue + (endValue - startValue) * easeProgress);
-                element.textContent = currentValue;
-
-                if (progress < 1) {
-                    requestAnimationFrame(update);
-                } else {
-                    element.textContent = endValue;
-                }
-            }
-
-            requestAnimationFrame(update);
-        }
-
-        // ========== 生成隨機二進位 ==========
-        function generateBinary() {
-            let binary = '';
-            for (let i = 0; i < 8; i++) {
-                binary += Math.random() > 0.5 ? '1' : '0';
-            }
-            return binary;
-        }
-
-        // ========== 更新統計數據 ==========
-        function updateStats(newStats) {
-            previousStats = { ...currentStats };
-            currentStats = newStats;
-
-            const config = TEAM_CONFIG[currentTeam];
-
-            // 動畫更新數值
-            animateCounter('moneyValue', previousStats.money, currentStats.money);
-            animateCounter('healthValue', previousStats.health, currentStats.health);
-            animateCounter('techValue', previousStats.tech, currentStats.tech);
-
-            // 更新儀表
-            updateGauge('moneySVG', currentStats.money, config.color);
-            updateGauge('healthSVG', currentStats.health, config.color);
-            updateGauge('techSVG', currentStats.tech, config.color);
-
-            // 更新二進位代碼
-            document.getElementById('moneyBinary').textContent = generateBinary();
-            document.getElementById('healthBinary').textContent = generateBinary();
-            document.getElementById('techBinary').textContent = generateBinary();
-
-            // 檢查臨界值
-            if (currentStats.health < 30) {
-                triggerCriticalAlert();
-            }
-        }
-
-        // ========== 觸發臨界警報 ==========
-        function triggerCriticalAlert() {
-            const alertSystem = document.querySelector('.alert-system');
-            alertSystem.classList.add('critical');
-
-            triggerShake();
-            playWarningSound();
-
-            setTimeout(() => {
-                alertSystem.classList.remove('critical');
-            }, 3000);
-        }
-
-        // ========== 播放警告音 ==========
-        function playWarningSound() {
-            if (!audioContext) return;
-
-            const now = audioContext.currentTime;
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-
-            osc.connect(gain);
-            gain.connect(audioContext.destination);
-
-            osc.frequency.setValueAtTime(600, now);
-            osc.frequency.setValueAtTime(800, now + 0.1);
-            osc.frequency.setValueAtTime(600, now + 0.2);
-
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.setValueAtTime(0, now + 0.3);
-
-            osc.start(now);
-            osc.stop(now + 0.3);
-        }
-
-        // ========== 觸發震動特效 ==========
-        function triggerShake() {
-            const container = document.querySelector('.container');
-            container.classList.add('shake');
-
-            setTimeout(() => {
-                container.classList.remove('shake');
-            }, 400);
-
-            // 實際手機震動（如果支援）
-            if (navigator.vibrate) {
-                navigator.vibrate([50, 30, 50, 30, 50]);
-            }
-        }
-
-        // ========== 添加警報 ==========
-        function addAlert(message) {
-            const alertLog = document.getElementById('alertLog');
-            const alertItem = document.createElement('div');
-            alertItem.className = 'alert-item';
-
-            if (message.includes('🚨') || message.includes('⚠️')) {
-                alertItem.classList.add('critical');
-            }
-
-            alertItem.textContent = `[${getTimestamp()}] ${message}`;
-            alertLog.appendChild(alertItem);
-
-            alertLog.scrollTop = alertLog.scrollHeight;
-
-            while (alertLog.children.length > 12) {
-                alertLog.removeChild(alertLog.firstChild);
-            }
-        }
-
-        // ========== 取得時間戳 ==========
-        function getTimestamp() {
-            const now = new Date();
-            return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-        }
-
-        // ========== API 輪詢 ==========
-        function startAPIPolling() {
-            setInterval(() => {
-                fetchDataFromGAS();
-            }, 3000);
-
-            fetchDataFromGAS();
-        }
-
-        // ========== 從 GAS 取得數據 ==========
-        function fetchDataFromGAS() {
-            // 測試模式
-            const testData = {
-                money: Math.floor(Math.random() * 100),
-                health: Math.floor(Math.random() * 100),
-                tech: Math.floor(Math.random() * 100),
-                alerts: []
-            };
-
-            // 隨機生成警報
-            const alertChance = Math.random();
-            if (alertChance > 0.7) {
-                const alerts = [
-                    '✅ 資源更新完成',
-                    '⚡ 科技點增加',
-                    '❤️ 生命值恢復',
-                    '⚠️ 資源消耗中',
-                    '🚨 系統異常檢測'
-                ];
-                testData.alerts = [alerts[Math.floor(Math.random() * alerts.length)]];
-            }
-
-            updateStats({
-                money: testData.money,
-                health: testData.health,
-                tech: testData.tech
+        function drawParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00f0ff';
+            if(currentMode === 'team') ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--color') || '#00f0ff';
+            particles.forEach(p => {
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+                p.y -= p.speed; if(p.y < 0) p.y = canvas.height;
             });
+            requestAnimationFrame(drawParticles);
+        }
+        window.addEventListener('resize', initCanvas);
+        initCanvas(); drawParticles();
 
-            if (testData.alerts && testData.alerts.length > 0) {
-                testData.alerts.forEach(alert => addAlert(alert));
-            }
-
-            /* 實際 GAS 請求
-            fetch(GAS_URL + '?team=' + currentTeam)
-                .then(response => response.json())
-                .then(data => {
-                    updateStats({
-                        money: data.money || 0,
-                        health: data.health || 0,
-                        tech: data.tech || 0
-                    });
-
-                    if (data.alerts && data.alerts.length > 0) {
-                        data.alerts.forEach(alert => addAlert(alert));
-                    }
-                })
-                .catch(error => {
-                    console.error('API 請求失敗:', error);
-                    addAlert('⚠️ 無法連接伺服器');
-                });
-            */
+        // 渲染主畫面
+        const hudMain = document.getElementById('hudMain');
+        
+        if (currentMode === 'host') {
+            // 【主畫面模式：主持人中央大螢幕控制台】
+            document.body.className = ""; // 移除單一隊伍色彩
+            renderHostLayout();
+        } else {
+            // 【主畫面模式：學弟妹 HUD 手機平板端】
+            document.body.className = `theme-${currentTeam}`;
+            renderTeamLayout();
         }
 
-        // ========== 頁面載入 ==========
-        window.addEventListener('load', init);
+        // --- 渲染小隊 HUD 畫面 ---
+        function renderTeamLayout() {
+            const team = globalData[currentTeam];
+            hudMain.className = "hud-container team-layout";
+            hudMain.innerHTML = `
+                <!-- 左側三大數據能量條 -->
+                <div class="status-bars">
+                    <div class="bar-container">
+                        <div class="bar-label"><span>💰 FUNDS（金錢）</span><span id="val-funds">${team.funds}%</span></div>
+                        <div class="bar-outer"><div id="bar-funds" class="bar-inner" style="width: ${team.funds}%; color:#00f0ff"></div><div class="bar-grid"></div></div>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-label"><span>❤️ STABILITY（生命值）</span><span id="val-stability">${team.stability}%</span></div>
+                        <div class="bar-outer"><div id="bar-stability" class="bar-inner" style="width: ${team.stability}%; color:#ff3333"></div><div class="bar-grid"></div></div>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-label"><span>⚡ CORE TECH（科技點）</span><span id="val-tech">${team.tech}%</span></div>
+                        <div class="bar-outer"><div id="bar-tech" class="bar-inner" style="width: ${team.tech}%; color:#00ffcc"></div><div class="bar-grid"></div></div>
+                    </div>
+                </div>
 
-        // ========== 防止縮放 ==========
-        document.addEventListener('touchmove', (e) => {
-            if (e.touches.length > 1) {
-                e.preventDefault();
-            }
-        }, { passive: false });
+                <!-- 中央動態雷達與古典去背徽章 -->
+                <div class="center-radar">
+                    <img class="badge-img" src="${team.img}" alt="陣營徽章">
+                    <svg class="radar-svg" viewBox="0 0 200 200">
+                        <circle cx="100" cy="100" r="90" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="4 4" />
+                        <circle cx="100" cy="100" r="70" fill="none" stroke="currentColor" stroke-width="0.5" />
+                        <circle cx="100" cy="100" r="50" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="10 5" />
+                        <line x1="100" y1="5" x2="100" y2="195" stroke="currentColor" stroke-width="0.5" stroke-opacity="0.3" />
+                        <line x1="5" y1="100" x2="195" y2="100" stroke="currentColor" stroke-width="0.5" stroke-opacity="0.3" />
+                    </svg>
+                </div>
 
-        document.addEventListener('gesturestart', (e) => {
-            e.preventDefault();
-        });
+                <!-- 右上 MISSION 抉擇指令彈出區塊 -->
+                <div class="mission-panel" id="missionPanel">
+                    <div class="mission-title">📡 SYSTEM STATUS</div>
+                    <div class="mission-text" id="missionText">天網系統安全連線中。等待中央控制台分發核心決策代碼...</div>
+                    <div id="optionContainer"></div>
+                </div>
+
+                <!-- 右下 戰術裝飾面板 -->
+                <div class="decor-panel">
+                    <div>
+                        <div>[ SECURITY LEVEL: MAXIMUM ]</div>
+                        <div>[ TARGET SECTOR: CORE-ALPHA ]</div>
+                    </div>
+                    <div style="text-align: right; font-weight: bold; color: #ff7300;">QUANTUM LINK ONLINE</div>
+                </div>
+            `;
+        }
+
+        // --- 渲染主持人大螢幕控制台 ---
+        function renderHostLayout() {
+            hudMain.className = "hud-container host-layout";
+            hudMain.innerHTML = `
+                <div class="host-header">臨界連鎖：中央主控台控制中心</div>
+                <div class="host-grid">
+                    <div class="control-box">
+                        <h3>第一步：指定隨機對決結果</h3>
+                        <label>🏆 本輪對決贏家（先選）：</label>
+                        <select id="winnerSelect">
+                            <option value="A">A隊 - 政府高層</option>
+                            <option value="B">B隊 - 社團科學家</option>
+                            <option value="C">C隊 - 工廠資方</option>
+                            <option value="D">D隊 - 底層勞工</option>
+                        </select>
+                        <label>💀 本輪對決輸家（後選）：</label>
+                        <select id="loserSelect">
+                            <option value="D">D隊 - 底層勞工</option>
+                            <option value="A">A隊 - 政府高層</option>
+                            <option value="B">B隊 - 社團科學家</option>
+                            <option value="C">C隊 - 工廠資方</option>
+                        </select>
+                        <button class="host-btn" onclick="triggerHostMission()">📢 發送核心問題至大螢幕與隊員端</button>
+                    </div>
+                    <div class="control-box" id="hostLogBox">
+                        <h3>目前即時事件紀錄</h3>
+                        <div style="font-size:12px; color:rgba(0,240,255,0.7); line-height:1.6;" id="hostLogs">
+                            [SYSTEM] 系統初始化完成，等待對決判定。
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 主持人觸發事件模擬測試（點選後，如果是隊員端網頁可以模擬遭受盲炸或跳出選擇題）
+        function triggerHostMission() {
+            const win = document.getElementById('winnerSelect').value;
+            const lose = document.getElementById('loserSelect').value;
+            const logBox = document.getElementById('hostLogs');
+            logBox.innerHTML += `<br>🚨 [連鎖觸發] 判定 ${win} 隊勝出，已將因果選擇題派發至各隊終端。`;
+            
+            alert(`已將因果狀態機派發！\n（學弟妹手機端如果是對應隊伍，每幾秒Fetch後就會動態刷出對應的圖片雷達、扣分震動與右上角選項按鈕！）`);
+        }
+
+        // --- 模擬觸發扣分時的「螢幕震動與閃紅光」高燃特效 ---
+        // 可以在後台 Fetch 偵測到生命或金錢下降時執行這個 Function
+        function triggerDamageEffect() {
+            const container = document.getElementById('hudMain');
+            container.classList.add('shake', 'glitch-flash');
+            setTimeout(() => { container.classList.remove('glitch-flash'); }, 150);
+            setTimeout(() => { container.classList.remove('shake'); }, 400);
+        }
     </script>
 </body>
 </html>
