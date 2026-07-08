@@ -163,8 +163,9 @@
     </div>
 
     <script>
-        // 🛰️ 使用真實、免設定、全球開放的 kvdb.io 公開儲存空間（自訂專屬桶子識別碼）
-        const API_URL = "https://kvdb.io/A7x9W2kL4mQp8zN3vB/matrix_speed_state";
+        // 🛰️ 使用 ntfy.sh 即時快取通道（免註冊、高頻率、不鎖限制）
+        const CHANNEL_ID = "matrix_tactical_sync_core_9955";
+        const API_URL = `https://ntfy.sh/${CHANNEL_ID}`;
 
         const initialTeamsData = {
             A: { name: "🏛️ 政府高層 SYSTEM", funds: 30, stability: 70, tech: 20, textName: "政府高層" }, 
@@ -177,7 +178,7 @@
             version: 1,
             currentRound: 1,
             teams: JSON.parse(JSON.stringify(initialTeamsData)),
-            logs: ["[量子防護系統] 核心運作中，本地優先防鎖死協議已啟動。"],
+            logs: ["[量子防護系統] 核心運作中，全即時廣播協議已啟動。"],
             rounds: {
                 1: { status: '闖關中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
                 2: { status: '闖關中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
@@ -187,7 +188,7 @@
         };
 
         let systemState = JSON.parse(JSON.stringify(initialSystemState));
-        let cloudOnline = true;
+        let cloudOnline = false;
 
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get('mode') || 'team';
@@ -197,7 +198,6 @@
         let isLocked = false;
         let isFetching = false;
 
-        // 🟢 更新網路狀態燈號
         function updateNetIndicator(isOK) {
             cloudOnline = isOK;
             const badge = document.getElementById('netIndicator');
@@ -206,30 +206,43 @@
                     badge.innerText = "🌐 雲端連線正常";
                     badge.className = "net-status-badge";
                 } else {
-                    badge.innerText = "⚠️ 雲端斷線/同步中...";
+                    badge.innerText = "⚠️ 雲端斷線/更新中...";
                     badge.className = "net-status-badge fail";
                 }
             }
         }
 
-        // 🛰️ 背景高頻讀取：發生錯誤絕不崩潰
+        // 🛰️ NDJSON 快取通道抓取器
         async function fetchState() {
             if (isLocked || isFetching) return; 
             isFetching = true;
             try {
-                const res = await fetch(`${API_URL}?t=${Date.now()}`, { cache: "no-store" });
+                const res = await fetch(`${API_URL}/json?poll=1`, { cache: "no-store" });
                 if (res.ok) {
                     const text = await res.text();
-                    if(text && text.trim().startsWith('{')) {
-                        const latest = JSON.parse(text);
-                        if (latest && typeof latest.version === 'number' && latest.version > systemState.version) {
+                    if(text && text.trim()) {
+                        const lines = text.trim().split('\n');
+                        let latest = null;
+                        for (let line of lines) {
+                            if (!line.trim()) continue;
+                            try {
+                                const packet = JSON.parse(line);
+                                if (packet.event === 'message' && packet.message) {
+                                    const state = JSON.parse(packet.message);
+                                    if (state && typeof state.version === 'number') {
+                                        if (!latest || state.version > latest.version) {
+                                            latest = state;
+                                        }
+                                    }
+                                }
+                            } catch(e){}
+                        }
+                        if (latest && latest.version > systemState.version) {
                             systemState = latest;
                             executeRender();
                         }
                     }
                     updateNetIndicator(true);
-                } else if(res.status === 404) {
-                    updateNetIndicator(true); // 桶子還沒資料算連線成功
                 } else {
                     updateNetIndicator(false);
                 }
@@ -240,33 +253,33 @@
             }
         }
 
-        // ⚡ 終極防卡死修改流：本地端點擊立刻執行，異步上傳雲端
+        // ⚡ 本地優先修改流（絕對不卡畫面）
         async function mutateAndSyncState(mutationFn) {
             if (isLocked) return;
             isLocked = true; 
             setButtonsDisabled(true);
 
-            // 【防卡死關鍵】1. 立即在本地記憶體執行修改，並立刻重繪畫面，按鈕絕對不卡住！
             try {
                 mutationFn();
+                // 斷尾機制：防止日誌無限增長塞爆傳輸上限
+                if (systemState.logs && systemState.logs.length > 8) {
+                    systemState.logs = systemState.logs.slice(0, 8);
+                }
                 systemState.version = (systemState.version || 0) + 1;
                 executeRender(); 
             } catch (e) {
                 console.error("本地邏輯出錯:", e);
             }
 
-            // 2. 獨立的 Try-Catch 區塊負責上傳。即便網路壞掉、伺服器爆炸，也絕不影響上面已經繪製好的本機畫面！
             try {
-                updateNetIndicator(false);
                 await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify(systemState),
-                    headers: { 'Content-Type': 'application/json' },
                     cache: "no-store"
                 });
                 updateNetIndicator(true);
             } catch (e) {
-                console.error("雲端同步背景失敗:", e);
+                console.error("雲端發布失敗:", e);
                 updateNetIndicator(false);
             } finally {
                 isLocked = false;
@@ -298,7 +311,7 @@
             }, 100);
         }
 
-        // 每 0.8 秒自動同步一次
+        // 每 0.8 秒高速輪詢
         setInterval(fetchState, 800);
 
         // 初始化
@@ -309,20 +322,7 @@
             } else {
                 document.body.className = `theme-${teamKey}`;
             }
-            
-            // 首次啟動：嘗試讀取，如果雲端全空則由第一台機器上傳初始檔案
-            try {
-                const res = await fetch(`${API_URL}?t=${Date.now()}`, { cache: "no-store" });
-                if(res.ok) {
-                    const text = await res.text();
-                    if(text && text.trim().startsWith('{')) {
-                        const latest = JSON.parse(text);
-                        if(latest && typeof latest.version === 'number') systemState = latest;
-                    }
-                } else {
-                    await fetch(API_URL, { method: 'POST', body: JSON.stringify(systemState), headers: { 'Content-Type': 'application/json' } });
-                }
-            } catch(e){}
+            await fetchState();
             executeRender();
         })();
 
@@ -370,7 +370,7 @@
                     </svg>
                     <div class="top-left-panel">
                         <div class="team-title">${data.name}</div>
-                        <div id="netIndicator" class="net-status-badge">${cloudOnline ? '🌐 雲端連線正常':'⚠️ 雲端斷線/同步中'}</div>
+                        <div id="netIndicator" class="net-status-badge">${cloudOnline ? '🌐 雲端連線正常':'⚠️ 雲端斷線/更新中'}</div>
                     </div>
                     <div class="mid-left-panel">
                         <div class="vertical-bar-container">
@@ -498,8 +498,8 @@
                 <div class="host-screen">
                     <div class="host-top-bar">
                         <div class="host-header">🌌 量子核心主控台 
-                            <span class="sync-indicator">📡 本地優先防鎖死版 (v${systemState.version || 0})</span>
-                            <span id="netIndicator" class="net-status-badge" style="margin-left:15px;">${cloudOnline ? '🌐 雲端連線正常':'⚠️ 雲端斷線/同步中'}</span>
+                            <span class="sync-indicator">📡 萬用廣播同步版 (v${systemState.version || 0})</span>
+                            <span id="netIndicator" class="net-status-badge" style="margin-left:15px;">${cloudOnline ? '🌐 雲端連線正常':'⚠️ 雲端斷線/更新中'}</span>
                         </div>
                         <div style="display:flex; gap:10px;">
                            <button class="reset-btn" onclick="resetSystem()">🚨 RESET</button>
@@ -642,7 +642,7 @@
                     systemState.currentRound = freshState.currentRound;
                     systemState.teams = freshState.teams;
                     systemState.rounds = freshState.rounds;
-                    systemState.logs = ["[系統重置] 全域防撞同步核心重置完成。"];
+                    systemState.logs = ["[系統重置] 全域廣播同步核心重置完成。"];
                 });
             }
         }
