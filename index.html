@@ -18,6 +18,20 @@
             background: radial-gradient(circle, rgba(0,0,0,0) 50%, rgba(2,6,8,0.9) 100%); z-index: 2; pointer-events: none;
         }
 
+        /* 🚨 獨立出來的超級重整按鈕，確保在最上層、絕對點得到 */
+        .global-sync-btn {
+            position: fixed; bottom: 20px; right: 20px; z-index: 99999;
+            background: #00ffaa; color: #020608; border: 2px solid #00ffaa;
+            padding: 12px 24px; font-size: 14px; font-weight: 900; cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 170, 0.4);
+            clip-path: polygon(0 0, 90% 0, 100% 30%, 100% 100%, 10% 100%, 0 70%);
+            transition: all 0.2s ease;
+        }
+        .global-sync-btn:hover {
+            background: #020608; color: #00ffaa; box-shadow: 0 0 25px rgba(0, 255, 170, 0.8);
+        }
+        .global-sync-btn:active { transform: scale(0.95); }
+
         .hud-screen {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 95vw; height: 95vw; max-width: 850px; max-height: 850px; z-index: 10;
@@ -61,12 +75,12 @@
         }
         .hud-btn:hover { background: currentColor; color: #020608; box-shadow: 0 0 15px currentColor; }
 
-        .bottom-right-panel { grid-column: 3; grid-row: 3; border: 1px solid rgba(0, 240, 255, 0.2); padding: 15px; display: flex; flex-direction: column; justify-content: center; gap: 8px; clip-path: polygon(0 0, 100% 0, 100% 75%, 85% 100%, 0 100%); }
-        .status-line { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; color: rgba(0,240,255,0.8); }
+        .bottom-right-panel { grid-column: 3; grid-row: 3; border: 1px solid rgba(0, 240, 255, 0.2); padding: 12px; display: flex; flex-direction: column; justify-content: center; gap: 4px; clip-path: polygon(0 0, 100% 0, 100% 75%, 85% 100%, 0 100%); }
+        .status-line { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; color: rgba(0,240,255,0.8); }
 
         .host-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100;
-            background: #040d14; padding: 25px; overflow-y: auto; color: #00f0ff;
+            background: #040d14; padding: 25px; overflow-y: auto; color: #00f0ff; padding-bottom: 100px;
         }
         .host-top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00f0ff; padding-bottom: 10px; margin-bottom: 20px; }
         .host-header { font-size: 26px; font-weight: 900; color: #ff7300; text-shadow: 0 0 10px #ff7300; }
@@ -116,12 +130,13 @@
 </head>
 <body>
 
+    <!-- 🌐 全域最上層強制重新整理按鈕 -->
+    <button class="global-sync-btn" onclick="triggerManualSync()">⚡ 強制重整資料</button>
+
     <div id="mainView"></div>
 
     <script>
-        // 🔒 房間專屬極速識別碼
-        const ROOM_ID = "matrix_speed_room_9958";
-        const API_URL = `https://kvdb.io/MN88Y6bS88VwR8Zp7bXg9H/${ROOM_ID}`;
+        const API_URL = "https://bacon.pico.sh/matrix_ultra_speed_991";
 
         const initialTeamsData = {
             A: { name: "🏛️ 政府高層 SYSTEM", funds: 30, stability: 70, tech: 20, textName: "政府高層" }, 
@@ -133,7 +148,7 @@
         const initialSystemState = {
             currentRound: 1,
             teams: JSON.parse(JSON.stringify(initialTeamsData)),
-            logs: ["[量子同步] 頻道已重置，秒級同步中。"],
+            logs: ["[量子高階同步] 零延遲光纖通道已連接。"],
             rounds: {
                 1: { status: '闖關中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
                 2: { status: '闖關中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
@@ -149,7 +164,6 @@
         const teamKey = urlParams.get('team') || 'A';
         const mainView = document.getElementById('mainView');
 
-        // 🌐 高頻上傳核心
         async function saveState() {
             try {
                 await fetch(API_URL, {
@@ -160,11 +174,10 @@
             } catch (e) {}
         }
 
-        // 🌐 高頻下載更新核心
         async function fetchState() {
             try {
-                const res = await fetch(API_URL);
-                if (res.status === 200) {
+                const res = await fetch(`${API_URL}?t=${Date.now()}`);
+                if (res.ok) {
                     const latest = await res.json();
                     if (JSON.stringify(latest) !== JSON.stringify(systemState)) {
                         systemState = latest;
@@ -175,10 +188,27 @@
             } catch (e) {}
         }
 
-        // ⚡ 每 0.5 秒強制對齊資料，實現零體感延遲！
-        setInterval(fetchState, 500);
+        // 🔄 手動觸發強制重整的視覺與邏輯回饋
+        async function triggerManualSync() {
+            const btn = document.querySelector('.global-sync-btn');
+            btn.innerText = "⏳ 正在拉取...";
+            btn.style.background = "#ff7300";
+            btn.style.borderColor = "#ff7300";
+            
+            await fetchState();
+            
+            setTimeout(() => {
+                btn.innerText = "✅ 重整成功！";
+                btn.style.background = "#00ffaa";
+                btn.style.borderColor = "#00ffaa";
+                setTimeout(() => {
+                    btn.innerText = "⚡ 強制重整資料";
+                }, 1000);
+            }, 300);
+        }
 
-        // 初始化渲染
+        setInterval(fetchState, 400);
+
         if (mode === 'host') {
             document.body.className = "";
             renderHostView();
@@ -187,9 +217,6 @@
             renderTeamView();
         }
 
-        // =========================================
-        // 📱 隊員端 HUD 畫面
-        // =========================================
         function renderTeamView() {
             const data = systemState.teams[teamKey];
             const rIdx = systemState.currentRound;
@@ -348,9 +375,6 @@
             saveState();
         }
 
-        // =========================================
-        // 🖥️ 主持人控制台
-        // =========================================
         function renderHostView() {
             const rIdx = systemState.currentRound;
             const rData = systemState.rounds[rIdx];
@@ -362,8 +386,10 @@
             mainView.innerHTML = `
                 <div class="host-screen">
                     <div class="host-top-bar">
-                        <div class="host-header">🌌 量子核心主控台 <span class="sync-indicator">📡 高抗干擾強效雲端連線中</span></div>
-                        <button class="reset-btn" onclick="resetSystem()">🚨 核心系統重製 (RESET)</button>
+                        <div class="host-header">🌌 量子核心主控台 <span class="sync-indicator">📡 零延遲光纖儲存直連中</span></div>
+                        <div style="display:flex; gap:10px;">
+                           <button class="reset-btn" onclick="resetSystem()">🚨 核心系統重製 (RESET)</button>
+                        </div>
                     </div>
                     
                     <div class="round-tabs">
