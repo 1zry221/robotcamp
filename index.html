@@ -119,10 +119,9 @@
     <div id="mainView"></div>
 
     <script>
-        // 🔒 您的專屬高強效房間金鑰
-        const ROOM_ID = "matrix_global_room_772";
-        // 🚀 更換為專為高頻率同步設計的免費極速 Cloud JSON API
-        const API_URL = `https://api.jsonbin.io/v3/b/65f4bb59266cfc3fde989cd1`; 
+        // 🔒 房間專屬極速識別碼
+        const ROOM_ID = "matrix_speed_room_9958";
+        const API_URL = `https://kvdb.io/MN88Y6bS88VwR8Zp7bXg9H/${ROOM_ID}`;
 
         const initialTeamsData = {
             A: { name: "🏛️ 政府高層 SYSTEM", funds: 30, stability: 70, tech: 20, textName: "政府高層" }, 
@@ -134,7 +133,7 @@
         const initialSystemState = {
             currentRound: 1,
             teams: JSON.parse(JSON.stringify(initialTeamsData)),
-            logs: ["[系統強效連線] 跨網路通訊已啟動。"],
+            logs: ["[量子同步] 頻道已重置，秒級同步中。"],
             rounds: {
                 1: { status: '闖關中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
                 2: { status: '闖關中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
@@ -147,53 +146,42 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get('mode') || 'team';
-        const teamKey = urlParams.get('team') || 'B';
+        const teamKey = urlParams.get('team') || 'A';
         const mainView = document.getElementById('mainView');
 
-        // 🌐 【高穿透同步機制】上傳
+        // 🌐 高頻上傳核心
         async function saveState() {
             try {
-                // 將最新狀態寫入公共快取中繼站，確保不被 GitHub 阻擋
-                await fetch(`https://api.countapi.xyz/set/matrix_v3/${ROOM_ID}?value=${encodeURIComponent(JSON.stringify(systemState))}`).catch(()=>{});
-                localStorage.setItem(`ROOM_LOCAL_SYNC`, JSON.stringify(systemState));
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(systemState),
+                    headers: { 'Content-Type': 'application/json' }
+                });
             } catch (e) {}
         }
 
-        // 🌐 【高穿透同步機制】下載更新
+        // 🌐 高頻下載更新核心
         async function fetchState() {
             try {
-                // 讀取中繼站資料
-                const res = await fetch(`https://api.countapi.xyz/get/matrix_v3/${ROOM_ID}`);
-                if (res.ok) {
-                    const resData = await res.json();
-                    if(resData && resData.value) {
-                        const latest = JSON.parse(decodeURIComponent(resData.value));
-                        if (JSON.stringify(latest) !== JSON.stringify(systemState)) {
-                            systemState = latest;
-                            if (mode !== 'host') renderTeamView();
-                            else renderHostView();
-                        }
+                const res = await fetch(API_URL);
+                if (res.status === 200) {
+                    const latest = await res.json();
+                    if (JSON.stringify(latest) !== JSON.stringify(systemState)) {
+                        systemState = latest;
+                        if (mode !== 'host') renderTeamView();
+                        else renderHostView();
                     }
                 }
-            } catch (e) {
-                // 備用快取通道
-                const localData = localStorage.getItem(`ROOM_LOCAL_SYNC`);
-                if (localData && systemState.logs.length <= 1) {
-                    systemState = JSON.parse(localData);
-                    if (mode !== 'host') renderTeamView();
-                    else renderHostView();
-                }
-            }
+            } catch (e) {}
         }
 
-        // 每 1 秒強制下載對齊一次
-        setInterval(fetchState, 1000);
+        // ⚡ 每 0.5 秒強制對齊資料，實現零體感延遲！
+        setInterval(fetchState, 500);
 
-        // 初始化
+        // 初始化渲染
         if (mode === 'host') {
             document.body.className = "";
             renderHostView();
-            saveState();
         } else {
             document.body.className = `theme-${teamKey}`;
             renderTeamView();
@@ -306,24 +294,24 @@
                     systemState.teams.A.stability = clamp(systemState.teams.A.stability + 15);
                     systemState.teams.A.tech = clamp(systemState.teams.A.tech + 5);
                     systemState.teams.D.funds = clamp(systemState.teams.D.funds - 10);
-                    logDesc = "【政府高層】選擇方案甲。生命+15、科技+5；勞工資產-10。";
+                    logDesc = "【政府高層】選擇方案甲。自身生命+15、科技+5；勞工資產-10。";
                 } else {
                     systemState.teams.A.funds = clamp(systemState.teams.A.funds + 20);
                     systemState.teams.B.tech = clamp(systemState.teams.B.tech - 15);
                     systemState.teams.C.stability = clamp(systemState.teams.C.stability - 10);
-                    logDesc = "【政府高層】選擇方案乙。資產+20；科學家科技-15、資方生命-10。";
+                    logDesc = "【政府高層】選擇方案乙。自身資產+20；科學家科技-15、資方生命-10。";
                 }
             } 
             else if (activeTeam === 'B') {
                 if (choiceType === 'A') {
                     systemState.teams.B.tech = clamp(systemState.teams.B.tech + 20);
                     systemState.teams.A.tech = clamp(systemState.teams.A.tech + 10);
-                    logDesc = "【社團科學家】選擇方案甲。科技+20；政府科技+10。";
+                    logDesc = "【社團科學家】選擇方案甲。自身科技+20；政府科技+10。";
                 } else {
                     systemState.teams.B.stability = clamp(systemState.teams.B.stability + 25);
                     systemState.teams.C.funds = clamp(systemState.teams.C.funds - 20);
                     systemState.teams.D.stability = clamp(systemState.teams.D.stability - 10);
-                    logDesc = "【社團科學家】選擇方案乙。生命+25；資方資產-20、勞工生命-10。";
+                    logDesc = "【社團科學家】選擇方案乙。自身生命+25；資方資產-20、勞工生命-10。";
                 }
             } 
             else if (activeTeam === 'C') {
@@ -331,12 +319,12 @@
                     systemState.teams.C.funds = clamp(systemState.teams.C.funds + 15);
                     systemState.teams.C.stability = clamp(systemState.teams.C.stability + 5);
                     systemState.teams.D.funds = clamp(systemState.teams.D.funds - 15);
-                    logDesc = "【工廠資方】選擇方案甲。資產+15、生命+5；勞工資產-15。";
+                    logDesc = "【工廠資方】選擇方案甲。自身資產+15、生命+5；勞工資產-15。";
                 } else {
                     systemState.teams.C.tech = clamp(systemState.teams.C.tech + 20);
                     systemState.teams.A.funds = clamp(systemState.teams.A.funds - 15);
                     systemState.teams.B.stability = clamp(systemState.teams.B.stability - 10);
-                    logDesc = "【工廠資方】選擇方案乙。科技+20；政府資產-15、科學家生命-10。";
+                    logDesc = "【工廠資方】選擇方案乙。自身科技+20；政府資產-15、科學家生命-10。";
                 }
             } 
             else if (activeTeam === 'D') {
@@ -344,12 +332,12 @@
                     systemState.teams.D.stability = clamp(systemState.teams.D.stability + 20);
                     systemState.teams.D.funds = clamp(systemState.teams.D.funds + 5);
                     systemState.teams.C.funds = clamp(systemState.teams.C.funds - 10);
-                    logDesc = "【底層勞工】選擇方案甲。生命+20、資產+5；資方資產-10。";
+                    logDesc = "【底層勞工】選擇方案甲。自身生命+20、資產+5；資方資產-10。";
                 } else {
                     systemState.teams.D.tech = clamp(systemState.teams.D.tech + 15);
                     systemState.teams.A.stability = clamp(systemState.teams.A.stability - 15);
                     systemState.teams.C.funds = clamp(systemState.teams.C.funds - 15);
-                    logDesc = "【底層勞工】選擇方案乙。科技+15；政府生命-15、資方資產-15。";
+                    logDesc = "【底層勞工】選擇方案乙。自身科技+15；政府生命-15、資方資產-15。";
                 }
             }
 
@@ -457,7 +445,7 @@
                                         <span>② 👑 第二順位 ➔ [ ${n_w2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===1?'◀ 正在作答':(rData.currentTurnIdx>1?'✅ 已提交':'⏳ 等待中'))}
                                     </div>
                                     <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===2?'active':(rData.currentTurnIdx>2?'done':'')}">
-                                        <span>③ ⚠️ 第三順位 ➔ [ ${n_l1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===2?'◀ 正在作答':(rData.currentTurnIdx>2?'✅ 已提交':'⏳ 等斷中'))}
+                                        <span>③ ⚠️ 第三順位 ➔ [ ${n_l1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===2?'◀ 正在作答':(rData.currentTurnIdx>2?'✅ 已提交':'⏳ 等待中'))}
                                     </div>
                                     <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===3?'active':(rData.currentTurnIdx>3?'done':'')}">
                                         <span>④ ⚠️ 第四順位 ➔ [ ${n_l2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===3?'◀ 正在作答':(rData.currentTurnIdx>3?'✅ 已提交':'⏳ 等待中'))}
