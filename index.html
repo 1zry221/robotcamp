@@ -49,22 +49,21 @@
         .radar-rotate-fast { animation: rotateRadar 12s linear infinite; }
         .radar-rotate-slow { animation: rotateRadar 25s linear reverse infinite; }
 
-        /* 右上：MISSION 戰術指令板 */
+        /* 右上：戰術指令板 */
         .top-right-panel {
             grid-column: 3; grid-row: 1 / span 2; border: 2px solid rgba(0, 240, 255, 0.3); 
             background: rgba(3, 12, 20, 0.7); padding: 18px; position: relative;
             clip-path: polygon(0 0, 85% 0, 100% 10%, 100% 100%, 0 100%);
-            display: flex; flex-direction: column; gap: 10px;
+            display: flex; flex-direction: column; gap: 10px; justify-content: center;
         }
-        .mission-header { font-size: 16px; color: #ff7300; text-shadow: 0 0 8px #ff7300; font-weight: 900; border-bottom: 2px dashed rgba(255,115,0,0.4); padding-bottom: 8px; }
-        .mission-content { font-size: 14px; line-height: 1.5; color: #ffffff; flex-grow: 1; font-weight: bold; }
+        .mission-content { font-size: 14px; line-height: 1.5; color: #ffffff; font-weight: bold; }
         
         /* 行動按鈕區塊 */
-        .action-box { display: flex; flex-direction: column; }
+        .action-box { display: flex; flex-direction: column; margin-top: 10px; }
         .hud-btn {
-            display: block; width: 100%; padding: 10px 12px; background: rgba(0, 240, 255, 0.1);
-            border: 2px solid currentColor; color: currentColor; text-align: center; cursor: pointer; font-size: 14px; font-weight: 900;
-            transition: all 0.2s; clip-path: polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%); margin-top: 6px;
+            display: block; width: 100%; padding: 12px 12px; background: rgba(0, 240, 255, 0.1);
+            border: 2px solid currentColor; color: currentColor; text-align: center; cursor: pointer; font-size: 13px; font-weight: 900;
+            transition: all 0.2s; clip-path: polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%); margin-top: 8px;
         }
         .hud-btn:hover { background: currentColor; color: #020608; box-shadow: 0 0 15px currentColor; }
 
@@ -87,7 +86,7 @@
         .tab-btn { flex: 1; padding: 12px; background: #0b1d28; border: 1px solid #00f0ff; color: #00f0ff; font-weight: bold; cursor: pointer; font-size: 16px; }
         .tab-btn.active { background: #ff7300; color: #000; border-color: #ff7300; }
         
-        .host-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; }
+        .host-grid { display: grid; grid-template-columns: 1.2fr 1.1fr; gap: 20px; }
         .control-panel-box { border: 2px solid rgba(0,240,255,0.3); background: rgba(0,0,0,0.4); padding: 20px; border-radius: 4px; }
         .panel-title { font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 15px; border-left: 4px solid #ff7300; padding-left: 8px; }
         
@@ -101,11 +100,17 @@
         .primary-btn:hover { background: #ff8c24; }
         
         .flow-tracker { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-        .flow-step { padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); font-size: 15px; font-weight: bold; display: flex; justify-content: space-between; cursor: pointer; }
+        .flow-step { padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); font-size: 15px; font-weight: bold; display: flex; justify-content: space-between; }
         .flow-step.active { background: rgba(0,240,255,0.25); border-color: #00f0ff; color: #fff; box-shadow: 0 0 10px rgba(0,240,255,0.2); }
         .flow-step.done { color: rgba(255,255,255,0.4); border-color: rgba(255,255,255,0.05); background: rgba(0,0,0,0.4); }
 
-        .log-box { background: #020609; border: 1px solid rgba(0,240,255,0.2); padding: 15px; height: 350px; overflow-y: auto; font-size: 14px; line-height: 1.6; }
+        .log-box { background: #020609; border: 1px solid rgba(0,240,255,0.2); padding: 15px; height: 220px; overflow-y: auto; font-size: 13px; line-height: 1.6; font-family: monospace; }
+        
+        /* 陣營實時分數看板 */
+        .score-board { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .score-card { background: rgba(7, 20, 30, 0.8); border: 1px solid rgba(0,240,255,0.3); padding: 10px; }
+        .score-card-title { font-size: 13px; font-weight: bold; margin-bottom: 5px; }
+        .score-card-vals { font-size: 12px; color: #fff; display: flex; justify-content: space-between; }
 
         /* 陣營色彩機制 */
         .theme-A { --color: #ffb700; } .theme-B { --color: #00f0ff; } .theme-C { --color: #d400ff; } .theme-D { --color: #ff3333; } 
@@ -124,17 +129,19 @@
     <div id="mainView"></div>
 
     <script>
-        // 4大陣營初始核心數值
-        const globalData = {
+        // 4大陣營核心基礎常數
+        const initialTeamsData = {
             A: { name: "🏛️ 政府高層 SYSTEM", funds: 30, stability: 70, tech: 20, textName: "政府高層" }, 
             B: { name: "🧪 社團科學家 SYSTEM", funds: 20, stability: 30, tech: 70, textName: "社團科學家" }, 
             C: { name: "🏢 工廠資方 SYSTEM", funds: 70, stability: 30, tech: 20, textName: "工廠資方" }, 
             D: { name: "🛠️ 底層勞工 SYSTEM", funds: 40, stability: 40, tech: 40, textName: "底層勞工" }  
         };
 
-        // 初始狀態定義
+        // 初始全局狀態（包含陣營即時數值與日誌）
         const initialSystemState = {
             currentRound: 1,
+            teams: JSON.parse(JSON.stringify(initialTeamsData)),
+            logs: ["[核心就緒] 量子矩陣已初始化，等待主持人開啟第一輪關卡。"],
             rounds: {
                 1: { status: '闖關中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
                 2: { status: '闖關中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
@@ -158,18 +165,19 @@
         const teamKey = urlParams.get('team') || 'B';
         const mainView = document.getElementById('mainView');
 
-        // 定時檢查更新機制
+        // 每秒檢查一次 localStorage，保證所有人即時同步
         setInterval(() => {
             if (localStorage.getItem('hud_system_state')) {
                 const latest = JSON.parse(localStorage.getItem('hud_system_state'));
                 if (JSON.stringify(latest) !== JSON.stringify(systemState)) {
                     systemState = latest;
                     if (mode !== 'host') renderTeamView();
+                    else renderHostView();
                 }
             }
         }, 1000);
 
-        // 初始化
+        // 初始化渲染
         if (mode === 'host') {
             document.body.className = "";
             renderHostView();
@@ -179,10 +187,10 @@
         }
 
         // =========================================
-        // 📱 渲染隊員端 HUD 畫面
+        // 📱 渲染隊員端 HUD 畫面（移除標題、實裝即時分數）
         // =========================================
         function renderTeamView() {
-            const data = globalData[teamKey];
+            const data = systemState.teams[teamKey]; // 讀取全域即時變動的數值
             const rIdx = systemState.currentRound;
             const rData = systemState.rounds[rIdx];
             
@@ -196,20 +204,26 @@
                 canAction = false;
             } else {
                 const turnOrder = [rData.w1, rData.w2, rData.l1, rData.l2];
-                const activeTeamNow = turnOrder[rData.currentTurnIdx];
-                const activeTeamName = globalData[activeTeamNow].textName;
                 
-                // 改進點：簡化為「第 X 順位」
-                if (teamKey === rData.w1) identityText = "<span style='color:#ffb700'>【👑 第一順位】</span>";
-                else if (teamKey === rData.w2) identityText = "<span style='color:#00ffaa'>【✨ 第二順位】</span>";
-                else if (teamKey === rData.l1) identityText = "<span style='color:#ff5555'>【⚠️ 第三順位】</span>";
-                else if (teamKey === rData.l2) identityText = "<span style='color:#ff3333'>【🚨 第四順位】</span>";
-
-                if (teamKey === activeTeamNow) {
-                    statusText = `<span style="color:#00ff00; font-size:16px; font-weight:900; animation: flash 1s infinite;">▶ 🚨 輪到你們決策！請立即下達行動方案。</span>`;
-                    canAction = true;
+                if (rData.currentTurnIdx > 3) {
+                    identityText = "<span style='color:#ffffff; opacity: 0.5;'>【🔚 本輪選擇已結束】</span>";
+                    statusText = `請等待主持人切換到下一輪關卡！`;
+                    canAction = false;
                 } else {
-                    statusText = `等待中... 目前正由 <span style="color:#00f0ff;">[ ${activeTeamName} ]</span> 進行第 ${rIdx} 輪選擇。`;
+                    const activeTeamNow = turnOrder[rData.currentTurnIdx];
+                    const activeTeamName = systemState.teams[activeTeamNow].textName;
+                    
+                    if (teamKey === rData.w1) identityText = "<span style='color:#ffb700'>【👑 第一順位】</span>";
+                    else if (teamKey === rData.w2) identityText = "<span style='color:#00ffaa'>【✨ 第二順位】</span>";
+                    else if (teamKey === rData.l1) identityText = "<span style='color:#ff5555'>【⚠️ 第三順位】</span>";
+                    else if (teamKey === rData.l2) identityText = "<span style='color:#ff3333'>【🚨 第四順位】</span>";
+
+                    if (teamKey === activeTeamNow) {
+                        statusText = `<span style="color:#00ff00; font-size:15px; font-weight:900; animation: flash 1s infinite;">▶ 🚨 輪到你們決策！請選擇一項因果法案提交。</span>`;
+                        canAction = true;
+                    } else {
+                        statusText = `等待中... 目前正由 <span style="color:#00f0ff;">[ ${activeTeamName} ]</span> 執行第 ${rIdx} 輪選擇。`;
+                    }
                 }
             }
 
@@ -258,16 +272,15 @@
                     </div>
 
                     <div class="top-right-panel">
-                        <div class="mission-header">🛰️ 階段 0${rIdx} : 矩陣狀態</div>
+                        <!-- 依要求已完全剔除「階段 XX: 矩陣狀態」的標題，直接顯示狀態與動態按鈕 -->
                         <div class="mission-content">
                             本階段狀態：<br>${identityText}<br><br>
                             ${statusText}
                         </div>
                         
-                        <!-- 改進點：當沒有輪到該隊/闖關中時，整個按鈕區塊完全隱藏不留淡影 -->
                         <div class="action-box" style="display: ${canAction ? 'block' : 'none'};">
-                            <button class="hud-btn" onclick="teamAction('🎯 執行：保守型因果修正')">⚡ 方案甲：因果建構</button>
-                            <button class="hud-btn" onclick="teamAction('🔥 執行：激進型矩陣爆發')">⚡ 方案乙：逆流破壞</button>
+                            <button class="hud-btn" onclick="executeMatrixChoice('A')">⚡ 方案甲：因果建構</button>
+                            <button class="hud-btn" onclick="executeMatrixChoice('B')">⚡ 方案乙：逆流破壞</button>
                         </div>
                     </div>
 
@@ -279,22 +292,97 @@
             `;
         }
 
-        function teamAction(actionName) {
-            alert(`【決策成功】已提交: ${actionName}。\n請向主持人回報，由控制台切換至下一位順位！`);
+        // =========================================
+        // ⚡ 核心功能：選完自動算分 + 自動換下一個！
+        // =========================================
+        function executeMatrixChoice(choiceType) {
+            const rIdx = systemState.currentRound;
+            const rData = systemState.rounds[rIdx];
+            const turnOrder = [rData.w1, rData.w2, rData.l1, rData.l2];
+            const activeTeam = turnOrder[rData.currentTurnIdx];
+            const teamName = systemState.teams[activeTeam].textName;
+
+            let logDesc = "";
+
+            // 輔助限制數值在 0 ~ 100 區間
+            const clamp = (val) => Math.min(100, Math.max(0, val));
+
+            // 計算分數改動
+            if (activeTeam === 'A') { // 政府高層
+                if (choiceType === 'A') {
+                    systemState.teams.A.stability = clamp(systemState.teams.A.stability + 15);
+                    systemState.teams.A.tech = clamp(systemState.teams.A.tech + 5);
+                    systemState.teams.D.funds = clamp(systemState.teams.D.funds - 10);
+                    logDesc = "【政府高層】選擇【方案甲】：加強體制。自身生命+15、科技+5；導致底層勞工資產-10。";
+                } else {
+                    systemState.teams.A.funds = clamp(systemState.teams.A.funds + 20);
+                    systemState.teams.B.tech = clamp(systemState.teams.B.tech - 15);
+                    systemState.teams.C.stability = clamp(systemState.teams.C.stability - 10);
+                    logDesc = "【政府高層】選擇【方案乙】：資產徵收。自身資產+20；導致科學家科技-15、工廠資方生命-10。";
+                }
+            } 
+            else if (activeTeam === 'B') { // 社團科學家
+                if (choiceType === 'A') {
+                    systemState.teams.B.tech = clamp(systemState.teams.B.tech + 20);
+                    systemState.teams.A.tech = clamp(systemState.teams.A.tech + 10);
+                    logDesc = "【社團科學家】選擇【方案甲】：開源研究。自身科技+20；引導政府高層科技+10。";
+                } else {
+                    systemState.teams.B.stability = clamp(systemState.teams.B.stability + 25);
+                    systemState.teams.C.funds = clamp(systemState.teams.C.funds - 20);
+                    systemState.teams.D.stability = clamp(systemState.teams.D.stability - 10);
+                    logDesc = "【社團科學家】選擇【方案乙】：禁忌實驗。自身生命+25；重挫工廠資方資產-20、底層勞工生命-10。";
+                }
+            } 
+            else if (activeTeam === 'C') { // 工廠資方
+                if (choiceType === 'A') {
+                    systemState.teams.C.funds = clamp(systemState.teams.C.funds + 15);
+                    systemState.teams.C.stability = clamp(systemState.teams.C.stability + 5);
+                    systemState.teams.D.funds = clamp(systemState.teams.D.funds - 15);
+                    logDesc = "【工廠資方】選擇【方案甲】：擴大壟斷。自身資產+15、生命+5；壓榨底層勞工資產-15。";
+                } else {
+                    systemState.teams.C.tech = clamp(systemState.teams.C.tech + 20);
+                    systemState.teams.A.funds = clamp(systemState.teams.A.funds - 15);
+                    systemState.teams.B.stability = clamp(systemState.teams.B.stability - 10);
+                    logDesc = "【工廠資方】選擇【方案乙】：自動化轉型。自身科技+20；削減政府資產-15、科學家生命-10。";
+                }
+            } 
+            else if (activeTeam === 'D') { // 底層勞工
+                if (choiceType === 'A') {
+                    systemState.teams.D.stability = clamp(systemState.teams.D.stability + 20);
+                    systemState.teams.D.funds = clamp(systemState.teams.D.funds + 5);
+                    systemState.teams.C.funds = clamp(systemState.teams.C.funds - 10);
+                    logDesc = "【底層勞工】選擇【方案甲】：聯合罷工。自身生命+20、資產+5；反噬工廠資方資產-10。";
+                } else {
+                    systemState.teams.D.tech = clamp(systemState.teams.D.tech + 15);
+                    systemState.teams.A.stability = clamp(systemState.teams.A.stability - 15);
+                    systemState.teams.C.funds = clamp(systemState.teams.C.funds - 15);
+                    logDesc = "【底層勞工】選擇【方案乙】：地下反抗。自身科技+15；打擊政府生命-15、工廠資方資產-15。";
+                }
+            }
+
+            // 【核心改動】自動推移到下一順位
+            systemState.rounds[rIdx].currentTurnIdx++;
+            systemState.logs.unshift(`[R${rIdx}-順位${rData.currentTurnIdx}] ${logDesc}`);
+
+            saveState();
+            
+            // 立即原地重新渲染，避免 1 秒的定時器延遲
+            renderTeamView();
+            alert(`【決策廣播成功】\n數值已自動演算，矩陣控制權已移交下一順位！`);
         }
 
 
         // =========================================
-        // 🖥️ 渲染中央控制台大螢幕畫面
+        // 🖥️ 渲染中央控制台大螢幕畫面 (新增即時數據版)
         // =========================================
         function renderHostView() {
             const rIdx = systemState.currentRound;
             const rData = systemState.rounds[rIdx];
 
-            const n_w1 = globalData[rData.w1].textName;
-            const n_w2 = globalData[rData.w2].textName;
-            const n_l1 = globalData[rData.l1].textName;
-            const n_l2 = globalData[rData.l2].textName;
+            const n_w1 = systemState.teams[rData.w1].textName;
+            const n_w2 = systemState.teams[rData.w2].textName;
+            const n_l1 = systemState.teams[rData.l1].textName;
+            const n_l2 = systemState.teams[rData.l2].textName;
 
             mainView.innerHTML = `
                 <div class="host-screen">
@@ -307,6 +395,26 @@
                         ${[1,2,3,4].map(num => `
                             <button class="tab-btn ${rIdx === num ? 'active' : ''}" onclick="switchRound(${num})">第 0${num} 輪戰局</button>
                         `).join('')}
+                    </div>
+
+                    <!-- 即時各隊分數看板 -->
+                    <div class="score-board">
+                        <div class="score-card" style="border-color: #ffb700;">
+                            <div class="score-card-title" style="color: #ffb700;">🏛️ 政府高層</div>
+                            <div class="score-card-vals"><span>資產: ${systemState.teams.A.funds}</span><span>生命: ${systemState.teams.A.stability}</span><span>科技: ${systemState.teams.A.tech}</span></div>
+                        </div>
+                        <div class="score-card" style="border-color: #00f0ff;">
+                            <div class="score-card-title" style="color: #00f0ff;">🧪 社團科學家</div>
+                            <div class="score-card-vals"><span>資產: ${systemState.teams.B.funds}</span><span>生命: ${systemState.teams.B.stability}</span><span>科技: ${systemState.teams.B.tech}</span></div>
+                        </div>
+                        <div class="score-card" style="border-color: #d400ff;">
+                            <div class="score-card-title" style="color: #d400ff;">🏢 工廠資方</div>
+                            <div class="score-card-vals"><span>資產: ${systemState.teams.C.funds}</span><span>生命: ${systemState.teams.C.stability}</span><span>科技: ${systemState.teams.C.tech}</span></div>
+                        </div>
+                        <div class="score-card" style="border-color: #ff3333;">
+                            <div class="score-card-title" style="color: #ff3333;">🛠️ 底層勞工</div>
+                            <div class="score-card-vals"><span>資產: ${systemState.teams.D.funds}</span><span>生命: ${systemState.teams.D.stability}</span><span>科技: ${systemState.teams.D.tech}</span></div>
+                        </div>
                     </div>
 
                     <div class="host-grid">
@@ -357,31 +465,30 @@
 
                             <button class="primary-btn" onclick="applyRoundSettings()">📡 闖關結束：廣播同步本輪順位</button>
 
-                            <div class="action-bar" style="margin-top:25px;">
-                                <div class="panel-title">第二步：因果流選擇動態控制</div>
+                            <div class="action-bar" style="margin-top:15px;">
+                                <div class="panel-title">第二步：因果流選擇進度監視 (系統會自動切換)</div>
                                 <div class="flow-tracker" style="${rData.status === '闖關中' ? 'opacity:0.4; pointer-events:none;' : ''}">
-                                    <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===0?'active':(rData.currentTurnIdx>0?'done':'')}" onclick="setTurn(0)">
-                                        <span>① 👑 第一順位 ➔ [ ${n_w1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===0?'◀ 正在填寫':'已完成')}
+                                    <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===0?'active':(rData.currentTurnIdx>0?'done':'')}">
+                                        <span>① 👑 第一順位 ➔ [ ${n_w1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===0?'◀ 正在作答':'✅ 已提交完成')}
                                     </div>
-                                    <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===1?'active':(rData.currentTurnIdx>1?'done':'')}" onclick="setTurn(1)">
-                                        <span>② 👑 第二順位 ➔ [ ${n_w2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===1?'◀ 正在填寫':(rData.currentTurnIdx>1?'已完成':'等待中'))}
+                                    <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===1?'active':(rData.currentTurnIdx>1?'done':'')}">
+                                        <span>② 👑 第二順位 ➔ [ ${n_w2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===1?'◀ 正在作答':(rData.currentTurnIdx>1?'✅ 已提交完成':'⏳ 等待中'))}
                                     </div>
-                                    <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===2?'active':(rData.currentTurnIdx>2?'done':'')}" onclick="setTurn(2)">
-                                        <span>③ ⚠️ 第三順位 ➔ [ ${n_l1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===2?'◀ 正在填寫':(rData.currentTurnIdx>2?'已完成':'等待中'))}
+                                    <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===2?'active':(rData.currentTurnIdx>2?'done':'')}">
+                                        <span>③ ⚠️ 第三順位 ➔ [ ${n_l1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===2?'◀ 正在作答':(rData.currentTurnIdx>2?'✅ 已提交完成':'⏳ 等待中'))}
                                     </div>
-                                    <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===3?'active':''}" onclick="setTurn(3)">
-                                        <span>④ ⚠️ 第四順位 ➔ [ ${n_l2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===3?'◀ 正在填寫':'等待中')}
+                                    <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===3?'active':(rData.currentTurnIdx>3?'done':'')}">
+                                        <span>④ ⚠️ 第四順位 ➔ [ ${n_l2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===3?'◀ 正在作答':(rData.currentTurnIdx>3?'✅ 已提交完成':'⏳ 等待中'))}
                                     </div>
                                 </div>
-                                <button class="primary-btn" style="background:#00f0ff; color:#000; margin-top:15px;" ${rData.status === '闖關中' ? 'disabled' : ''} onclick="nextTurn()">⏭️ 強制推進至下一順位</button>
+                                <button class="primary-btn" style="background:#00f0ff; color:#000; margin-top:12px;" ${rData.status === '闖關中' || rData.currentTurnIdx > 3 ? 'disabled' : ''} onclick="forceNextTurn()">⏭️ 管理員強制推進下一順位</button>
                             </div>
                         </div>
 
                         <div class="control-panel-box">
-                            <div class="panel-title">📊 量子通訊即時日誌</div>
+                            <div class="panel-title">📊 量子通訊即時連鎖日誌</div>
                             <div class="log-box" id="hostLogs">
-                                [核心就緒] 第 0${rIdx} 輪戰局目前處於【闖關挑戰中】。<br>
-                                各陣營初始數值已同步至其設備。
+                                ${systemState.logs.map(l => `> ${l}<br>`).join('')}
                             </div>
                         </div>
                     </div>
@@ -403,40 +510,30 @@
             systemState.rounds[rIdx].l1 = document.getElementById('l1').value;
             systemState.rounds[rIdx].l2 = document.getElementById('l2').value;
             systemState.rounds[rIdx].currentTurnIdx = 0; 
-            saveState();
-            renderHostView();
             
-            const log = document.getElementById('hostLogs');
-            const n_w1 = globalData[systemState.rounds[rIdx].w1].textName;
-            log.innerHTML = `[重要變更] 第 0${rIdx} 輪關卡已結算！正式發布順位。控制權已發放給【${n_w1}】。<br>` + log.innerHTML;
-        }
-
-        function setTurn(idx) {
-            const rIdx = systemState.currentRound;
-            if(systemState.rounds[rIdx].status === '闖關中') return;
-            systemState.rounds[rIdx].currentTurnIdx = idx;
+            const n_w1 = systemState.teams[systemState.rounds[rIdx].w1].textName;
+            systemState.logs.unshift(`[系統通知] 第 0${rIdx} 輪關卡闖關結算！控制權已流轉至第一順位【${n_w1}】。`);
+            
             saveState();
             renderHostView();
         }
 
-        function nextTurn() {
+        function forceNextTurn() {
             const rIdx = systemState.currentRound;
-            if(systemState.rounds[rIdx].status === '闖關中') return;
-            if (systemState.rounds[rIdx].currentTurnIdx < 3) {
+            if (systemState.rounds[rIdx].currentTurnIdx < 4) {
                 systemState.rounds[rIdx].currentTurnIdx++;
+                systemState.logs.unshift(`[管理介入] 主持人強制跳過了目前順位的作答權。`);
                 saveState();
                 renderHostView();
-            } else {
-                alert("本輪選擇已全部結束！請點擊上方頁籤切換至下一輪戰局。");
             }
         }
 
         function resetSystem() {
-            if(confirm("🚨 警告：確定要強制重製量子核心系統嗎？\n這將會清除所有回合進度與勝負名單並重新回歸【關卡闖關階段】！")) {
+            if(confirm("🚨 警告：確定要強制重製量子核心系統嗎？\n這將會將所有隊伍分數歸於初始值，且清除所有回合進度！")) {
                 systemState = JSON.parse(JSON.stringify(initialSystemState));
                 saveState();
                 renderHostView();
-                alert("系統重製完成，已同步廣播至所有設備。");
+                alert("系統已徹底重製。");
             }
         }
     </script>
