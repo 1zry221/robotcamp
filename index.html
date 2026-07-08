@@ -25,19 +25,21 @@
             width: 95vw; height: 95vw; max-width: 850px; max-height: 850px; z-index: 10;
             background: rgba(4, 10, 15, 0.85); border: 2px solid rgba(0, 240, 255, 0.3);
             box-shadow: 0 0 40px rgba(0, 240, 255, 0.1), inset 0 0 30px rgba(0, 240, 255, 0.05);
-            display: grid; grid-template-columns: 1.2fr 2fr 1.4fr; grid-template-rows: 0.6fr 2fr 0.8fr; padding: 25px; gap: 20px;
+            display: grid; grid-template-columns: 1.3fr 1.9fr 1.4fr; grid-template-rows: 0.6fr 2fr 0.8fr; padding: 25px; gap: 20px;
         }
         .hud-border-svg { position: absolute; top: -2px; left: -2px; width: calc(100% + 4px); height: calc(100% + 4px); pointer-events: none; stroke: currentColor; fill: none; stroke-width: 2; opacity: 0.8; }
         .top-left-panel { grid-column: 1; grid-row: 1; display: flex; align-items: center; }
-        .team-title { font-size: 20px; font-weight: 900; letter-spacing: 2px; text-shadow: 0 0 10px currentColor; }
+        .team-title { font-size: 18px; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 10px currentColor; line-height: 1.3; }
 
-        /* 左中：能量矩陣條 */
-        .mid-left-panel { display: flex; flex-direction: column; justify-content: center; gap: 15px; grid-column: 1; grid-row: 2; height: 100%; padding-left: 5px; }
-        .vertical-bar-container { display: flex; align-items: center; gap: 12px; width: 100%; height: 26px; }
-        .v-bar-label { font-size: 15px; font-weight: 900; text-shadow: 0 0 8px currentColor; width: 35px; text-align: left; white-space: nowrap; }
-        .v-bar-outer { flex-grow: 1; height: 100%; border: 2px solid rgba(0, 240, 255, 0.4); padding: 3px; background: rgba(0,0,0,0.6); position: relative; }
-        .v-bar-inner { height: 100%; background: currentColor; position: absolute; left: 3px; top: 3px; bottom: 3px; transition: width 0.6s cubic-bezier(0.1, 0.8, 0.3, 1); filter: drop-shadow(0 0 6px currentColor); }
-        .v-bar-grid { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent 70%, #020608 70%); background-size: 14px 100%; }
+        /* 左中：【全新】垂直能量矩陣條 */
+        .mid-left-panel { display: flex; justify-content: space-around; align-items: flex-end; grid-column: 1; grid-row: 2; height: 100%; padding: 10px 5px; border: 1px solid rgba(0, 240, 255, 0.15); background: rgba(0,0,0,0.2); }
+        .vertical-bar-container { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 30%; height: 100%; gap: 8px; }
+        .v-bar-val { font-size: 11px; font-weight: bold; font-family: monospace; text-align: center; color: #fff; }
+        .v-bar-outer { width: 22px; flex-grow: 1; border: 2px solid rgba(0, 240, 255, 0.4); padding: 2px; background: rgba(0,0,0,0.6); position: relative; display: flex; align-items: flex-end; }
+        .v-bar-inner { width: 100%; background: currentColor; transition: height 0.6s cubic-bezier(0.1, 0.8, 0.3, 1); filter: drop-shadow(0 0 6px currentColor); }
+        .v-bar-grid { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, transparent 70%, #020608 70%); background-size: 100% 10px; pointer-events: none; }
+        .v-bar-label { font-size: 13px; font-weight: 900; text-shadow: 0 0 8px currentColor; text-align: center; writing-mode: vertical-lr; letter-spacing: 2px; }
+        
         .bottom-left-panel { grid-column: 1; grid-row: 3; border: 1px solid rgba(0, 240, 255, 0.2); background: rgba(0,0,0,0.3); position: relative; }
 
         /* 中央：純數碼反應爐雷達 */
@@ -50,21 +52,21 @@
         /* 右上：MISSION 戰術指令板 */
         .top-right-panel {
             grid-column: 3; grid-row: 1 / span 2; border: 2px solid rgba(0, 240, 255, 0.3); 
-            background: rgba(3, 12, 20, 0.7); padding: 20px; position: relative;
+            background: rgba(3, 12, 20, 0.7); padding: 18px; position: relative;
             clip-path: polygon(0 0, 85% 0, 100% 10%, 100% 100%, 0 100%);
-            display: flex; flex-direction: column; gap: 12px;
+            display: flex; flex-direction: column; gap: 10px;
         }
-        .mission-header { font-size: 18px; color: #ff7300; text-shadow: 0 0 8px #ff7300; font-weight: 900; border-bottom: 2px dashed rgba(255,115,0,0.4); padding-bottom: 8px; }
-        .mission-content { font-size: 16px; line-height: 1.6; color: #ffffff; flex-grow: 1; font-weight: bold; }
+        .mission-header { font-size: 16px; color: #ff7300; text-shadow: 0 0 8px #ff7300; font-weight: 900; border-bottom: 2px dashed rgba(255,115,0,0.4); padding-bottom: 8px; }
+        .mission-content { font-size: 14px; line-height: 1.5; color: #ffffff; flex-grow: 1; font-weight: bold; }
         
         /* 行動按鈕 */
         .hud-btn {
-            display: block; width: 100%; padding: 12px 15px; background: rgba(0, 240, 255, 0.1);
-            border: 2px solid currentColor; color: currentColor; text-align: center; cursor: pointer; font-size: 15px; font-weight: 900;
-            transition: all 0.2s; clip-path: polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%); margin-top: 8px;
+            display: block; width: 100%; padding: 10px 12px; background: rgba(0, 240, 255, 0.1);
+            border: 2px solid currentColor; color: currentColor; text-align: center; cursor: pointer; font-size: 14px; font-weight: 900;
+            transition: all 0.2s; clip-path: polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%); margin-top: 6px;
         }
         .hud-btn:hover { background: currentColor; color: #020608; box-shadow: 0 0 15px currentColor; }
-        .hud-btn:disabled { opacity: 0.15; cursor: not-allowed; border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.2); background: none; }
+        .hud-btn:disabled { opacity: 0.12; cursor: not-allowed; border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.2); background: none; }
 
         .bottom-right-panel { grid-column: 3; grid-row: 3; border: 1px solid rgba(0, 240, 255, 0.2); padding: 15px; display: flex; flex-direction: column; justify-content: center; gap: 8px; clip-path: polygon(0 0, 100% 0, 100% 75%, 85% 100%, 0 100%); }
         .status-line { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; color: rgba(0,240,255,0.8); }
@@ -81,7 +83,7 @@
         .tab-btn { flex: 1; padding: 12px; background: #0b1d28; border: 1px solid #00f0ff; color: #00f0ff; font-weight: bold; cursor: pointer; font-size: 16px; }
         .tab-btn.active { background: #ff7300; color: #000; border-color: #ff7300; }
         
-        .host-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
+        .host-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; }
         .control-panel-box { border: 2px solid rgba(0,240,255,0.3); background: rgba(0,0,0,0.4); padding: 20px; border-radius: 4px; }
         .panel-title { font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 15px; border-left: 4px solid #ff7300; padding-left: 8px; }
         
@@ -118,22 +120,22 @@
     <div id="mainView"></div>
 
     <script>
-        // 4大陣營基本數據 (穩定已正名為 生命)
+        // 4大陣營初始核心數值（滿分 100）
         const globalData = {
-            A: { name: "🏛️ 政府高層 SYSTEM", funds: 85, stability: 95, tech: 45, textName: "政府高層" }, 
-            B: { name: "🧪 社團科學家 SYSTEM", funds: 60, stability: 70, tech: 90, textName: "社團科學家" }, 
-            C: { name: "🏢 工廠資方 SYSTEM", funds: 95, stability: 55, tech: 65, textName: "工廠資方" }, 
-            D: { name: "🛠️ 底層勞工 SYSTEM", funds: 45, stability: 80, tech: 35, textName: "底層勞工" }  
+            A: { name: "🏛️ 政府高層 SYSTEM", funds: 30, stability: 70, tech: 20, textName: "政府高層" }, 
+            B: { name: "🧪 社團科學家 SYSTEM", funds: 20, stability: 30, tech: 70, textName: "社團科學家" }, 
+            C: { name: "🏢 工廠資方 SYSTEM", funds: 70, stability: 30, tech: 20, textName: "工廠資方" }, 
+            D: { name: "🛠️ 底層勞工 SYSTEM", funds: 40, stability: 40, tech: 40, textName: "底層勞工" }  
         };
 
-        // 核心狀態
+        // 核心狀態，加設 status 區分未指定與已廣播
         let systemState = {
             currentRound: 1,
             rounds: {
-                1: { w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
-                2: { w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
-                3: { w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
-                4: { w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 }
+                1: { status: '闯关中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
+                2: { status: '闯关中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
+                3: { status: '闯关中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 },
+                4: { status: '闯关中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0 }
             }
         };
 
@@ -154,12 +156,12 @@
         setInterval(() => {
             if (localStorage.getItem('hud_system_state')) {
                 const latest = JSON.parse(localStorage.getItem('hud_system_state'));
-                if (latest.rounds[latest.currentRound].currentTurnIdx !== systemState.rounds[systemState.currentRound].currentTurnIdx || latest.currentRound !== systemState.currentRound) {
+                if (JSON.stringify(latest) !== JSON.stringify(systemState)) {
                     systemState = latest;
                     if (mode !== 'host') renderTeamView();
                 }
             }
-        }, 1200);
+        }, 1000);
 
         // 初始化
         if (mode === 'host') {
@@ -171,30 +173,38 @@
         }
 
         // =========================================
-        // 📱 渲染隊員端 HUD 畫面（資產、生命、科技）
+        // 📱 渲染隊員端 HUD 畫面（直式能量條與數值）
         // =========================================
         function renderTeamView() {
             const data = globalData[teamKey];
             const rIdx = systemState.currentRound;
             const rData = systemState.rounds[rIdx];
             
-            const turnOrder = [rData.w1, rData.w2, rData.l1, rData.l2];
-            const activeTeamNow = turnOrder[rData.currentTurnIdx];
-            const activeTeamName = globalData[activeTeamNow].textName;
-            
-            let isMyTurn = (teamKey === activeTeamNow);
             let identityText = "";
-            
-            if (teamKey === rData.w1) identityText = "<span style='color:#ffb700'>【👑 第一順位修正者】</span>";
-            else if (teamKey === rData.w2) identityText = "<span style='color:#00ffaa'>【✨ 第二順位修正者】</span>";
-            else if (teamKey === rData.l1) identityText = "<span style='color:#ff5555'>【⚠️ 第三順位決策者】</span>";
-            else if (teamKey === rData.l2) identityText = "<span style='color:#ff3333'>【🚨 第四順位倒數者】</span>";
-
             let statusText = "";
-            if (isMyTurn) {
-                statusText = `<span style="color:#00ff00; font-size:17px; font-weight:900; animation: flash 1s infinite;">▶ 🚨 輪到你們決策！請立即下達行動方案。</span>`;
+            let canAction = false;
+
+            // 判斷當前是闖關中還是已經開始連鎖選擇
+            if (rData.status === '闯关中') {
+                identityText = "<span style='color:#00ffaa'>【🎮 關卡挑戰階段】</span>";
+                statusText = `<span style="color:#ffffff; opacity: 0.8;">📊 正在進行關卡闖關！<br>請全力取得優勢。等待主持人結算並分配本輪因果修正順位...</span>`;
+                canAction = false;
             } else {
-                statusText = `等待中... 目前正由 <span style="color:#00f0ff;">[ ${activeTeamName} ]</span> 執行第 ${rIdx} 輪連鎖選擇。`;
+                const turnOrder = [rData.w1, rData.w2, rData.l1, rData.l2];
+                const activeTeamNow = turnOrder[rData.currentTurnIdx];
+                const activeTeamName = globalData[activeTeamNow].textName;
+                
+                if (teamKey === rData.w1) identityText = "<span style='color:#ffb700'>【👑 第一順位修正者】</span>";
+                else if (teamKey === rData.w2) identityText = "<span style='color:#00ffaa'>【✨ 第二順位修正者】</span>";
+                else if (teamKey === rData.l1) identityText = "<span style='color:#ff5555'>【⚠️ 第三順位決策者】</span>";
+                else if (teamKey === rData.l2) identityText = "<span style='color:#ff3333'>【🚨 第四順位倒數者】</span>";
+
+                if (teamKey === activeTeamNow) {
+                    statusText = `<span style="color:#00ff00; font-size:16px; font-weight:900; animation: flash 1s infinite;">▶ 🚨 輪到你們決策！請立即下達行動方案。</span>`;
+                    canAction = true;
+                } else {
+                    statusText = `等待中... 目前正由 <span style="color:#00f0ff;">[ ${activeTeamName} ]</span> 執行第 ${rIdx} 輪連鎖選擇。`;
+                }
             }
 
             mainView.innerHTML = `
@@ -207,19 +217,22 @@
                         <div class="team-title">${data.name}</div>
                     </div>
 
-                    <!-- 橫向能量條：資產 / 生命 / 科技 -->
+                    <!-- 【全新升級】直式並排能量條（附數字） -->
                     <div class="mid-left-panel">
                         <div class="vertical-bar-container">
+                            <span class="v-bar-val">${data.funds}</span>
+                            <div class="v-bar-outer"><div class="v-bar-inner" style="height: ${data.funds}%;"></div><div class="v-bar-grid"></div></div>
                             <span class="v-bar-label">資產</span>
-                            <div class="v-bar-outer"><div class="v-bar-inner" style="width: ${data.funds}%;"></div><div class="v-bar-grid"></div></div>
                         </div>
                         <div class="vertical-bar-container" style="color: #ff7300;">
+                            <span class="v-bar-val">${data.stability}</span>
+                            <div class="v-bar-outer"><div class="v-bar-inner" style="height: ${data.stability}%;"></div><div class="v-bar-grid"></div></div>
                             <span class="v-bar-label">生命</span>
-                            <div class="v-bar-outer"><div class="v-bar-inner" style="width: ${data.stability}%;"></div><div class="v-bar-grid"></div></div>
                         </div>
                         <div class="vertical-bar-container" style="color: #00ffaa;">
+                            <span class="v-bar-val">${data.tech}</span>
+                            <div class="v-bar-outer"><div class="v-bar-inner" style="height: ${data.tech}%;"></div><div class="v-bar-grid"></div></div>
                             <span class="v-bar-label">科技</span>
-                            <div class="v-bar-outer"><div class="v-bar-inner" style="width: ${data.tech}%;"></div><div class="v-bar-grid"></div></div>
                         </div>
                     </div>
 
@@ -246,8 +259,8 @@
                             ${statusText}
                         </div>
                         <div>
-                            <button class="hud-btn" ${!isMyTurn ? 'disabled' : ''} onclick="teamAction('🎯 執行：保守型因果修正')">⚡ 方案甲：因果建構</button>
-                            <button class="hud-btn" ${!isMyTurn ? 'disabled' : ''} onclick="teamAction('🔥 執行：激進型矩陣爆發')">⚡ 方案乙：逆流破壞</button>
+                            <button class="hud-btn" ${!canAction ? 'disabled' : ''} onclick="teamAction('🎯 執行：保守型因果修正')">⚡ 方案甲：因果建構</button>
+                            <button class="hud-btn" ${!canAction ? 'disabled' : ''} onclick="teamAction('🔥 執行：激進型矩陣爆發')">⚡ 方案乙：逆流破壞</button>
                         </div>
                     </div>
 
@@ -288,7 +301,7 @@
 
                     <div class="host-grid">
                         <div class="control-panel-box">
-                            <div class="panel-title">第一步：配置本輪【雙贏雙輸】名單</div>
+                            <div class="panel-title">第一步：配置本輪【雙贏雙輸】名單 (目前狀態: <span style="color:#ff7300">${rData.status}</span>)</div>
                             
                             <div class="input-row">
                                 <div class="input-group">
@@ -332,33 +345,33 @@
                                 </div>
                             </div>
 
-                            <button class="primary-btn" onclick="applyRoundSettings()">📡 廣播同步本輪勝負名單</button>
+                            <button class="primary-btn" onclick="applyRoundSettings()">📡 闖關結束：廣播同步勝負與因果順位</button>
 
                             <div class="action-bar" style="margin-top:25px;">
                                 <div class="panel-title">第二步：因果流選擇動態控制</div>
-                                <div class="flow-tracker">
-                                    <div class="flow-step ${rData.currentTurnIdx===0?'active':(rData.currentTurnIdx>0?'done':'')}" onclick="setTurn(0)">
-                                        <span>① 👑 贏家 A ➔ [ 陣營：${n_w1} ] 選擇中</span> ${rData.currentTurnIdx===0?'◀ 正在填寫':'已完成'}
+                                <div class="flow-tracker" style="${rData.status === '闯关中' ? 'opacity:0.4; pointer-events:none;' : ''}">
+                                    <div class="flow-step ${rData.status!=='闯关中'&&rData.currentTurnIdx===0?'active':(rData.currentTurnIdx>0?'done':'')}" onclick="setTurn(0)">
+                                        <span>① 👑 贏家 A ➔ [ 陣營：${n_w1} ]</span> ${rData.status==='闯关中'?'未開啟':(rData.currentTurnIdx===0?'◀ 正在填寫':'已完成')}
                                     </div>
-                                    <div class="flow-step ${rData.currentTurnIdx===1?'active':(rData.currentTurnIdx>1?'done':'')}" onclick="setTurn(1)">
-                                        <span>② 👑 贏家 B ➔ [ 陣營：${n_w2} ] 選擇中</span> ${rData.currentTurnIdx===1?'◀ 正在填寫':(rData.currentTurnIdx>1?'已完成':'等待中')}
+                                    <div class="flow-step ${rData.status!=='闯关中'&&rData.currentTurnIdx===1?'active':(rData.currentTurnIdx>1?'done':'')}" onclick="setTurn(1)">
+                                        <span>② 👑 贏家 B ➔ [ 陣營：${n_w2} ]</span> ${rData.status==='闯关中'?'未開啟':(rData.currentTurnIdx===1?'◀ 正在填寫':(rData.currentTurnIdx>1?'已完成':'等待中'))}
                                     </div>
-                                    <div class="flow-step ${rData.currentTurnIdx===2?'active':(rData.currentTurnIdx>2?'done':'')}" onclick="setTurn(2)">
-                                        <span>③ ⚠️ 輸家 A ➔ [ 陣營：${n_l1} ] 選擇中</span> ${rData.currentTurnIdx===2?'◀ 正在填寫':(rData.currentTurnIdx>2?'已完成':'等待中')}
+                                    <div class="flow-step ${rData.status!=='闯关中'&&rData.currentTurnIdx===2?'active':(rData.currentTurnIdx>2?'done':'')}" onclick="setTurn(2)">
+                                        <span>③ ⚠️ 輸家 A ➔ [ 陣營：${n_l1} ]</span> ${rData.status==='闯关中'?'未開啟':(rData.currentTurnIdx===2?'◀ 正在填寫':(rData.currentTurnIdx>2?'已完成':'等待中'))}
                                     </div>
-                                    <div class="flow-step ${rData.currentTurnIdx===3?'active':''}" onclick="setTurn(3)">
-                                        <span>④ ⚠️ 輸家 B ➔ [ 陣營：${n_l2} ] 選擇中</span> ${rData.currentTurnIdx===3?'◀ 正在填寫':'等待中'}
+                                    <div class="flow-step ${rData.status!=='闯关中'&&rData.currentTurnIdx===3?'active':''}" onclick="setTurn(3)">
+                                        <span>④ ⚠️ 輸家 B ➔ [ 陣營：${n_l2} ]</span> ${rData.status==='闯关中'?'未開啟':(rData.currentTurnIdx===3?'◀ 正在填寫':'等待中')}
                                     </div>
                                 </div>
-                                <button class="primary-btn" style="background:#00f0ff; color:#000; margin-top:15px;" onclick="nextTurn()">⏭️ 強制推進至下一順位</button>
+                                <button class="primary-btn" style="background:#00f0ff; color:#000; margin-top:15px;" ${rData.status === '闯关中' ? 'disabled' : ''} onclick="nextTurn()">⏭️ 強制推進至下一順位</button>
                             </div>
                         </div>
 
                         <div class="control-panel-box">
                             <div class="panel-title">📊 量子通訊即時日誌</div>
                             <div class="log-box" id="hostLogs">
-                                [核心就緒] 第 0${rIdx} 輪戰局通訊正常。<br>
-                                [當前順位] 行動排程：${n_w1} ➔ ${n_w2} ➔ ${n_l1} ➔ ${n_l2}。
+                                [核心就緒] 第 0${rIdx} 輪戰局目前處於【闖關挑戰中】。<br>
+                                各陣營初始數值已同步至其設備。
                             </div>
                         </div>
                     </div>
@@ -374,6 +387,7 @@
 
         function applyRoundSettings() {
             const rIdx = systemState.currentRound;
+            systemState.rounds[rIdx].status = '連鎖選擇中';
             systemState.rounds[rIdx].w1 = document.getElementById('w1').value;
             systemState.rounds[rIdx].w2 = document.getElementById('w2').value;
             systemState.rounds[rIdx].l1 = document.getElementById('l1').value;
@@ -384,11 +398,12 @@
             
             const log = document.getElementById('hostLogs');
             const n_w1 = globalData[systemState.rounds[rIdx].w1].textName;
-            log.innerHTML = `[變更通知] 第 0${rIdx} 輪順位已刷新。控制權發放給【${n_w1}】。<br>` + log.innerHTML;
+            log.innerHTML = `[重要變更] 第 0${rIdx} 輪關卡已結算！正式發布連鎖選擇順位。控制權已發放給首位贏家【${n_w1}】。<br>` + log.innerHTML;
         }
 
         function setTurn(idx) {
             const rIdx = systemState.currentRound;
+            if(systemState.rounds[rIdx].status === '闯关中') return;
             systemState.rounds[rIdx].currentTurnIdx = idx;
             saveState();
             renderHostView();
@@ -396,6 +411,7 @@
 
         function nextTurn() {
             const rIdx = systemState.currentRound;
+            if(systemState.rounds[rIdx].status === '闯关中') return;
             if (systemState.rounds[rIdx].currentTurnIdx < 3) {
                 systemState.rounds[rIdx].currentTurnIdx++;
                 saveState();
