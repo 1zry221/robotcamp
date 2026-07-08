@@ -59,14 +59,14 @@
         .mission-header { font-size: 16px; color: #ff7300; text-shadow: 0 0 8px #ff7300; font-weight: 900; border-bottom: 2px dashed rgba(255,115,0,0.4); padding-bottom: 8px; }
         .mission-content { font-size: 14px; line-height: 1.5; color: #ffffff; flex-grow: 1; font-weight: bold; }
         
-        /* 行動按鈕 */
+        /* 行動按鈕區塊 */
+        .action-box { display: flex; flex-direction: column; }
         .hud-btn {
             display: block; width: 100%; padding: 10px 12px; background: rgba(0, 240, 255, 0.1);
             border: 2px solid currentColor; color: currentColor; text-align: center; cursor: pointer; font-size: 14px; font-weight: 900;
             transition: all 0.2s; clip-path: polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%); margin-top: 6px;
         }
         .hud-btn:hover { background: currentColor; color: #020608; box-shadow: 0 0 15px currentColor; }
-        .hud-btn:disabled { opacity: 0.12; cursor: not-allowed; border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.2); background: none; }
 
         .bottom-right-panel { grid-column: 3; grid-row: 3; border: 1px solid rgba(0, 240, 255, 0.2); padding: 15px; display: flex; flex-direction: column; justify-content: center; gap: 8px; clip-path: polygon(0 0, 100% 0, 100% 75%, 85% 100%, 0 100%); }
         .status-line { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; color: rgba(0,240,255,0.8); }
@@ -192,23 +192,24 @@
 
             if (rData.status === '闖關中') {
                 identityText = "<span style='color:#00ffaa'>【🎮 關卡挑戰階段】</span>";
-                statusText = `<span style="color:#ffffff; opacity: 0.8;">📊 正在進行關卡闖關！<br>請全力取得優勢。等待主持人結算並分配本輪因果修正順位...</span>`;
+                statusText = `<span style="color:#ffffff; opacity: 0.8;">📊 正在進行關卡闖關！<br>請全力取得優勢。<br><br>等待主持人結算並分配本輪順位...</span>`;
                 canAction = false;
             } else {
                 const turnOrder = [rData.w1, rData.w2, rData.l1, rData.l2];
                 const activeTeamNow = turnOrder[rData.currentTurnIdx];
                 const activeTeamName = globalData[activeTeamNow].textName;
                 
-                if (teamKey === rData.w1) identityText = "<span style='color:#ffb700'>【👑 第一順位修正者】</span>";
-                else if (teamKey === rData.w2) identityText = "<span style='color:#00ffaa'>【✨ 第二順位修正者】</span>";
-                else if (teamKey === rData.l1) identityText = "<span style='color:#ff5555'>【⚠️ 第三順位決策者】</span>";
-                else if (teamKey === rData.l2) identityText = "<span style='color:#ff3333'>【🚨 第四順位倒數者】</span>";
+                // 改進點：簡化為「第 X 順位」
+                if (teamKey === rData.w1) identityText = "<span style='color:#ffb700'>【👑 第一順位】</span>";
+                else if (teamKey === rData.w2) identityText = "<span style='color:#00ffaa'>【✨ 第二順位】</span>";
+                else if (teamKey === rData.l1) identityText = "<span style='color:#ff5555'>【⚠️ 第三順位】</span>";
+                else if (teamKey === rData.l2) identityText = "<span style='color:#ff3333'>【🚨 第四順位】</span>";
 
                 if (teamKey === activeTeamNow) {
                     statusText = `<span style="color:#00ff00; font-size:16px; font-weight:900; animation: flash 1s infinite;">▶ 🚨 輪到你們決策！請立即下達行動方案。</span>`;
                     canAction = true;
                 } else {
-                    statusText = `等待中... 目前正由 <span style="color:#00f0ff;">[ ${activeTeamName} ]</span> 執行第 ${rIdx} 輪連鎖選擇。`;
+                    statusText = `等待中... 目前正由 <span style="color:#00f0ff;">[ ${activeTeamName} ]</span> 進行第 ${rIdx} 輪選擇。`;
                 }
             }
 
@@ -259,12 +260,14 @@
                     <div class="top-right-panel">
                         <div class="mission-header">🛰️ 階段 0${rIdx} : 矩陣狀態</div>
                         <div class="mission-content">
-                            本階段權限：<br>${identityText}<br><br>
+                            本階段狀態：<br>${identityText}<br><br>
                             ${statusText}
                         </div>
-                        <div>
-                            <button class="hud-btn" ${!canAction ? 'disabled' : ''} onclick="teamAction('🎯 執行：保守型因果修正')">⚡ 方案甲：因果建構</button>
-                            <button class="hud-btn" ${!canAction ? 'disabled' : ''} onclick="teamAction('🔥 執行：激進型矩陣爆發')">⚡ 方案乙：逆流破壞</button>
+                        
+                        <!-- 改進點：當沒有輪到該隊/闖關中時，整個按鈕區塊完全隱藏不留淡影 -->
+                        <div class="action-box" style="display: ${canAction ? 'block' : 'none'};">
+                            <button class="hud-btn" onclick="teamAction('🎯 執行：保守型因果修正')">⚡ 方案甲：因果建構</button>
+                            <button class="hud-btn" onclick="teamAction('🔥 執行：激進型矩陣爆發')">⚡ 方案乙：逆流破壞</button>
                         </div>
                     </div>
 
@@ -282,7 +285,7 @@
 
 
         // =========================================
-        // 🖥️ 渲染中央控制台大螢幕畫面 (新增重製功能)
+        // 🖥️ 渲染中央控制台大螢幕畫面
         // =========================================
         function renderHostView() {
             const rIdx = systemState.currentRound;
@@ -308,11 +311,11 @@
 
                     <div class="host-grid">
                         <div class="control-panel-box">
-                            <div class="panel-title">第一步：配置本輪【雙贏雙輸】名單 (目前狀態: <span style="color:#ff7300">${rData.status}</span>)</div>
+                            <div class="panel-title">第一步：配置本輪順位名單 (目前狀態: <span style="color:#ff7300">${rData.status}</span>)</div>
                             
                             <div class="input-row">
                                 <div class="input-group">
-                                    <label>👑 贏家 A (第一順位)</label>
+                                    <label>👑 第一順位</label>
                                     <select class="host-select" id="w1">
                                         <option value="A" ${rData.w1==='A'?'selected':''}>A 隊 - 政府高層</option>
                                         <option value="B" ${rData.w1==='B'?'selected':''}>B 隊 - 社團科學家</option>
@@ -321,7 +324,7 @@
                                     </select>
                                 </div>
                                 <div class="input-group">
-                                    <label>👑 贏家 B (第二順位)</label>
+                                    <label>👑 第二順位</label>
                                     <select class="host-select" id="w2">
                                         <option value="B" ${rData.w2==='B'?'selected':''}>B 隊 - 社團科學家</option>
                                         <option value="A" ${rData.w2==='A'?'selected':''}>A 隊 - 政府高層</option>
@@ -333,7 +336,7 @@
 
                             <div class="input-row">
                                 <div class="input-group">
-                                    <label>⚠️ 輸家 A (第三順位)</label>
+                                    <label>⚠️ 第三順位</label>
                                     <select class="host-select" id="l1">
                                         <option value="C" ${rData.l1==='C'?'selected':''}>C 隊 - 工廠資方</option>
                                         <option value="A" ${rData.l1==='A'?'selected':''}>A 隊 - 政府高層</option>
@@ -342,7 +345,7 @@
                                     </select>
                                 </div>
                                 <div class="input-group">
-                                    <label>⚠️ 輸家 B (第四順位)</label>
+                                    <label>⚠️ 第四順位</label>
                                     <select class="host-select" id="l2">
                                         <option value="D" ${rData.l2==='D'?'selected':''}>D 隊 - 底層勞工</option>
                                         <option value="A" ${rData.l2==='A'?'selected':''}>A 隊 - 政府高層</option>
@@ -352,22 +355,22 @@
                                 </div>
                             </div>
 
-                            <button class="primary-btn" onclick="applyRoundSettings()">📡 闖關結束：廣播同步勝負與因果順位</button>
+                            <button class="primary-btn" onclick="applyRoundSettings()">📡 闖關結束：廣播同步本輪順位</button>
 
                             <div class="action-bar" style="margin-top:25px;">
                                 <div class="panel-title">第二步：因果流選擇動態控制</div>
                                 <div class="flow-tracker" style="${rData.status === '闖關中' ? 'opacity:0.4; pointer-events:none;' : ''}">
                                     <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===0?'active':(rData.currentTurnIdx>0?'done':'')}" onclick="setTurn(0)">
-                                        <span>① 👑 贏家 A ➔ [ 陣營：${n_w1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===0?'◀ 正在填寫':'已完成')}
+                                        <span>① 👑 第一順位 ➔ [ ${n_w1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===0?'◀ 正在填寫':'已完成')}
                                     </div>
                                     <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===1?'active':(rData.currentTurnIdx>1?'done':'')}" onclick="setTurn(1)">
-                                        <span>② 👑 贏家 B ➔ [ 陣營：${n_w2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===1?'◀ 正在填寫':(rData.currentTurnIdx>1?'已完成':'等待中'))}
+                                        <span>② 👑 第二順位 ➔ [ ${n_w2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===1?'◀ 正在填寫':(rData.currentTurnIdx>1?'已完成':'等待中'))}
                                     </div>
                                     <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===2?'active':(rData.currentTurnIdx>2?'done':'')}" onclick="setTurn(2)">
-                                        <span>③ ⚠️ 輸家 A ➔ [ 陣營：${n_l1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===2?'◀ 正在填寫':(rData.currentTurnIdx>2?'已完成':'等待中'))}
+                                        <span>③ ⚠️ 第三順位 ➔ [ ${n_l1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===2?'◀ 正在填寫':(rData.currentTurnIdx>2?'已完成':'等待中'))}
                                     </div>
                                     <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===3?'active':''}" onclick="setTurn(3)">
-                                        <span>④ ⚠️ 輸家 B ➔ [ 陣營：${n_l2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===3?'◀ 正在填寫':'等待中')}
+                                        <span>④ ⚠️ 第四順位 ➔ [ ${n_l2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===3?'◀ 正在填寫':'等待中')}
                                     </div>
                                 </div>
                                 <button class="primary-btn" style="background:#00f0ff; color:#000; margin-top:15px;" ${rData.status === '闖關中' ? 'disabled' : ''} onclick="nextTurn()">⏭️ 強制推進至下一順位</button>
@@ -405,7 +408,7 @@
             
             const log = document.getElementById('hostLogs');
             const n_w1 = globalData[systemState.rounds[rIdx].w1].textName;
-            log.innerHTML = `[重要變更] 第 0${rIdx} 輪關卡已結算！正式發布連鎖選擇順位。控制權已發放給首位贏家【${n_w1}】。<br>` + log.innerHTML;
+            log.innerHTML = `[重要變更] 第 0${rIdx} 輪關卡已結算！正式發布順位。控制權已發放給【${n_w1}】。<br>` + log.innerHTML;
         }
 
         function setTurn(idx) {
@@ -428,7 +431,6 @@
             }
         }
 
-        // 一鍵強制重製功能
         function resetSystem() {
             if(confirm("🚨 警告：確定要強制重製量子核心系統嗎？\n這將會清除所有回合進度與勝負名單並重新回歸【關卡闖關階段】！")) {
                 systemState = JSON.parse(JSON.stringify(initialSystemState));
