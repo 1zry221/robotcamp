@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TACTICAL MATRIX SYSTEM</title>
+    <title>TACTICAL MATRIX SYSTEM v2</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace, "System-UI", sans-serif; }
         body, html { width: 100%; min-height: 100%; background-color: #020608; color: #00f0ff; position: relative; }
@@ -34,7 +34,7 @@
         .top-left-panel { grid-column: 1 / span 2; grid-row: 1; display: flex; align-items: center; justify-content: space-between; }
         .team-title { font-size: 20px; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 10px currentColor; line-height: 1.3; }
 
-        /* ⭕ 圓形儀表板樣式區 (參考 image_d2b215.png 新增) */
+        /* ⭕ 圓形儀表板樣式區 */
         .mid-left-panel { display: flex; flex-direction: column; justify-content: space-around; align-items: center; grid-column: 1; grid-row: 2; min-height: 270px; padding: 15px 5px; border: 1px solid rgba(0, 240, 255, 0.15); background: rgba(0,0,0,0.2); gap: 10px; }
         .dial-container { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; gap: 6px; }
         .dial-svg-wrapper { position: relative; width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; }
@@ -87,17 +87,12 @@
         }
         .panel-sync-btn:hover { background: #fff; color: #000; box-shadow: 0 0 15px #00ffaa; }
 
-        /* 📡 全域網路燈號樣式 */
         .net-status-badge { font-size: 12px; padding: 4px 8px; background: rgba(0,0,0,0.5); border: 1px solid #00ffaa; color: #00ffaa; font-weight: bold; }
         .net-status-badge.fail { border-color: #ff3333; color: #ff3333; animation: flash 1s infinite; }
 
-        /* RWD Responsive Phone View Layout */
         @media (max-width: 600px) {
             .main-container { padding: 10px; align-items: flex-start; }
-            .hud-screen {
-                display: flex; flex-direction: column; 
-                width: 100%; min-height: auto; height: auto; padding: 15px; gap: 15px;
-            }
+            .hud-screen { display: flex; flex-direction: column; width: 100%; min-height: auto; height: auto; padding: 15px; gap: 15px; }
             .top-left-panel { order: 1; }
             .mid-left-panel { order: 3; min-height: auto; padding: 12px; flex-direction: row; gap: 15px; } 
             .center-core { order: 2; padding: 10px 0; } 
@@ -165,11 +160,10 @@
     </div>
 
     <script>
-        const CHANNEL_ID = "matrix_tactical_sync_core_9955";
+        // 🔒 使用專屬防衝突頻道名稱
+        const CHANNEL_ID = "matrix_tactical_v2_dynamic_sync_2026";
         const API_URL = `https://ntfy.sh/${CHANNEL_ID}`;
 
-        // 陣列編號定義：A=政府高層, B=社團科學家, C=工廠資方(資本), D=底層勞工
-        // 🛠️ 依照要求修正初始配置數值：政府(30,70,20)、科學家(20,30,70)、資本(70,30,20)、勞工(40,40,40)
         const initialTeamsData = {
             A: { name: "🏛️ 政府高層 SYSTEM", funds: 30, stability: 70, tech: 20, textName: "政府高層" }, 
             B: { name: "🧪 社團科學家 SYSTEM", funds: 20, stability: 30, tech: 70, textName: "社團科學家" }, 
@@ -190,8 +184,6 @@
             }
         };
 
-        // 🌲 核心第一輪數據分支樹 
-        // 🛠️ 允許小於 0 或大於 100 照樣顯示，因此直接返回原值，不作限制
         const clamp = (val) => val; 
         
         const round1Content = {
@@ -308,7 +300,7 @@
                     }
                 },
                 "A_D_A": {
-                    text: "政府的軍事戒嚴大獲成功，在勞工的順從配合下，統治威權達到頂峰。此時，政府調轉槍頭，開始全面清算獨立的科研機構，被切斷實驗室能源的科學家即將迎來他們的命運抉擇。",
+                    text: "政府的軍事戒嚴大獲成功，在勞工的順聽配合下，統治威權達到頂峰。此時，政府調轉槍頭，開始全面清算獨立的科研機構，被切斷實驗室能源的科學家即將迎來他們的命運抉擇。",
                     choices: {
                         A: {
                             label: "⚡ 方案甲：敞開實驗室大門，併入國家科研體制",
@@ -675,7 +667,8 @@
                     const packet = JSON.parse(event.data);
                     if (packet.event === 'message' && packet.message) {
                         const incomingState = JSON.parse(packet.message);
-                        if (incomingState && typeof incomingState.version === 'number') {
+                        // 🛡️ 數據完整性防禦驗證
+                        if (incomingState && incomingState.teams && incomingState.rounds && typeof incomingState.version === 'number') {
                             if (incomingState.version > systemState.version) {
                                 systemState = incomingState;
                                 executeRender();
@@ -702,7 +695,8 @@
                                 const packet = JSON.parse(line);
                                 if (packet.event === 'message' && packet.message) {
                                     const state = JSON.parse(packet.message);
-                                    if (state && (!latest || state.version > latest.version)) {
+                                    // 🛡️ 數據完整性防禦驗證
+                                    if (state && state.teams && state.rounds && (!latest || state.version > latest.version)) {
                                         latest = state;
                                     }
                                 }
@@ -780,7 +774,6 @@
             startSSESync();
         })();
 
-        // 🎮 渲染隊伍玩家畫面
         function renderTeamView() {
             const data = systemState.teams[teamKey] || initialTeamsData[teamKey];
             const rIdx = systemState.currentRound || 1;
@@ -816,7 +809,6 @@
 
                     let currentIntro = `正在等待 [ ${activeTeamName} ] 進行決策選擇。`;
                     
-                    // 🌳 依據決策歷史路徑解析當前應顯示的劇本文本與按鈕
                     if (rIdx === 1) {
                         if (rData.currentTurnIdx === 0) {
                             currentIntro = round1Content.background;
@@ -857,7 +849,6 @@
                 }
             }
 
-            // 計算圓形進度環的視覺填滿百分比（限制在 0-100 計算外圈，避免 SVG 錯誤，但中央數字顯示實際值）
             const fP = Math.max(0, Math.min(100, data.funds));
             const sP = Math.max(0, Math.min(100, data.stability));
             const tP = Math.max(0, Math.min(100, data.tech));
@@ -872,7 +863,6 @@
                         <div id="netIndicator" class="net-status-badge">${cloudOnline ? '🌐 雲端連線正常':'⚠️ 雲端斷線/更新中'}</div>
                     </div>
                     
-                    <!-- 📊 圓形儀表板區 (對標形象圖片樣式調整) -->
                     <div class="mid-left-panel">
                         <div class="dial-container">
                             <div class="dial-svg-wrapper">
@@ -937,7 +927,6 @@
             `;
         }
 
-        // 🧠 計算選擇結果並同步
         function executeMatrixChoice(choiceType) {
             mutateAndSyncState(() => {
                 const rIdx = systemState.currentRound;
@@ -978,18 +967,13 @@
                         logDesc = `未定義之分支決策路徑。`;
                     }
                 } else {
-                    // 非第一輪的默認兜底算法
+                    // 🛡️ 修正變數指向錯誤缺陷
                     if (activeTeam === 'A') {
-                        if (choiceType === 'A') {
-                            systemState.teams.A.stability = clamp(systemState.teams.A.stability + 15);
-                            logDesc = "【政府高層】選擇方案甲。";
-                        } else {
-                            systemState.teams.A.funds = clamp(systemState.teams.A.funds + 20);
-                            logDesc = "【政府高層】選擇方案乙。";
-                        }
+                        if (choiceType === 'A') { systemState.teams.A.stability = clamp(systemState.teams.A.stability + 15); logDesc = "【政府高層】選擇方案甲。"; } 
+                        else { systemState.teams.A.funds = clamp(systemState.teams.A.funds + 20); logDesc = "【政府高層】選擇方案乙。"; }
                     } else if (activeTeam === 'B') {
                         if (choiceType === 'A') { systemState.teams.B.tech = clamp(systemState.teams.B.tech + 20); logDesc = "【社團科學家】選擇方案甲。"; }
-                        else { systemState.teams.B.stability = clamp(state.teams.B.stability + 20); logDesc = "【社團科學家】選擇方案乙。"; }
+                        else { systemState.teams.B.stability = clamp(systemState.teams.B.stability + 20); logDesc = "【社團科學家】選擇方案乙。"; }
                     } else if (activeTeam === 'C') {
                         if (choiceType === 'A') { systemState.teams.C.funds = clamp(systemState.teams.C.funds + 20); logDesc = "【工廠資方】選擇方案甲。"; }
                         else { systemState.teams.C.tech = clamp(systemState.teams.C.tech + 20); logDesc = "【工廠資方】選擇方案乙。"; }
@@ -1005,7 +989,6 @@
             });
         }
 
-        // 🏛️ 渲染後台主控畫面
         function renderHostView() {
             const rIdx = systemState.currentRound || 1;
             const rData = systemState.rounds[rIdx];
@@ -1018,7 +1001,7 @@
                 <div class="host-screen">
                     <div class="host-top-bar">
                         <div class="host-header">🌌 量子核心主控台 
-                            <span class="sync-indicator">📡 劇本動態分歧同步版 (v${systemState.version || 0})</span>
+                            <span class="sync-indicator">📡 劇本分歧同步版 (v${systemState.version || 0})</span>
                             <span id="netIndicator" class="net-status-badge" style="margin-left:15px;">${cloudOnline ? '🌐 雲端連線正常':'⚠️ 雲端斷線/更新中'}</span>
                         </div>
                         <div style="display:flex; gap:10px;">
