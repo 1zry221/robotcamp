@@ -2,777 +2,1173 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MATRIX 戰術決策矩陣核心</title>
-    <!-- 引入科技感字體 -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TACTICAL MATRIX SYSTEM</title>
     <style>
-        :root {
-            --bg-color: #0a1128;
-            --panel-bg: rgba(13, 27, 42, 0.85);
-            --border-color: #00f2fe;
-            --text-color: #e0e1dd;
-            --accent-color: #00f2fe;
-            --danger-color: #ff3366;
-            --funds-color: #ffb703;
-            --stability-color: #00f5d4;
-            --tech-color: #00b4d8;
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace, "System-UI", sans-serif; }
+        body, html { width: 100%; min-height: 100%; background-color: #020608; color: #00f0ff; position: relative; }
+        
+        body::before {
+            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background-image: linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px; z-index: 1; pointer-events: none;
+        }
+        body::after {
+            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: radial-gradient(circle, rgba(0,0,0,0) 50%, rgba(2,6,8,0.9) 100%); z-index: 2; pointer-events: none;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        .main-container {
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; position: relative; z-index: 10;
         }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Noto Sans TC', sans-serif;
-            overflow-x: hidden;
-            background-image: 
-                linear-gradient(rgba(0, 242, 254, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 242, 254, 0.03) 1px, transparent 1px);
-            background-size: 30px 30px;
+        /* HUD Screen Layout */
+        .hud-screen {
+            position: relative; width: 95vw; max-width: 850px; min-height: 650px;
+            background: rgba(4, 10, 15, 0.9); border: 2px solid rgba(0, 240, 255, 0.3);
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.1), inset 0 0 30px rgba(0, 240, 255, 0.05);
+            display: grid; grid-template-columns: 1.3fr 1.6fr 1.4fr; grid-template-rows: auto 1fr auto; padding: 25px; gap: 20px;
+        }
+        .hud-border-svg { position: absolute; top: -2px; left: -2px; width: calc(100% + 4px); height: calc(100% + 4px); pointer-events: none; stroke: currentColor; fill: none; stroke-width: 2; opacity: 0.8; }
+        
+        .top-left-panel { grid-column: 1 / span 2; grid-row: 1; display: flex; align-items: center; justify-content: space-between; }
+        .team-title { font-size: 20px; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 10px currentColor; line-height: 1.3; }
+
+        /* ⭕ 圓形儀表板樣式區 (參考 image_d2b215.png 新增) */
+        .mid-left-panel { display: flex; flex-direction: column; justify-content: space-around; align-items: center; grid-column: 1; grid-row: 2; min-height: 270px; padding: 15px 5px; border: 1px solid rgba(0, 240, 255, 0.15); background: rgba(0,0,0,0.2); gap: 10px; }
+        .dial-container { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; gap: 6px; }
+        .dial-svg-wrapper { position: relative; width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; }
+        .dial-svg-wrapper svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+        .dial-bg { fill: none; stroke: rgba(0, 240, 255, 0.08); stroke-width: 5; }
+        .dial-fill { fill: none; stroke-width: 5; stroke-dasharray: 157; transition: stroke-dashoffset 0.5s cubic-bezier(0.1, 0.8, 0.3, 1); stroke-linecap: round; }
+        .dial-text { position: absolute; font-size: 14px; font-weight: bold; font-family: 'Courier New', monospace; color: #ffffff; text-shadow: 0 0 8px rgba(255,255,255,0.6); }
+        .v-bar-label { font-size: 13px; font-weight: 900; text-shadow: 0 0 8px currentColor; text-align: center; margin-top: 2px; }
+        
+        .bottom-left-panel { grid-column: 1; grid-row: 3; border: 1px solid rgba(0, 240, 255, 0.2); background: rgba(0,0,0,0.3); position: relative; min-height: 60px; }
+
+        .center-core { grid-column: 2; grid-row: 2; display: flex; justify-content: center; align-items: center; position: relative; }
+        .radar-group { width: 90%; height: 90%; max-width: 220px; }
+        .radar-circle { fill: none; stroke: currentColor; stroke-width: 1.5; transform-origin: center; }
+        .radar-rotate-fast { animation: rotateRadar 12s linear infinite; }
+        .radar-rotate-slow { animation: rotateRadar 25s linear reverse infinite; }
+
+        .top-right-panel {
+            grid-column: 3; grid-row: 1 / span 2; border: 2px solid rgba(0, 240, 255, 0.3); 
+            background: rgba(3, 12, 20, 0.7); padding: 18px; position: relative;
+            clip-path: polygon(0 0, 85% 0, 100% 10%, 100% 100%, 0 100%);
+            display: flex; flex-direction: column; gap: 12px; justify-content: flex-start;
+        }
+        .mission-content { font-size: 13px; line-height: 1.5; color: #ffffff; font-weight: bold; }
+        
+        .action-box { display: flex; flex-direction: column; margin-top: auto; }
+        .hud-btn {
+            display: block; width: 100%; padding: 10px 8px; background: rgba(0, 240, 255, 0.1);
+            border: 2px solid currentColor; color: currentColor; text-align: center; cursor: pointer; font-size: 12px; font-weight: 900;
+            transition: all 0.2s; clip-path: polygon(0 0, 95% 0, 100% 30%, 100% 100%, 5% 100%, 0 70%); margin-top: 8px;
+            line-height: 1.3;
+        }
+        .hud-btn:hover { background: currentColor; color: #020608; box-shadow: 0 0 15px currentColor; }
+        .hud-btn:disabled, .panel-sync-btn:disabled, .primary-btn:disabled, .host-select:disabled, .tab-btn:disabled {
+            opacity: 0.4 !important; cursor: not-allowed !important; background: rgba(50,50,50,0.5) !important; color: #888 !important; box-shadow: none !important;
         }
 
-        #app {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+        .bottom-right-panel { 
+            grid-column: 3; grid-row: 3; border: 1px solid rgba(0, 240, 255, 0.2); padding: 10px; 
+            display: flex; flex-direction: column; justify-content: space-between; gap: 6px; 
+            clip-path: polygon(0 0, 100% 0, 100% 75%, 85% 100%, 0 100%); background: rgba(0,0,0,0.2);
+        }
+        .status-line { display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; color: rgba(0,240,255,0.6); }
+        
+        .panel-sync-btn {
+            width: 100%; background: #00ffaa; color: #020608; border: none;
+            padding: 8px 0; font-size: 13px; font-weight: 900; cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 170, 0.3); transition: all 0.15s ease;
+            text-align: center; margin-top: 2px;
+        }
+        .panel-sync-btn:hover { background: #fff; color: #000; box-shadow: 0 0 15px #00ffaa; }
+
+        /* 📡 全域網路燈號樣式 */
+        .net-status-badge { font-size: 12px; padding: 4px 8px; background: rgba(0,0,0,0.5); border: 1px solid #00ffaa; color: #00ffaa; font-weight: bold; }
+        .net-status-badge.fail { border-color: #ff3333; color: #ff3333; animation: flash 1s infinite; }
+
+        /* RWD Responsive Phone View Layout */
+        @media (max-width: 600px) {
+            .main-container { padding: 10px; align-items: flex-start; }
+            .hud-screen {
+                display: flex; flex-direction: column; 
+                width: 100%; min-height: auto; height: auto; padding: 15px; gap: 15px;
+            }
+            .top-left-panel { order: 1; }
+            .mid-left-panel { order: 3; min-height: auto; padding: 12px; flex-direction: row; gap: 15px; } 
+            .center-core { order: 2; padding: 10px 0; } 
+            .radar-group { max-width: 120px; }
+            .top-right-panel { order: 4; clip-path: none; min-height: auto; } 
+            .bottom-left-panel { display: none; } 
+            .bottom-right-panel { order: 5; clip-path: none; margin-top: 5px; } 
+            .panel-sync-btn { padding: 12px 0; font-size: 15px; } 
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 15px;
-            box-shadow: 0 4px 20px rgba(0, 242, 254, 0.2);
-            position: relative;
+        /* Host Screen Dashboard */
+        .host-screen {
+            position: absolute; top: 0; left: 0; width: 100%; min-height: 100%; z-index: 100;
+            background: #040d14; padding: 25px; color: #00f0ff; padding-bottom: 100px;
         }
+        .host-top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00f0ff; padding-bottom: 10px; margin-bottom: 20px; }
+        .host-header { font-size: 26px; font-weight: 900; color: #ff7300; text-shadow: 0 0 10px #ff7300; }
+        .sync-indicator { font-size: 13px; color: #00ffaa; margin-left: 15px; font-weight: normal; }
+        .reset-btn { background: #ff3333; color: #fff; border: none; padding: 8px 16px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; }
+        
+        .round-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab-btn { flex: 1; min-width: 80px; padding: 12px; background: #0b1d28; border: 1px solid #00f0ff; color: #00f0ff; font-weight: bold; cursor: pointer; }
+        .tab-btn.active { background: #ff7300; color: #000; border-color: #ff7300; }
+        
+        .host-grid { display: grid; grid-template-columns: 1.2fr 1.1fr; gap: 20px; }
+        @media (max-width: 900px) { .host-grid { grid-template-columns: 1fr; } }
+        .control-panel-box { border: 2px solid rgba(0,240,255,0.3); background: rgba(0,0,0,0.4); padding: 20px; }
+        .panel-title { font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 15px; border-left: 4px solid #ff7300; padding-left: 8px; }
+        
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        .host-select { background: #07141e; color: #fff; border: 1px solid #00f0ff; padding: 10px; font-size: 16px; font-weight: bold; width: 100%; }
+        
+        .action-bar { border-top: 1px dashed rgba(0,240,255,0.3); padding-top: 15px; margin-top: 15px; }
+        .primary-btn { width: 100%; padding: 14px; background: #ff7300; color: #fff; border: none; font-size: 18px; font-weight: bold; cursor: pointer; }
+        
+        .flow-tracker { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .flow-step { padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); font-size: 15px; display: flex; justify-content: space-between; }
+        .flow-step.active { background: rgba(0,240,255,0.25); border-color: #00f0ff; color: #fff; }
+        .flow-step.done { color: rgba(255,255,255,0.4); background: rgba(0,0,0,0.4); }
 
-        header h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2.5rem;
-            letter-spacing: 4px;
-            color: var(--accent-color);
-            text-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
-        }
+        .log-box { background: #020609; border: 1px solid rgba(0,240,255,0.2); padding: 15px; height: 220px; overflow-y: auto; font-size: 13px; line-height: 1.6; }
+        
+        .score-board { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        @media (max-width: 500px) { .score-board { grid-template-columns: 1fr; } }
+        .score-card { background: rgba(7, 20, 30, 0.8); border: 1px solid rgba(0,240,255,0.3); padding: 10px; }
+        .score-card-title { font-size: 13px; font-weight: bold; margin-bottom: 5px; }
+        .score-card-vals { font-size: 12px; color: #fff; display: flex; justify-content: space-between; }
 
-        .mode-container {
-            display: none;
-        }
+        .theme-A { --color: #ffb700; } .theme-B { --color: #00f0ff; } .theme-C { --color: #d400ff; } .theme-D { --color: #ff3333; } 
+        .theme-A, .theme-B, .theme-C, .theme-D { color: var(--color); border-color: var(--color); }
+        .theme-A .hud-screen { border-color: rgba(255,183,0,0.5); }
+        .theme-B .hud-screen { border-color: rgba(0,240,255,0.5); }
+        .theme-C .hud-screen { border-color: rgba(212,0,255,0.5); }
+        .theme-D .hud-screen { border-color: rgba(255,51,51,0.5); }
 
-        .active-mode {
-            display: block;
-        }
-
-        /* 儀表板與卡片佈局 */
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .card {
-            background: var(--panel-bg);
-            border: 1px solid rgba(0, 242, 254, 0.3);
-            border-radius: 8px;
-            padding: 20px;
-            position: relative;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-            transition: all 0.3s ease;
-        }
-
-        .card.active-turn {
-            border-color: var(--border-color);
-            box-shadow: 0 0 25px rgba(0, 242, 254, 0.5);
-            background: rgba(13, 27, 42, 0.95);
-        }
-
-        .card.active-turn::before {
-            content: "CURRENT TURN";
-            position: absolute;
-            top: -10px;
-            left: 15px;
-            background: var(--border-color);
-            color: #000;
-            font-size: 0.7rem;
-            font-weight: bold;
-            padding: 2px 8px;
-            border-radius: 3px;
-            font-family: 'Orbitron', sans-serif;
-        }
-
-        .card h2 {
-            font-size: 1.4rem;
-            margin-bottom: 15px;
-            border-left: 4px solid var(--accent-color);
-            padding-left: 10px;
-        }
-
-        /* 圓環儀表板容器 */
-        .stats-container {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .stat-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            flex: 1;
-        }
-
-        /* 科技感圓環核心 */
-        .circle-progress {
-            position: relative;
-            width: 75px;
-            height: 75px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 8px;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .circle-value {
-            position: absolute;
-            font-family: 'Orbitron', monospace;
-            font-size: 1.15rem;
-            font-weight: bold;
-            z-index: 2;
-            text-shadow: 0 0 5px rgba(0,0,0,0.8);
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            color: #8892b0;
-            font-weight: bold;
-        }
-
-        /* 決策區域 */
-        .decision-panel {
-            background: rgba(10, 20, 40, 0.9);
-            border: 1px dashed var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .event-text {
-            font-size: 1.1rem;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            color: #fff;
-            background: rgba(0,0,0,0.3);
-            padding: 15px;
-            border-radius: 4px;
-        }
-
-        .options-list {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-        }
-
-        .option-btn {
-            background: linear-gradient(135deg, #1f3a60 0%, #0d1b2a 100%);
-            border: 1px solid rgba(0, 242, 254, 0.4);
-            color: #fff;
-            padding: 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            text-align: left;
-            transition: all 0.2s;
-            font-size: 1rem;
-        }
-
-        .option-btn:hover:not(:disabled) {
-            background: linear-gradient(135deg, #00f2fe 0%, #1f3a60 100%);
-            color: #000;
-            font-weight: bold;
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
-            transform: translateY(-2px);
-        }
-
-        .option-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        /* 主持人控制台 */
-        .host-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-        }
-
-        .control-panel {
-            background: var(--panel-bg);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 8px;
-        }
-
-        .log-panel {
-            background: #050b14;
-            border: 1px solid #1f3a60;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: monospace;
-            height: 500px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .log-content {
-            overflow-y: auto;
-            flex: 1;
-            color: #00ff66;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-
-        .btn {
-            background: #1f3a60;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            font-family: 'Orbitron', sans-serif;
-        }
-
-        .btn-danger { background: var(--danger-color); }
-        .btn-success { background: #00f5d4; color: #000; }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        select, input {
-            width: 100%;
-            padding: 10px;
-            background: #0d1b2a;
-            border: 1px solid #1f3a60;
-            color: white;
-            border-radius: 4px;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            background: #333;
-        }
-
-        .status-waiting { background: #555; color: #ccc; }
-        .status-active { background: var(--accent-color); color: #000; animation: blink 1.5s infinite; }
-
-        @keyframes blink {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
-        }
+        @keyframes rotateRadar { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
 <body>
 
-<div id="app">
-    <header>
-        <h1 id="game-title">MATRIX STRATEGIC SYSTEM</h1>
-        <div style="margin-top: 5px; font-family: 'Orbitron'; color: #8892b0;">
-            ROUND: <span id="global-round" style="color:var(--accent-color)">1</span> 
-            | STATUS: <span id="global-status" style="color:#00ff66">ONLINE</span>
-        </div>
-    </header>
-
-    <!-- 玩家端介面 -->
-    <div id="team-mode" class="mode-container">
-        <div id="team-dashboard" class="dashboard"></div>
-        <div id="team-decision-zone" class="decision-panel" style="display: none;">
-            <h2 id="decision-title">⚡ 決策矩陣已解鎖</h2>
-            <p id="decision-desc" class="event-text">等待讀取動態劇本...</p>
-            <div id="decision-options" class="options-list"></div>
-        </div>
-        <div id="team-wait-zone" class="decision-panel" style="text-align: center; color: #8892b0;">
-            <p id="wait-msg">📡 正在同步矩陣數據，等待通訊協定解鎖...</p>
-        </div>
+    <div class="main-container" id="mainContainer">
+        <div id="mainView" style="width: 100%; display: flex; justify-content: center;"></div>
     </div>
 
-    <!-- 主持人端介面 -->
-    <div id="host-mode" class="mode-container">
-        <div class="host-grid">
-            <div class="control-panel">
-                <h2>🏛️ 矩陣控制核心 (Host Control)</h2>
-                <hr style="border-color:#1f3a60; margin: 15px 0;">
-                
-                <div class="form-group">
-                    <label>當前輪次管理</label>
-                    <select id="host-round-select">
-                        <option value="1">第一輪：資源短缺危機</option>
-                        <option value="2">第二輪：意識形態分歧</option>
-                        <option value="3">第三輪：全域危機升級</option>
-                        <option value="4">第四輪：最終終局決戰</option>
-                    </select>
-                </div>
+    <script>
+        const CHANNEL_ID = "matrix_tactical_sync_core_9955";
+        const API_URL = `https://ntfy.sh/${CHANNEL_ID}`;
 
-                <div class="form-group">
-                    <label>當前行動順序配置</label>
-                    <input type="text" id="host-order-input" value="A,B,C,D" placeholder="例如: A,B,C,D">
-                    <small style="color:#8892b0">A:政府 | B:科學家 | C:資方 | D:勞工 (逗號隔開)</small>
-                </div>
+        // 陣列編號定義：A=政府高層, B=社團科學家, C=工廠資方(資本), D=底層勞工
+        // 🛠️ 依照要求修正初始配置數值：政府(30,70,20)、科學家(20,30,70)、資本(70,30,20)、勞工(40,40,40)
+        const initialTeamsData = {
+            A: { name: "🏛️ 政府高層 SYSTEM", funds: 30, stability: 70, tech: 20, textName: "政府高層" }, 
+            B: { name: "🧪 社團科學家 SYSTEM", funds: 20, stability: 30, tech: 70, textName: "社團科學家" }, 
+            C: { name: "🏢 工廠資方 SYSTEM", funds: 70, stability: 30, tech: 20, textName: "工廠資方" }, 
+            D: { name: "🛠️ 底層勞工 SYSTEM", funds: 40, stability: 40, tech: 40, textName: "底層勞工" }  
+        };
 
-                <div style="display:flex; gap: 10px; margin-bottom: 25px;">
-                    <button class="btn btn-success" id="btn-sync-host">更新配置並同步</button>
-                    <button class="btn" id="btn-skip-turn">強制推進下一順位 (Skip)</button>
-                    <button class="btn btn-danger" id="btn-reset-game">全域資料重設 (Reset)</button>
-                </div>
-
-                <h3>📊 即時全域矩陣數據</h3>
-                <div id="host-dashboard" class="dashboard" style="margin-top:15px;"></div>
-            </div>
-
-            <div class="log-panel">
-                <h3>🌲 世界線動態日誌</h3>
-                <hr style="border-color:#1f3a60; margin: 10px 0;">
-                <div id="log-content" class="log-content"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    // NTFY 廣播設定[cite: 1]
-    const NTFY_TOPIC = 'matrix_tactical_sync_core_9955'; 
-    const NTFY_URL = `https://ntfy.sh/${NTFY_TOPIC}`;
-
-    // 初始世界線設定（更新為指定數值）
-    const initialState = {
-        version: 1,
-        currentRound: 1,
-        currentTurnIndex: 0,
-        turnOrder: ['A', 'B', 'C', 'D'],
-        teams: {
-            A: { name: '🏛️ 政府高層', funds: 30, stability: 70, tech: 20 },
-            B: { name: '🧪 社團科學家', funds: 20, stability: 30, tech: 70 },
-            C: { name: '🏢 工廠資方', funds: 70, stability: 30, tech: 20 },
-            D: { name: '🛠️ 底層勞工', funds: 40, stability: 40, tech: 40 }
-        },
-        history: ["系統初始化：初始矩陣天平建立。"]
-    };
-
-    let systemState = JSON.parse(JSON.stringify(initialState));
-    let currentMode = 'team'; 
-    let myTeamCode = null;    
-
-    // 4輪嵌套式分歧劇本[cite: 1]
-    const gameScript = {
-        1: {
-            title: "第一輪：城市電網癱瘓危機",
-            A: {
-                desc: "全城核心變電所遭到不明黑客襲擊引發連環爆炸，電網全面癱瘓，修復至少需要一整季。身為控制中樞，你們的首要決策是？",
-                options: [
-                    { text: "[方案甲] 強行調用底層生活用電保障行政區與工業，優先穩固秩序。", effect: { A: { stability: 15, funds: -5 }, D: { stability: -20 } }, log: "政府選擇強行調電保障中樞，引發底層極度不滿。" },
-                    { text: "[方案乙] 削減高新科研配額，全面轉為民生救濟補貼。", effect: { A: { stability: -10, funds: -10 }, B: { tech: -15 }, D: { stability: 15 } }, log: "政府削減科研配額補貼民生，安撫了平民但激怒了科學界。" }
-                ]
-            },
-            B: {
-                desc: "由於電力短缺，科研實驗室的超導體反應爐正面臨崩潰邊緣。若政府先前[強行調電]，你們尚能向其申請庇護；若否，處境將極度艱難。",
-                options: [
-                    { text: "[方案甲] 啟動地下備用發電機，並對外高價出售初步科研成果換取資金。", effect: { B: { funds: 25, tech: -10 }, C: { funds: -15, tech: 10 } }, log: "科學家出售成果，與資本達成地下交易。" },
-                    { text: "[方案乙] 暫停所有實驗，全員投入研發低耗能民用替代發電技術。", effect: { B: { tech: 20, stability: 5 }, D: { tech: 5 } }, log: "科學家轉攻民用節能技術，提升了技術儲備。" }
-                ]
-            },
-            C: {
-                desc: "工廠因停電全面停產，每日損失巨大。你們必須立刻向外尋求突破口，保障資本鏈不中斷。",
-                options: [
-                    { text: "[方案甲] 勾結黑市電力倒爺，並全力金援科學家以期獲取新型能源技術優先權。", effect: { C: { funds: -20, tech: 15 }, B: { funds: 15 }, A: { stability: -5 } }, log: "工廠資方金援科學界，試圖繞過體制掌控技術。" },
-                    { text: "[方案乙] 強制裁員30%並扣除當季福利，將有限資金轉移至海外避險。", effect: { C: { funds: 30, stability: -10 }, D: { stability: -25, funds: -10 } }, log: "工廠資方無情裁員，底層民怨滔天。" }
-                ]
-            },
-            D: {
-                desc: "黑暗的街區、停擺的工廠、暴漲的物價。底層勞工正面臨生死存亡，街頭的怒火已被點燃。",
-                options: [
-                    { text: "[方案甲] 組織全城大罷工，包圍政府大樓，要求發放基礎生存物資與復工保障。", effect: { D: { stability: 15, funds: -5 }, A: { stability: -20 }, C: { funds: -15 } }, log: "底層勞工爆發全城大罷工，重創政府與資方。" },
-                    { text: "[方案乙] 組建自衛巡邏隊維護社區安全，並協助科學家搜集民間廢棄電池。", effect: { D: { stability: 10, tech: 5 }, B: { tech: 10 } }, log: "勞工自發組建自衛隊並協助科學家，展現高度理性。" }
-                ]
+        const initialSystemState = {
+            version: 1,
+            currentRound: 1,
+            teams: JSON.parse(JSON.stringify(initialTeamsData)),
+            logs: ["[量子防護系統] 核心運作中，全即時廣播協議已啟動。"],
+            rounds: {
+                1: { status: '闖關中', w1: 'A', w2: 'C', l1: 'B', l2: 'D', currentTurnIdx: 0, history: [] },
+                2: { status: '闖關中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0, history: [] },
+                3: { status: '闖關中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0, history: [] },
+                4: { status: '闖關中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0, history: [] }
             }
-        },
-        2: {
-            title: "第二輪：意識形態與輿論風暴",
-            A: {
-                desc: "網路出現大量關於「末日真相」的流言，社會動盪。宣傳部要求立刻處理。",
-                options: [
-                    { text: "全面封鎖網路，實行軍管輿論控制。", effect: { A: { stability: 20, funds: -10 }, B: { tech: -5 }, D: { stability: -15 } }, log: "政府實施嚴厲鐵腕封網。" },
-                    { text: "引導輿論，將矛盾轉移給無良黑心企業（資方）。", effect: { A: { stability: 5 }, C: { stability: -20, funds: -10 }, D: { stability: 15 } }, log: "政府成功甩鍋，資方成為眾矢之的。" }
-                ]
-            },
-            B: {
-                desc: "你們發現了流言中提及的古代未知文明遺物訊號，但解析需要龐大運算力。",
-                options: [
-                    { text: "秘密與政府合作，利用國家超算中心解析，成果共享。", effect: { B: { tech: 25 }, A: { tech: 15 }, C: { tech: -5 } }, log: "科學界與官方達成深度科研同盟。" },
-                    { text: "公開訊號，將其開源給全人類，呼籲大眾共同覺醒。", effect: { B: { stability: 20, tech: 10 }, D: { tech: 15 }, A: { stability: -15 } }, log: "遺物訊號全網開源，引發全體思潮衝擊。" }
-                ]
-            },
-            C: {
-                desc: "若政府甩鍋或輿論失控，你們的股價將暴跌。資方需要發動反擊。",
-                options: [
-                    { text: "動用旗下所有媒體進行反向洗腦，宣稱一切科技發明皆來自資方資助。", effect: { C: { funds: -15, stability: 15 }, B: { stability: -10 } }, log: "資方啟動金錢輿論戰，試圖扭轉形象。" },
-                    { text: "直接買下貧民窟的糧食供應鏈，實施帶條件的「慈善施捨」。", effect: { C: { funds: -25, stability: 10 }, D: { funds: 15, stability: 5 } }, log: "資方實施麵包策略，收買底層人心。" }
-                ]
-            },
-            D: {
-                desc: "流言與真相交織，精神上的飢餓與肉體一樣痛苦。勞工階層面臨思維覺醒。",
-                options: [
-                    { text: "砸毀街頭的所有監控探頭與資方虛擬廣告牌，拒絕被洗腦。", effect: { D: { stability: 15 }, A: { stability: -10 }, C: { funds: -10 } }, log: "勞工展開反烏托邦破壞行動。" },
-                    { text: "創辦地下夜校與互助會，吸收科學家傳播的開源知識。", effect: { D: { tech: 20, stability: 10 }, B: { stability: 10 } }, log: "底層民智大開，地下互助網成形。" }
-                ]
-            }
-        },
-        3: {
-            title: "第三輪：全域崩潰邊緣",
-            A: {
-                desc: "未知異變在城市邊緣爆發，防線告急。軍隊需要立刻換裝新式武器。",
-                options: [
-                    { text: "強徵所有工廠改為軍工生產，全面戰時體制。", effect: { A: { stability: 15, tech: 10 }, C: { funds: -30 } }, log: "政府發動全面強徵令，經濟進入軍管。" },
-                    { text: "向海外財閥出讓城市部分主權，換取僱傭兵與現代物資。", effect: { A: { funds: 40, stability: -20 }, D: { stability: -10 } }, log: "政府割裂主權引狼入室，換取短期資金。" }
-                ]
-            },
-            B: {
-                desc: "異變樣本已被送至實驗室，這是跨時代的進化契機還是毀滅前兆？",
-                options: [
-                    { text: "進行人體融合實驗，不惜一切代價追求技術極致突破。", effect: { B: { tech: 40, stability: -20 }, D: { stability: -15 } }, log: "科學家進行禁忌研究，科技瘋狂飆升！" },
-                    { text: "研發基因抑制劑以穩定現狀，保護市民生命安全。", effect: { B: { stability: 25, funds: -10 }, A: { stability: 15 }, D: { stability: 15 } }, log: "科學界推出穩定血清，拯救全城生命。" }
-                ]
-            },
-            C: {
-                desc: "若政府實施強徵，資方將面臨毀滅。你們最後的底牌是？",
-                options: [
-                    { text: "發動經濟政變，聯合外資切斷全城供應鏈，架空政府。", effect: { C: { funds: 35, stability: 10 }, A: { funds: -30, stability: -20 } }, log: "資方發動金融海嘯，瘋狂背刺政府。" },
-                    { text: "將資產全面轉化為自動化機械衛隊，全面封鎖富人區。", effect: { C: { stability: 30, tech: 15, funds: -20 } }, log: "資方打造鋼鐵堡壘，與外界完全割裂。" }
-                ]
-            },
-            D: {
-                desc: "戰火與異變雙重打擊，底層成為最慘烈的犧牲品。退無可退！",
-                options: [
-                    { text: "發動全面武裝起義，奪取軍火庫，建立無產者公社。", effect: { D: { stability: 30, funds: 15 }, A: { stability: -35 }, C: { stability: -15 } }, log: "底層爆發史詩級武裝革命！" },
-                    { text: "築起血肉長城，協助前線防禦異變，保衛家園。", effect: { D: { stability: -20, tech: 10 }, A: { stability: 30 } }, log: "勞工自願赴死守護防線，拯救了城市文明。" }
-                ]
-            }
-        },
-        4: {
-            title: "第四輪：終局矩陣解算",
-            A: {
-                desc: "終局已至，秩序崩塌。作為末代政府，你們的最後宣言是？",
-                options: [
-                    { text: "啟動中樞清洗協議，與整座城市同歸於盡。", effect: { A: { stability: 100 }, B: { stability: -50 }, C: { stability: -50 }, D: { stability: -50 } }, log: "政府選擇最終淨化，玉石俱焚！" },
-                    { text: "退位並交出所有權利，和平過渡給當前最強盛的陣營。", effect: { A: { stability: -50 }, D: { stability: 20 }, B: { stability: 20 } }, log: "舊政府宣告解體，時代變了。" }
-                ]
-            },
-            B: {
-                desc: "真理之門已開，人類的未來將走向何方？",
-                options: [
-                    { text: "[機械飛升] 全員意識上傳母體矩陣，拋棄肉身。", effect: { B: { tech: 100 }, A: { funds: -50 }, D: { funds: -50 } }, log: "科學家宣告人類飛升，肉身時代終結。" },
-                    { text: "[文明火種] 銷毀所有危險技術，帶著歷史文檔重返農耕時代。", effect: { B: { tech: -100, stability: 50 }, D: { stability: 30 } }, log: "科學界自我封印技術，回歸自然始源。" }
-                ]
-            },
-            C: {
-                desc: "財富已經是一串無意義的數字，世界線即將收束。",
-                options: [
-                    { text: "[方舟計畫] 啟動巨型火箭，帶著全城財富與核心精英逃離地球。", effect: { C: { funds: 100 }, A: { stability: -40 }, D: { stability: -40 } }, log: "資方方舟破空而去，留下一片廢墟。" },
-                    { text: "[全體買斷] 用金錢買下全世界的剩餘資源，建立賽博企業帝國。", effect: { C: { funds: 50, tech: 30 }, A: { stability: -20 } }, log: "資方成功買斷世界，企業帝國降臨。" }
-                ]
-            },
-            D: {
-                desc: "命運掌握在自己手裡，勞動者將迎來怎樣的黎明？",
-                options: [
-                    { text: "[全球一體] 徹底打破階級，建立全人類命運共同體。", effect: { D: { stability: 100 }, A: { stability: -20 }, C: { funds: -50 } }, log: "勞工成功建立大同世界，鐘聲敲響！" },
-                    { text: "[廢土狂歡] 推翻一切體制，擁抱絕對自由的混亂無政府廢土。", effect: { D: { funds: 30, tech: -20 }, A: { stability: -50 }, B: { stability: -50 }, C: { stability: -50 } }, log: "全城陷入絕對混亂，廢土朋克時代開啟！" }
-                ]
-            }
-        }
-    };
+        };
 
-    // 初始化與路由控制
-    window.addEventListener('DOMContentLoaded', () => {
-        const params = new URLSearchParams(window.location.search);
-        const mode = params.get('mode');
-        const team = params.get('team');
-
-        if (mode === 'host') {
-            currentMode = 'host';
-            document.getElementById('host-mode').classList.add('active-mode');
-            initHostEvents();
-        } else {
-            currentMode = 'team';
-            myTeamCode = team || 'A'; 
-            document.getElementById('team-mode').classList.add('active-mode');
-            document.getElementById('game-title').innerText = `MATRIX // TEAM [ ${myTeamCode} ]`;
-        }
-
-        // 啟動 ntfy 即時監聽長連線[cite: 1]
-        initSSE();
-        // 首次手動自遠端拉取狀態更新畫面
-        pullState();
-    });
-
-    // 建立動態發光圓環的核心函式 (移除了 clamp，新增破百與負數視覺處理)
-    function createCircleHTML(label, value, baseColor) {
-        let angle = 0;
-        let bgStyle = "";
-        let displayColor = baseColor;
-
-        if (value > 100) {
-            // 破百：圓環全滿，並加上強烈的同色外發光效果
-            angle = 360;
-            bgStyle = `background: radial-gradient(circle, #0d1b2a 58%, transparent 59%), 
-                        conic-gradient(${baseColor} 0deg, ${baseColor} 360deg); 
-                        box-shadow: 0 0 25px ${baseColor};`;
-        } else if (value < 0) {
-            // 負數：圓環歸零，顏色強制切換為警告紅色
-            angle = 0;
-            displayColor = 'var(--danger-color)';
-            bgStyle = `background: radial-gradient(circle, #0d1b2a 58%, transparent 59%), 
-                        conic-gradient(var(--danger-color) 0deg, var(--danger-color) 360deg);
-                        box-shadow: 0 0 15px rgba(255,51,102,0.3);`;
-        } else {
-            // 正常 0 ~ 100 區間：百分比轉成 360 度角
-            angle = (value / 100) * 360;
-            bgStyle = `background: radial-gradient(circle, #0d1b2a 58%, transparent 59%), 
-                        conic-gradient(${baseColor} 0deg, ${baseColor} ${angle}deg, #1f3a60 ${angle}deg, #1f3a60 360deg);`;
-        }
-
-        return `
-            <div class="stat-box">
-                <div class="circle-progress" style="${bgStyle}">
-                    <div class="circle-value" style="color: ${displayColor}">${value}</div>
-                </div>
-                <div class="stat-label">${label}</div>
-            </div>
-        `;
-    }
-
-    // 核心渲染邏輯：將數據繪製到畫面上
-    function render() {
-        document.getElementById('global-round').innerText = systemState.currentRound;
-        const currentActiveTeam = systemState.turnOrder[systemState.currentTurnIndex];
-
-        // 渲染日誌區
-        const logContent = document.getElementById('log-content');
-        if (logContent) {
-            logContent.innerHTML = systemState.history.map(item => `<div>&gt; ${item}</div>`).join('');
-            logContent.scrollTop = logContent.scrollHeight;
-        }
-
-        // 決定要渲染哪個面板
-        const targetDashboard = currentMode === 'host' ? 'host-dashboard' : 'team-dashboard';
-        const dashboardEl = document.getElementById(targetDashboard);
+        // 🌲 核心第一輪數據分支樹 
+        // 🛠️ 允許小於 0 或大於 100 照樣顯示，因此直接返回原值，不作限制
+        const clamp = (val) => val; 
         
-        if (dashboardEl) {
-            dashboardEl.innerHTML = '';
-            Object.keys(systemState.teams).forEach(code => {
-                const team = systemState.teams[code];
-                const isActive = (code === currentActiveTeam);
-                
-                const card = document.createElement('div');
-                card.className = `card ${isActive ? 'active-turn' : ''}`;
-                
-                // 動態生成三個解鎖限制的圓環
-                const fundsCircle = createCircleHTML('資產 FUNDS', team.funds, 'var(--funds-color)');
-                const stabilityCircle = createCircleHTML('穩定 STABILITY', team.stability, 'var(--stability-color)');
-                const techCircle = createCircleHTML('科技 TECH', team.tech, 'var(--tech-color)');
-
-                card.innerHTML = `
-                    <h2>${team.name} <span class="status-badge ${isActive ? 'status-active' : 'status-waiting'}">${isActive ? 'DECIDING' : 'WAIT'}</span></h2>
-                    <div class="stats-container">
-                        ${fundsCircle}
-                        ${stabilityCircle}
-                        ${techCircle}
-                    </div>
-                `;
-                dashboardEl.appendChild(card);
-            });
-        }
-
-        // 玩家端決策邏輯
-        if (currentMode === 'team') {
-            const isMyTurn = (myTeamCode === currentActiveTeam);
-            const decisionZone = document.getElementById('team-decision-zone');
-            const waitZone = document.getElementById('team-wait-zone');
-
-            if (isMyTurn) {
-                decisionZone.style.display = 'block';
-                waitZone.style.display = 'none';
-
-                const roundData = gameScript[systemState.currentRound];
-                const myScript = roundData ? roundData[myTeamCode] : null;
-
-                if (myScript) {
-                    document.getElementById('decision-title').innerText = `⚡ ${systemState.teams[myTeamCode].name} - 矩陣決策時間`;
-                    document.getElementById('decision-desc').innerText = myScript.desc;
-                    
-                    const optionsContainer = document.getElementById('decision-options');
-                    optionsContainer.innerHTML = '';
-                    
-                    myScript.options.forEach((opt, idx) => {
-                        const btn = document.createElement('button');
-                        btn.className = 'option-btn';
-                        btn.innerText = opt.text;
-                        btn.onclick = () => executeDecision(opt);
-                        optionsContainer.appendChild(btn);
-                    });
-                } else {
-                    document.getElementById('decision-desc').innerText = "本輪劇本已完結，等待主持人開啟下一輪。";
-                    document.getElementById('decision-options').innerHTML = '';
-                }
-            } else {
-                decisionZone.style.display = 'none';
-                waitZone.style.display = 'block';
-                document.getElementById('wait-msg').innerText = `📡 正在同步數據。目前輪到 [ ${systemState.teams[currentActiveTeam]?.name || currentActiveTeam} ] 進行全面決策...`;
-            }
-        }
-    }
-
-    // 執行決策核心邏輯 (移除數值 clamp 限制)
-    function executeDecision(option) {
-        systemState.version += 1;
-        
-        // 全域套用數值變更，允許破百與負數
-        if (option.effect) {
-            Object.keys(option.effect).forEach(tCode => {
-                const eff = option.effect[tCode];
-                if (systemState.teams[tCode]) {
-                    if (eff.funds) systemState.teams[tCode].funds += eff.funds;
-                    if (eff.stability) systemState.teams[tCode].stability += eff.stability;
-                    if (eff.tech) systemState.teams[tCode].tech += eff.tech;
-                }
-            });
-        }
-
-        // 寫入歷史日誌
-        const currentActiveTeam = systemState.turnOrder[systemState.currentTurnIndex];
-        systemState.history.push(`[Round ${systemState.currentRound}] ${systemState.teams[currentActiveTeam].name} 做出決策：${option.log}`);
-
-        // 推進順位邏輯
-        if (systemState.currentTurnIndex < systemState.turnOrder.length - 1) {
-            systemState.currentTurnIndex += 1;
-        } else {
-            systemState.history.push(`—— 第 ${systemState.currentRound} 輪所有陣營行動完畢。請主持人手動推進下一輪 ——`);
-        }
-
-        pushState();
-    }
-
-    // 主持人後台事件監聽
-    function initHostEvents() {
-        document.getElementById('btn-sync-host').addEventListener('click', () => {
-            const rd = parseInt(document.getElementById('host-round-select').value);
-            const orderStr = document.getElementById('host-order-input').value;
-            const orderArr = orderStr.split(',').map(s => s.trim().toUpperCase());
-
-            systemState.version += 1;
-            systemState.currentRound = rd;
-            systemState.turnOrder = orderArr;
-            systemState.currentTurnIndex = 0;
-            systemState.history.push(`[後台介入] 主持人手動重置為第 ${rd} 輪，行動順序更動為: ${orderArr.join(' &gt; ')}`);
-            
-            pushState();
-        });
-
-        document.getElementById('btn-skip-turn').addEventListener('click', () => {
-            systemState.version += 1;
-            const currentActiveTeam = systemState.turnOrder[systemState.currentTurnIndex];
-            systemState.history.push(`[後台介入] 主持人強制跳過了 ${systemState.teams[currentActiveTeam]?.name || currentActiveTeam} 的回合。`);
-            
-            if (systemState.currentTurnIndex < systemState.turnOrder.length - 1) {
-                systemState.currentTurnIndex += 1;
-            } else {
-                systemState.history.push(`—— 全輪次強行終止。請手動進入下一輪 ——`);
-            }
-            pushState();
-        });
-
-        document.getElementById('btn-reset-game').addEventListener('click', () => {
-            if (confirm('⚠️ 確定要將全域數據初始化重設嗎？此動作無法復原！')) {
-                systemState = JSON.parse(JSON.stringify(initialState));
-                systemState.version = Date.now(); // 用時間戳確保版本絕對覆蓋
-                pushState();
-            }
-        });
-    }
-
-    // 網路即時通訊層：同步狀態至雲端 (POST)[cite: 1]
-    function pushState() {
-        render(); // 本地預先渲染增加流暢感
-        fetch(NTFY_URL, {
-            method: 'POST',
-            body: JSON.stringify(systemState),
-            headers: { 'X-Title': 'MATRIX_STATE_UPDATE' }
-        }).catch(err => console.error("網路通訊同步失敗:", err));
-    }
-
-    // 網路即時通訊層：主動向雲端撈取快照[cite: 1]
-    function pullState() {
-        fetch(`${NTFY_URL}/json?poll=1`)
-        .then(res => res.text())
-        .then(text => {
-            if(!text.trim()) return;
-            const lines = text.trim().split('\n');
-            for(let i = lines.length - 1; i >= 0; i--) {
-                try {
-                    const msg = JSON.parse(lines[i]);
-                    if (msg.event === 'message' && msg.message) {
-                        const incoming = JSON.parse(msg.message);
-                        if (incoming.version > systemState.version) {
-                            systemState = incoming;
-                            render();
-                            break;
+        const round1Content = {
+            background: "AI 核心過載的瞬間，巨大的能量脈衝導致中央電網瞬間癱瘓，半數區域陷入一片黑暗。殘存的緊急電力所剩無幾，這寶貴的能源究竟該送往何處，考驗著所有人的神經。",
+            0: {
+                choices: {
+                    A: {
+                        label: "⚡ 方案甲：強行調回中樞 (全城戒嚴)",
+                        desc: "政府宣布全城進入緊急狀態，將所有剩餘電力強行調回政府中樞與武裝部隊，全面保障政權運作。",
+                        effect: (state) => {
+                            state.teams.A.funds = clamp(state.teams.A.funds + 10); state.teams.A.stability = clamp(state.teams.A.stability + 10);
+                            state.teams.B.stability = clamp(state.teams.B.stability - 10); state.teams.C.stability = clamp(state.teams.C.stability - 10); state.teams.D.stability = clamp(state.teams.D.stability - 10);
+                        }
+                    },
+                    B: {
+                        label: "⚡ 方案乙：特赦行政令 (縮減科研配額)",
+                        desc: "政府以「維護公眾利益與能源重新分配」為由，對科學家發出行政限令，強制縮減其能源配額並挪為國用。",
+                        effect: (state) => {
+                            state.teams.A.funds = clamp(state.teams.A.funds + 15);
+                            state.teams.B.funds = clamp(state.teams.B.funds - 20); state.teams.B.stability = clamp(state.teams.B.stability - 15);
                         }
                     }
-                } catch(e) {}
-            }
-        });
-    }
-
-    // 網路即時通訊層：建立 SSE 長連線即時監聽[cite: 1]
-    function initSSE() {
-        const eventSource = new EventSource(`${NTFY_URL}/sse`);
-        eventSource.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                if (data.message) {
-                    const incomingState = JSON.parse(data.message);
-                    // 核心高併發防衝撞：永遠只認最新版本號[cite: 1]
-                    if (incomingState.version > systemState.version) {
-                        systemState = incomingState;
-                        render();
+                }
+            },
+            1: {
+                "A": {
+                    text: "政府宣布全城戒嚴，民用電網全斷。政府大樓燈火通明，但民間陷入黑暗，資產階級停擺、科學家被查封、勞工在街頭挨凍。這引發了地下的反抗怒火。",
+                    choices: {
+                        C: {
+                            A: {
+                                label: "⚡ 方案甲：主動獻上大量資金幫政府維穩",
+                                desc: "資本向政府的戒嚴妥協，主動獻上大量資金幫政府維穩，換取特權民生用電。",
+                                effect: (state) => { state.teams.C.stability = clamp(state.teams.C.stability + 15); state.teams.C.funds = clamp(state.teams.C.funds - 15); state.teams.A.funds = clamp(state.teams.A.funds + 15); state.teams.D.stability = clamp(state.teams.D.stability - 10); }
+                            },
+                            B: {
+                                label: "⚡ 方案乙：黑市買私電自保並金援科學家",
+                                desc: "資本花大錢向黑市買私電自保。同時，決定砸大錢金援被查封的科學家，暗中提供科學家研發資金。",
+                                effect: (state) => { state.teams.C.stability = clamp(state.teams.C.stability + 15); state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.B.funds = clamp(state.teams.B.funds + 10); state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.A.stability = clamp(state.teams.A.stability - 10); }
+                            }
+                        },
+                        D: {
+                            A: {
+                                label: "⚡ 方案甲：配合順從並上繳備用發電機",
+                                desc: "面對政府黑洞洞的槍口與戒嚴部隊，勞工決定配合順從，共體時艱，主動上繳了家中的備用發電機與燃料。",
+                                effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability - 10); state.teams.D.funds = clamp(state.teams.D.funds + 5); state.teams.A.funds = clamp(state.teams.A.funds + 10); }
+                            },
+                            B: {
+                                label: "⚡ 方案乙：拒絕配合並秘密偷接黑市電網",
+                                desc: "勞工拒絕配合徵收，砸下大筆積蓄向地下黑市購買私電、秘密偷接電網，在戒嚴的死寂中勉強點亮自己的小屋。",
+                                effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability + 5); state.teams.D.funds = clamp(state.teams.D.funds - 10); state.teams.A.funds = clamp(state.teams.A.funds - 10); }
+                            }
+                        }
+                    }
+                },
+                "B": {
+                    text: "政府發布特赦行政令，以「維護國家安全、避免浪費能源」為由，強行切斷科學家的備用電力，並將其研究資產充公。科學家瞬間面臨破產與滅頂之災，而其餘陣營則人人自危。",
+                    choices: {
+                        C: {
+                            A: {
+                                label: "⚡ 方案甲：主動走向政府提出政商一體同盟",
+                                desc: "資本為了自保，決定主動走向政府提出「政商一體」的合作案。提供大量商業資金與物資支持維穩行動。",
+                                effect: (state) => { state.teams.C.stability = clamp(state.teams.C.stability + 15); state.teams.C.funds = clamp(state.teams.C.funds - 15); state.teams.A.funds = clamp(state.teams.A.funds + 10); state.teams.D.stability = clamp(state.teams.D.stability - 15); }
+                            },
+                            B: {
+                                label: "⚡ 方案乙：黑市買私電並成為科學家秘密金主",
+                                desc: "資本決定在黑市砸下巨資購買高價的獨立私電系統。同時為了牽制政府，決定成為科學家的秘密金主。",
+                                effect: (state) => { state.teams.C.stability = clamp(state.teams.C.stability + 15); state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.B.funds = clamp(state.teams.B.funds + 10); state.teams.A.funds = clamp(state.teams.A.funds - 15); }
+                            }
+                        },
+                        D: {
+                            A: {
+                                label: "⚡ 方案甲：砸血汗錢在黑市搬回零件淘金",
+                                desc: "勞工決定砸下血汗錢在黑市「撈油水」。把零件 and 核心代碼搬回貧民窟，點燃民間科技火種。",
+                                effect: (state) => { state.teams.D.tech = clamp(state.teams.D.tech + 20); state.teams.D.funds = clamp(state.teams.D.funds - 10); state.teams.B.funds = clamp(state.teams.B.funds - 10); }
+                            },
+                            B: {
+                                label: "⚡ 方案乙：不湊熱鬧，當聽話齒輪上下班囤資",
+                                desc: "勞工決定不湊這場熱鬧，繼續當個聽話的齒輪，按時上下班並囤積物資。",
+                                effect: (state) => { state.teams.D.funds = clamp(state.teams.D.funds + 15); state.teams.D.stability = clamp(state.teams.D.stability + 5); state.teams.A.funds = clamp(state.teams.A.funds + 10); }
+                            }
+                        }
                     }
                 }
-            } catch (err) {
-                // 忽略非 JSON 系統通訊封包
+            },
+            2: {
+                "A_C_A": {
+                    text: "政府的軍隊接管了街頭，資本的摩天大樓則獲得特許電力閃爍著冷酷的光芒，政商鐵三角正式成形。在此高壓下，科學家的技術被全面封禁，而最底層的勞工則面臨被無限壓榨的生存絕境。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：交出實驗室最高控制權與核心代碼",
+                            desc: "科學家選擇交出實驗室的最高控制權與核心代碼，換取特許電力的供應與人身安全。",
+                            effect: (state) => { state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.B.funds = clamp(state.teams.B.funds - 10); state.teams.A.tech = clamp(state.teams.A.tech + 15); state.teams.C.tech = clamp(state.teams.C.tech + 15); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：將數位病毒植入電網並暗中聯絡勞工",
+                            desc: "科學家將毀滅性的病毒植入中央電網與金融中樞。並秘密聯絡勞工去接管政府供電站。",
+                            effect: (state) => { state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.A.tech = clamp(state.teams.A.tech - 20); state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.D.stability = clamp(state.teams.D.stability + 10); }
+                        }
+                    }
+                },
+                "A_C_B": {
+                    text: "政府的戒嚴遭遇了資本的反抗。同時，資本家用大筆資金暗中扶植被查封的科學家。此時，全城的焦點都落在科學家身上，而最底層的勞工則在兩大集團的夾縫中等待局勢洗牌。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：履行秘密協議，獨家供技給資本家",
+                            desc: "科學家決定將新研發的技術與高效能源代碼，獨家提供給金援你們的資本家。",
+                            effect: (state) => { state.teams.B.tech = clamp(state.teams.B.tech + 10); state.teams.B.funds = clamp(state.teams.B.funds + 15); state.teams.A.tech = clamp(state.teams.A.tech - 15); state.teams.C.tech = clamp(state.teams.C.tech + 15); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：拒做私有工具，將代碼開源廣播市民",
+                            desc: "科學家拒絕成為財閥工具，將代碼以「開源」形式向全城廣播，在民間建立崇高聲望。",
+                            effect: (state) => { state.teams.B.tech = clamp(state.teams.B.tech - 10); state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.D.tech = clamp(state.teams.D.tech + 15); state.teams.D.stability = clamp(state.teams.D.stability + 20); }
+                        }
+                    }
+                },
+                "A_D_A": {
+                    text: "政府的軍事戒嚴大獲成功，在勞工的順從配合下，統治威權達到頂峰。此時，政府調轉槍頭，開始全面清算獨立的科研機構，被切斷實驗室能源的科學家即將迎來他們的命運抉擇。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：敞開實驗室大門，併入國家科研體制",
+                            desc: "科學家選擇向政府軍隊敞開實驗室大門，交出最高核心代碼，併入國家科研體制。",
+                            effect: (state) => { state.teams.B.funds = clamp(state.teams.B.funds - 10); state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.A.tech = clamp(state.teams.A.tech + 20); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：拒絕成為獨裁幫兇，攜儀器流亡黑區",
+                            desc: "科學家拒絕成為監控幫兇。在戒嚴部隊破門前的一刻，攜帶輕便儀器逃往廢棄黑區。",
+                            effect: (state) => { state.teams.B.funds = clamp(state.teams.B.funds - 15); state.teams.B.tech = clamp(state.teams.B.tech + 10); state.teams.A.tech = clamp(state.teams.A.tech - 15); }
+                        }
+                    }
+                },
+                "A_D_B": {
+                    text: "政府雖然宣稱掌控全城，但廢棄街區的夜空中，依然閃爍著勞工私接黑市電網的零星燈火。此時，政府將目標轉向獨立實驗室，而夾在中間的科學家，必須在招安與流亡之間做出抉擇。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：研發反偷電偵測演算法精準自保",
+                            desc: "科學家協助政府研發全新的「智能反偷電偵測演算法」，精準切斷勞工的地下黑市電線。",
+                            effect: (state) => { state.teams.B.funds = clamp(state.teams.B.funds - 10); state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.A.tech = clamp(state.teams.A.tech + 20); state.teams.D.tech = clamp(state.teams.D.tech - 10); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：攜加密代碼與圖紙，逃入勞工地下聚落",
+                            desc: "科學家帶著最核心的量子加密代碼與圖紙，逃入了勞工秘密建立的地下黑市聚落。",
+                            effect: (state) => { state.teams.B.funds = clamp(state.teams.B.funds - 15); state.teams.B.tech = clamp(state.teams.B.tech + 10); state.teams.A.tech = clamp(state.teams.A.tech - 15); state.teams.D.tech = clamp(state.teams.D.tech + 15); }
+                        }
+                    }
+                },
+                "B_C_A": {
+                    text: "政商兩大巨頭在沒有戒嚴的表象下，暗中達成利益同盟，這讓被抄家查封的科學家陷入破產邊緣，而最底層的勞工則迎來了更隱蔽、卻更殘酷的經濟壓榨。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：專利技術低價賣財閥，換資金庇護",
+                            desc: "科學家為了活命並重啟實驗室，將壓箱寶的專利技術低價賣給財閥，換取急需的啟動資金與庇護。",
+                            effect: (state) => { state.teams.B.stability = clamp(state.teams.B.stability + 10); state.teams.B.funds = clamp(state.teams.B.funds + 20); state.teams.C.tech = clamp(state.teams.C.tech + 20); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：查封前將自動化與防衛代碼開源廣播",
+                            desc: "科學家看透政商勾結的醜陋，在被徹底查封前，將所有自動化生產與防衛代碼開源廣播給全城。",
+                            effect: (state) => { state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.B.tech = clamp(state.teams.B.tech - 15); state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.D.stability = clamp(state.teams.D.stability + 10); state.teams.D.tech = clamp(state.teams.D.tech + 10); }
+                        }
+                    }
+                },
+                "B_C_B": {
+                    text: "政府的行政清算遭遇了資本的全面金錢反制。財閥用大筆資金在地下秘密扶植被查封的科學家。而夾在政府與財閥兩大巨頭之間的勞工，則在觀望這場體制外的神仙打架。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：拿財閥錢並交付技術，建地下帝國",
+                            desc: "科學家拿了財閥的錢，將技術獨家交付給資本家。讓資本擁有完全屏蔽查稅與監控的商業帝國。",
+                            effect: (state) => { state.teams.B.funds = clamp(state.teams.B.funds + 20); state.teams.B.tech = clamp(state.teams.B.tech + 10); state.teams.C.tech = clamp(state.teams.C.tech + 20); state.teams.A.funds = clamp(state.teams.A.funds - 20); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：完成技術突破但拒成私財，開源廣播",
+                            desc: "科學家利用資金完成能源技術突破，但拒絕讓科學成為私財，私下將代碼向全城開源廣播。",
+                            effect: (state) => { state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.B.tech = clamp(state.teams.B.tech - 5); state.teams.D.tech = clamp(state.teams.D.tech + 10); state.teams.D.stability = clamp(state.teams.D.stability + 10); state.teams.A.funds = clamp(state.teams.A.funds - 15); }
+                        }
+                    }
+                },
+                "B_D_A": {
+                    text: "政府的鋼鐵重錘極其精準地砸碎了全城的獨立實驗室。然而，本該與科學家守望相助的勞工，此時卻瘋狂收購外流的科研禁品，點燃了自己的科技火種，但科學家卻被逼上了絕路。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：攜技術投靠唯一的避難所摩天大樓",
+                            desc: "科學家帶著尚未被查封的終極加密技術，秘密進入資本財閥的摩天大樓換取庇護。",
+                            effect: (state) => { state.teams.B.funds = clamp(state.teams.B.funds + 15); state.teams.B.tech = clamp(state.teams.B.tech - 10); state.teams.C.tech = clamp(state.teams.C.tech + 15); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：最後時刻玉石俱焚，開源生存密碼",
+                            desc: "科學家在實驗室被攻破的最後一刻玉石俱焚，將生存密碼與免費電力技術無償發送給市民。",
+                            effect: (state) => { state.teams.B.stability = clamp(state.teams.B.stability - 5); state.teams.B.tech = clamp(state.teams.B.tech + 10); state.teams.D.stability = clamp(state.teams.D.stability + 5); state.teams.D.tech = clamp(state.teams.D.tech + 10); state.teams.A.tech = clamp(state.teams.A.tech - 20); }
+                        }
+                    }
+                },
+                "B_D_B": {
+                    text: "政府的緝捕隊正在科研區瘋狂破門。而隔壁街區的勞工工廠依然馬力全開，底層市民選擇當個聽話的齒輪。沒有民間的掩護，也沒有黑市的接應，科學家的象牙塔被徹底孤立。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：出賣技術主權，秘密投靠資本換庇護",
+                            desc: "科學家看透底層冷漠與強權殘暴，進入資本摩天大樓，出賣技術主權換取庇護。",
+                            effect: (state) => { state.teams.B.funds = clamp(state.teams.B.funds + 20); state.teams.B.stability = clamp(state.teams.B.stability + 5); state.teams.C.tech = clamp(state.teams.C.tech + 25); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：最後時刻數據自爆，癱瘓基建設施",
+                            desc: "科學家在被捕前釋放毀滅性數據病毒，這場技術自爆瞬間癱瘓了城市的基礎設施。",
+                            effect: (state) => { state.teams.B.tech = clamp(state.teams.B.tech + 10); state.teams.B.stability = clamp(state.teams.B.stability - 10); state.teams.A.tech = clamp(state.teams.A.tech - 25); state.teams.D.tech = clamp(state.teams.D.tech - 10); state.teams.C.tech = clamp(state.teams.C.tech - 5); }
+                        }
+                    }
+                }
+            },
+            3: {
+                "A_C_A_A": {
+                    text: "政府的軍隊、資本的資金與科學家的技術徹底合流，組成堅不可摧的統治鐵三角。在這座燈火通明的極權城市中，沒有任何談判籌碼的勞工，正被逼入毫無退路的命運終點。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：走回工廠趕工，血汗換取微薄口糧",
+                            desc: "勞工選擇在毫無保障、高壓過載環境下趕工，用血汗換取微薄的配給糧食。",
+                            effect: (state) => { state.teams.D.funds = clamp(state.teams.D.funds + 15); state.teams.D.stability = clamp(state.teams.D.stability - 10); state.teams.A.funds = clamp(state.teams.A.funds + 10); state.teams.C.funds = clamp(state.teams.C.funds + 10); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：發起全城大罷工，離崗使生產力歸零",
+                            desc: "勞工發起大罷工，集體離開崗位，讓整座城市的生產力在一夜之間歸零。",
+                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability - 5); state.teams.A.funds = clamp(state.teams.A.funds - 25); state.teams.C.funds = clamp(state.teams.C.funds - 25); state.teams.B.funds = clamp(state.teams.B.funds - 10); }
+                        }
+                    }
+                },
+                "A_C_A_B": {
+                    text: "政府與資本聯手築起鋼鐵般的特權防線，但科學家在暗中釋放了數位病毒，癱瘓了中央電網，並將能源偷偷導向底層。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：組自衛隊衝入工廠，自行運作分物資",
+                            desc: "有了支援，勞工不再忍耐，組成自衛隊衝入被切斷中控的工廠，自行運作分發資源。",
+                            effect: (state) => { state.teams.D.funds = clamp(state.teams.D.funds + 20); state.teams.D.stability = clamp(state.teams.D.stability - 10); state.teams.A.stability = clamp(state.teams.A.stability - 15); state.teams.C.funds = clamp(state.teams.C.funds - 25); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：不正面硬碰硬，建立自給自足黑電社區",
+                            desc: "勞工利用科學家導引過來的非法電力，建立起自給自足的地下社區。",
+                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability + 15); state.teams.D.tech = clamp(state.teams.D.tech + 10); state.teams.A.funds = clamp(state.teams.A.funds - 5); state.teams.B.stability = clamp(state.teams.B.stability + 10); }
+                        }
+                    }
+                },
+                "A_C_B_A": {
+                    text: "政府的軍事戒嚴與資本的地下金融持續對峙，而科學家已將核心技術獨家交給資本家，形成了全新的特權階級，而被兩大巨頭夾在中間的勞工，生存空間被進一步壓縮。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：簽署地下僱傭約，進資本秘密工廠",
+                            desc: "勞工進入資本家被技術屏蔽的秘密工廠工作，換取庇護資源。",
+                            effect: (state) => { state.teams.D.funds = clamp(state.teams.D.funds + 15); state.teams.D.stability = clamp(state.teams.D.stability + 10); state.teams.A.funds = clamp(state.teams.A.funds - 10); state.teams.C.funds = clamp(state.teams.C.funds + 10); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：發起全面怠工，拒絕配合任何頂層",
+                            desc: "勞工不配合政府強徵，也不進資本地下工廠，退出所有生產線。",
+                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability - 5); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.C.funds = clamp(state.teams.C.funds - 20); }
+                        }
+                    }
+                },
+                "A_C_B_B": {
+                    text: "政府與資本的頂層對峙陷入僵局，而科學家的開源廣播，讓最底層的勞工瞬間掌握了能源主導權，從任人宰割的燃料，變成了左右城市命運的關鍵棋子。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：組建貧民窟微電網，實現自給自足",
+                            desc: "勞工在廢棄街區自行組建微型微電網與農業溫室，實現自給自足。",
+                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability + 15); state.teams.D.funds = clamp(state.teams.D.funds + 15); state.teams.D.tech = clamp(state.teams.D.tech + 10); state.teams.A.funds = clamp(state.teams.A.funds - 10); state.teams.C.funds = clamp(state.teams.C.funds - 10); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：武器化民用科技，對政府與資本反擊",
+                            desc: "勞工將民用科技武器化，對政府戒嚴部隊與資本防衛系統發起全面反擊。",
+                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability - 10); state.teams.D.tech = clamp(state.teams.D.tech + 15); state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.A.stability = clamp(state.teams.A.stability - 15); state.teams.C.funds = clamp(state.teams.C.funds - 20); }
+                        }
+                    }
+                },
+                "A_D_A_A": {
+                    text: "政府靠著鐵腕戒嚴全面掌控了局勢，勞工選擇順從並交出資源，科學家也帶著核心技術向國家臣服。此時，被完全孤立在體制外的資本財閥，正面臨資產被國家逐步蠶食的生死關頭。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：工廠股份上繳，換取經濟委員會席次",
+                            desc: "資本主動將能源工廠、物流鏈與股份上繳，換取在國家經濟委員會中的特權席次。",
+                            effect: (state) => { state.teams.C.stability = clamp(state.teams.C.stability + 15); state.teams.C.tech = clamp(state.teams.C.tech + 10); state.teams.C.funds = clamp(state.teams.C.funds - 25); state.teams.A.funds = clamp(state.teams.A.funds + 15); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：海外秘密網絡發動，將財富強制出境",
+                            desc: "資本不甘心拱手讓人，動用秘密網絡，將物資、黃金與數位貨幣透過地下黑市轉移出境。",
+                            effect: (state) => { state.teams.C.stability = clamp(state.teams.C.stability - 15); state.teams.C.funds = clamp(state.teams.C.funds + 15); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.D.funds = clamp(state.teams.D.funds + 10); }
+                        }
+                    }
+                },
+                "A_D_A_B": {
+                    text: "政府全面掌控了街頭，勞工也選擇順從並交出資源。然而，科學家拒絕向國家臣服。而手中握有龐大資金卻缺乏技術的資本財閥，正站在向體制投降或投資地下反抗勢力的十字路口。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：充當政府耳目蒐情報，換獨家經營權",
+                            desc: "資本暗中蒐集流亡科學家動向並交給部隊，換取政府發放的「獨家特許經營權」。",
+                            effect: (state) => { state.teams.C.stability = clamp(state.teams.C.stability + 10); state.teams.C.funds = clamp(state.teams.C.funds + 15); state.teams.A.tech = clamp(state.teams.A.tech + 15); state.teams.B.stability = clamp(state.teams.B.stability - 10); state.teams.B.tech = clamp(state.teams.B.tech - 10); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：鋌而走險地下輸資，助科研重啟",
+                            desc: "資本決定鋌而走險，透過地下渠道輸送物資與設備給流亡科學家，重啟地下研發。",
+                            effect: (state) => { state.teams.C.tech = clamp(state.teams.C.tech + 20); state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.A.stability = clamp(state.teams.A.stability - 10); state.teams.B.funds = clamp(state.teams.B.funds + 20); state.teams.B.stability = clamp(state.teams.B.stability + 10); }
+                        }
+                    }
+                },
+                "A_D_B_A": {
+                    text: "政府獲得了科學家的技術投誠，開始精準切斷勞工的地下私電。此時，「政、科」聯手將絞索套在了底層脖子上，而在一旁觀戰的資本財閥，迎來了決定局勢走向的最終機會。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：重金收購國債，換未來電網私有權",
+                            desc: "資本砸重金收購國債為軍隊提供後盾，換取未來對全城電網的私有化經營權。",
+                            effect: (state) => { state.teams.C.stability = clamp(state.teams.C.stability + 10); state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.A.funds = clamp(state.teams.A.funds + 10); state.teams.D.stability = clamp(state.teams.D.stability - 15); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：建企業庇護所，出資幫勞工升級設備",
+                            desc: "資本在地下黑區建立企業庇護所出資幫勞工，藉此截獲大量廉價且感激的勞動力。",
+                            effect: (state) => { state.teams.C.tech = clamp(state.teams.C.tech + 10); state.teams.C.funds = clamp(state.teams.C.funds - 15); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.D.stability = clamp(state.teams.D.stability + 10); state.teams.D.funds = clamp(state.teams.D.funds + 10); }
+                        }
+                    }
+                },
+                "A_D_B_B": {
+                    text: "政府的鋼鐵戒嚴未能徹底封鎖全城，科學家帶著核心技術遁入地下，與正在黑市偷電的勞工合流。此時，手握全城最多閒置資金的資本財閥，正面臨兩難...",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：出賣地下聚集地給軍隊換大筆賞金",
+                            desc: "資本向戒嚴部隊舉報勞工與科學家的地下聚集地，換取大筆賞金與免稅特權。",
+                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds + 10); state.teams.A.tech = clamp(state.teams.A.tech + 10); state.teams.D.stability = clamp(state.teams.D.stability - 10); state.teams.B.stability = clamp(state.teams.B.stability - 10); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：海外秘密帳戶開動，資助民間反抗",
+                            desc: "資本賭一把大的，動用海外帳戶全面資助民間研發與生活，對政府行政造成毀滅打擊。",
+                            effect: (state) => { state.teams.C.tech = clamp(state.teams.C.tech + 20); state.teams.C.funds = clamp(state.teams.C.funds - 10); state.teams.A.funds = clamp(state.teams.A.funds - 25); state.teams.A.stability = clamp(state.teams.A.stability - 10); state.teams.D.funds = clamp(state.teams.D.funds + 10); state.teams.B.funds = clamp(state.teams.B.funds + 10); }
+                        }
+                    }
+                },
+                "B_C_A_A": {
+                    text: "「政、商、科」三方在體制內完成了資源與技術的合流，而這場繁榮的代價，全由毫無技術、被徹底孤立的勞工在工廠底層用血汗獨自承擔。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：在設計監控系統下瘋狂加班換糧",
+                            desc: "勞工放棄對抗，在財閥與科學家設計的監控系統下不分晝夜瘋狂加班。",
+                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability - 20); state.teams.D.funds = clamp(state.teams.D.funds + 10); state.teams.A.funds = clamp(state.teams.A.funds + 10); state.teams.C.funds = clamp(state.teams.C.funds + 20); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：集體罷工並砸積蓄走私醫療糧食物資",
+                            desc: "勞工集體罷工，砸存蓄在地下黑市走私醫療與糧食，強行拉回生命安全線。",
+                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability + 15); state.teams.D.funds = clamp(state.teams.D.funds - 15); state.teams.A.funds = clamp(state.teams.A.funds - 10); state.teams.C.funds = clamp(state.teams.C.funds - 10); }
+                        }
+                    }
+                },
+                "B_C_A_B": {
+                    text: "政府與資本表面上達成了政商利益同盟，但科學家在被徹底查封前，將系統與自動化升級代碼無償廣播給了民間，讓原本遭到資本家瘋狂壓榨的勞工生命力大補血。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：篡改工廠核心機器，扣留利潤分發",
+                            desc: "勞工利用開源代碼篡改核心機器控制權，將產品與利潤直接扣留並重新分配。",
+                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability - 5); state.teams.D.funds = clamp(state.teams.D.funds + 20); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.C.funds = clamp(state.teams.C.funds - 25); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：發起全面科技不合作，屏蔽全城信號",
+                            desc: "勞工發起科技不合作，利用干擾裝置屏蔽全城訊號，讓整座城市生產力陷入死寂。",
+                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability + 10); state.teams.D.tech = clamp(state.teams.D.tech + 5); state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.C.funds = clamp(state.teams.C.funds - 20); }
+                        }
+                    }
+                },
+                "B_C_B_A": {
+                    text: "資本的金援與科學家的黑科技在體制外深度結合，讓政府的行政控制全面失靈。然而，這場科技內鬥，並沒有惠及底層，毫無資源的勞工依舊在夾縫中，等待最後的生存抉擇。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：進入技術屏蔽秘密工廠，換高科庇護",
+                            desc: "勞工進入財閥技術屏蔽的秘密工廠工作，換取穩定的物資與高科技庇護。",
+                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability + 10); state.teams.D.funds = clamp(state.teams.D.funds + 5); state.teams.A.funds = clamp(state.teams.A.funds - 10); state.teams.C.funds = clamp(state.teams.C.funds + 10); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：發起全面不合作運動，拒絕所有頂層",
+                            desc: "勞工決定既不幫政府維持城市運作，也不進入財閥的工廠生產線。",
+                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability - 5); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.C.funds = clamp(state.teams.C.funds - 15); }
+                        }
+                    }
+                },
+                "B_C_B_B": {
+                    text: "政府的行政控制被資本的金權防線擋下，而科學家的開源技術則直接交給了最底層。整座城市都是民用的微型電網，勞工不費吹灰之力就獲得了充足的能源與科技火種。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：拋棄上層建立去中心化物資共享社區",
+                            desc: "勞工拋棄上層，建立去中心化自治社區，糧食、電力與醫療全部共享。",
+                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability + 10); state.teams.D.funds = clamp(state.teams.D.funds + 20); state.teams.D.tech = clamp(state.teams.D.tech + 10); state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.C.funds = clamp(state.teams.C.funds - 20); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：聯手科學家對中樞與金庫數位實體清算",
+                            desc: "勞工聯手科學家發起全面清算，強行將上層壟斷的財富據為己有。",
+                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability - 10); state.teams.D.funds = clamp(state.teams.D.funds + 25); state.teams.A.funds = clamp(state.teams.A.funds - 25); state.teams.C.funds = clamp(state.teams.C.funds - 25); }
+                        }
+                    }
+                },
+                "B_D_A_A": {
+                    text: "獨立科學界徹底瓦解，但政府並未成功收歸國有。科學家帶著最後的核心專利，遁入了資本的摩天大樓。而此時的勞工雖然淘到了部分科技硬體，卻面臨資本與政府接下來的雙重收割。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：技術商品化，推出高昂訂閱微型電網",
+                            desc: "資本將科學家的技術商品化專利化，向全城推出昂貴的訂閱制電網與晶片。",
+                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds + 15); state.teams.A.tech = clamp(state.teams.A.tech - 20); state.teams.D.funds = clamp(state.teams.D.funds - 5); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：保安隊升級私人工隊，街頭與政府駁火",
+                            desc: "資本砸大筆資產將保安隊升級為私人工隊，在街頭公然與政府部隊開火。",
+                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.C.stability = clamp(state.teams.C.stability + 15); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.A.stability = clamp(state.teams.A.stability - 10); }
+                        }
+                    }
+                },
+                "B_D_A_B": {
+                    text: "全城此時充斥著科學家廣播的免費高科技 ，政府試圖壟斷科技的計畫徹底失敗。勞工平白獲得了這套最頂級的技術說明書。這場技術海嘯讓原本在一旁觀戰的資本瞬間被架空。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：提專利訴訟沒收勞工設備否認合法性",
+                            desc: "資本利用法律漏洞與政商關係，強行對使用開源技術的勞工提起專利訴訟並沒收設備。",
+                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds - 10); state.teams.C.tech = clamp(state.teams.C.tech + 10); state.teams.D.tech = clamp(state.teams.D.tech - 10); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：砸重金封鎖實體物流使其缺乏製造硬體",
+                            desc: "資本砸重金封鎖實體物流，讓勞工空有頂級代碼卻缺乏製造硬體。",
+                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds - 15); state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.D.tech = clamp(state.teams.D.tech - 10); state.teams.D.stability = clamp(state.teams.D.stability - 5); }
+                        }
+                    }
+                },
+                "B_D_B_A": {
+                    text: "獨立科學界在孤立無援中瓦解，但政府竹籃打水一場空。科學家們在被逮捕前，帶著最核心的技術專利投靠了資本。而當初選擇冷眼旁觀的勞工，已經徹底失去了科技底牌。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：技術商品化專利化，推昂貴訂閱電網",
+                            desc: "資本將技術專利商品化，面向走投無路的市民與勞工推昂貴訂閱制微電網。",
+                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds + 15); state.teams.A.tech = clamp(state.teams.A.tech - 20); state.teams.D.funds = clamp(state.teams.D.funds - 5); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：全面升級武裝工隊，公然與緝捕隊對抗",
+                            desc: "資本深知政府遲早會來搶人，全面升級企業工隊，在街頭對抗緝捕部隊。",
+                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.C.stability = clamp(state.teams.C.stability + 15); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.A.stability = clamp(state.teams.A.stability - 10); }
+                        }
+                    }
+                },
+                "B_D_B_B": {
+                    text: "科學家在實驗室被攻破的前一刻釋放了病毒，全城電網陷入大癱瘓。政府試圖奪取的技術化為烏有，只想安穩度日的勞工也遭到波及，唯有擁有獨立發電廠的資本，能維持安穩生活。",
+                    choices: {
+                        A: {
+                            label: "⚡ 方案甲：利用獨立能源實施高利貸式血腥救援",
+                            desc: "資本利用旗下獨立能源，對走投無路的勞工實施高利貸式的救援擴大壟斷。",
+                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds + 20); state.teams.C.stability = clamp(state.teams.C.stability + 10); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.D.funds = clamp(state.teams.D.funds - 20); }
+                        },
+                        B: {
+                            label: "⚡ 方案乙：扮演救世主重整基建，奪取未來控制權",
+                            desc: "資本動用海外乾淨伺服器與工程隊，協助整座城市基建重整並納入核心控制。",
+                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.C.tech = clamp(state.teams.C.tech + 30); state.teams.A.tech = clamp(state.teams.A.tech + 5); state.teams.A.funds = clamp(state.teams.A.funds - 10); state.teams.D.tech = clamp(state.teams.D.tech + 5); state.teams.D.funds = clamp(state.teams.D.funds - 10); }
+                        }
+                    }
+                }
             }
         };
-        eventSource.onerror = () => {
-            setTimeout(initSSE, 3000); // 斷線重連機制
-        };
-    }
-</script>
+
+        let systemState = JSON.parse(JSON.stringify(initialSystemState));
+        let cloudOnline = false;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode') || 'team';
+        const teamKey = urlParams.get('team') || 'A';
+        const mainView = document.getElementById('mainView');
+
+        let isLocked = false;
+        let sseSource = null;
+
+        function updateNetIndicator(isOK) {
+            cloudOnline = isOK;
+            const badge = document.getElementById('netIndicator');
+            if (badge) {
+                if(isOK) {
+                    badge.innerText = "🌐 雲端連線正常";
+                    badge.className = "net-status-badge";
+                } else {
+                    badge.innerText = "⚠️ 雲端斷線/更新中...";
+                    badge.className = "net-status-badge fail";
+                }
+            }
+        }
+
+        function startSSESync() {
+            if (sseSource) { sseSource.close(); }
+            sseSource = new EventSource(`${API_URL}/sse`);
+            sseSource.onmessage = (event) => {
+                try {
+                    const packet = JSON.parse(event.data);
+                    if (packet.event === 'message' && packet.message) {
+                        const incomingState = JSON.parse(packet.message);
+                        if (incomingState && typeof incomingState.version === 'number') {
+                            if (incomingState.version > systemState.version) {
+                                systemState = incomingState;
+                                executeRender();
+                            }
+                        }
+                    }
+                    updateNetIndicator(true);
+                } catch (e) {}
+            };
+            sseSource.onerror = () => { updateNetIndicator(false); };
+        }
+
+        async function fetchStateOnce() {
+            try {
+                const res = await fetch(`${API_URL}/json?poll=1`, { cache: "no-store" });
+                if (res.ok) {
+                    const text = await res.text();
+                    if(text && text.trim()) {
+                        const lines = text.trim().split('\n');
+                        let latest = null;
+                        for (let line of lines) {
+                            if (!line.trim()) continue;
+                            try {
+                                const packet = JSON.parse(line);
+                                if (packet.event === 'message' && packet.message) {
+                                    const state = JSON.parse(packet.message);
+                                    if (state && (!latest || state.version > latest.version)) {
+                                        latest = state;
+                                    }
+                                }
+                            } catch(e){}
+                        }
+                        if (latest && latest.version > systemState.version) {
+                            systemState = latest;
+                        }
+                    }
+                    updateNetIndicator(true);
+                }
+            } catch (e) { updateNetIndicator(false); }
+        }
+
+        async function mutateAndSyncState(mutationFn) {
+            if (isLocked) return;
+            isLocked = true; 
+            setButtonsDisabled(true);
+
+            try {
+                mutationFn();
+                if (systemState.logs && systemState.logs.length > 12) {
+                    systemState.logs = systemState.logs.slice(0, 12);
+                }
+                systemState.version = (systemState.version || 0) + 1;
+                executeRender(); 
+            } catch (e) {}
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(systemState),
+                    cache: "no-store"
+                });
+                updateNetIndicator(true);
+            } catch (e) { updateNetIndicator(false); } finally {
+                isLocked = false;
+                setButtonsDisabled(false);
+            }
+        }
+
+        function executeRender() {
+            if (mode !== 'host') renderTeamView();
+            else renderHostView();
+        }
+
+        function setButtonsDisabled(disabled) {
+            const inputs = document.querySelectorAll('button, select');
+            inputs.forEach(el => { el.disabled = disabled; });
+        }
+
+        async function triggerManualSync() {
+            const btn = document.getElementById('panelSyncBtn');
+            if(btn) { btn.innerText = "⏳ 同步中..."; btn.style.background = "#ff7300"; }
+            await fetchStateOnce();
+            executeRender();
+            startSSESync();
+            setTimeout(() => {
+                if(btn) {
+                    btn.innerText = "✅ 已同步"; btn.style.background = "#ffffff";
+                    setTimeout(() => { btn.innerText = "⚡ 強制重整"; btn.style.background = "#00ffaa"; }, 400);
+                }
+            }, 100);
+        }
+
+        (async () => {
+            if (mode === 'host') {
+                document.getElementById('mainContainer').style.display = "block";
+                document.body.className = "";
+            } else {
+                document.body.className = `theme-${teamKey}`;
+            }
+            await fetchStateOnce();
+            executeRender();
+            startSSESync();
+        })();
+
+        // 🎮 渲染隊伍玩家畫面
+        function renderTeamView() {
+            const data = systemState.teams[teamKey] || initialTeamsData[teamKey];
+            const rIdx = systemState.currentRound || 1;
+            const rData = systemState.rounds[rIdx];
+            
+            let identityText = "";
+            let statusText = "";
+            let canAction = false;
+            let btnALabel = "⚡ 方案甲：因果建構";
+            let btnBLabel = "⚡ 方案乙：逆流破壞";
+
+            if (rData.status === '闖關中') {
+                identityText = "<span style='color:#00ffaa'>【🎮 關卡挑戰階段】</span>";
+                let bgText = (rIdx === 1) ? round1Content.background : "📊 正在進行關卡闖關！請全力在關卡中取得優勢。";
+                statusText = `<div style="text-align:left; background:rgba(0,0,0,0.4); padding:10px; border-left:3px solid #00ffaa; margin-bottom:12px;">${bgText}</div>📢 等待主持人結算並廣播本輪順位...`;
+                canAction = false;
+            } else {
+                if (!rData.history) rData.history = [];
+                const turnOrder = [rData.w1, rData.w2, rData.l1, rData.l2];
+                
+                if (rData.currentTurnIdx > 3) {
+                    identityText = "<span style='color:#ffffff; opacity: 0.5;'>【🔚 本輪選擇已結束】</span>";
+                    statusText = `請等待主持人切換至下一輪關卡！`;
+                    canAction = false;
+                } else {
+                    const activeTeamNow = turnOrder[rData.currentTurnIdx];
+                    const activeTeamName = systemState.teams[activeTeamNow]?.textName || "";
+                    
+                    if (teamKey === rData.w1) identityText = "<span style='color:#ffb700'>【👑 第一順位】</span>";
+                    else if (teamKey === rData.w2) identityText = "<span style='color:#00ffaa'>【✨ 第二順位】</span>";
+                    else if (teamKey === rData.l1) identityText = "<span style='color:#ff5555'>【⚠️ 第三順位】</span>";
+                    else if (teamKey === rData.l2) identityText = "<span style='color:#ff3333'>【🚨 第四順位】</span>";
+
+                    let currentIntro = `正在等待 [ ${activeTeamName} ] 進行決策選擇。`;
+                    
+                    // 🌳 依據決策歷史路徑解析當前應顯示的劇本文本與按鈕
+                    if (rIdx === 1) {
+                        if (rData.currentTurnIdx === 0) {
+                            currentIntro = round1Content.background;
+                            btnALabel = round1Content[0].choices.A.label;
+                            btnBLabel = round1Content[0].choices.B.label;
+                        } else if (rData.currentTurnIdx === 1) {
+                            const govChoice = rData.history[0] || 'A';
+                            currentIntro = round1Content[1][govChoice]?.text || "";
+                            btnALabel = round1Content[1][govChoice]?.choices[activeTeamNow]?.A?.label || "⚡ 方案甲";
+                            btnBLabel = round1Content[1][govChoice]?.choices[activeTeamNow]?.B?.label || "⚡ 方案乙";
+                        } else if (rData.currentTurnIdx === 2) {
+                            const govChoice = rData.history[0] || 'A';
+                            const secFaction = turnOrder[1];
+                            const secChoice = rData.history[1] || 'A';
+                            const key = `${govChoice}_${secFaction}_${secChoice}`;
+                            currentIntro = round1Content[2][key]?.text || "";
+                            btnALabel = round1Content[2][key]?.choices?.A?.label || "⚡ 方案甲";
+                            btnBLabel = round1Content[2][key]?.choices?.B?.label || "⚡ 方案乙";
+                        } else if (rData.currentTurnIdx === 3) {
+                            const govChoice = rData.history[0] || 'A';
+                            const secFaction = turnOrder[1];
+                            const secChoice = rData.history[1] || 'A';
+                            const sciChoice = rData.history[2] || 'A';
+                            const key = `${govChoice}_${secFaction}_${secChoice}_${sciChoice}`;
+                            currentIntro = round1Content[3][key]?.text || "";
+                            btnALabel = round1Content[3][key]?.choices?.A?.label || "⚡ 方案甲";
+                            btnBLabel = round1Content[3][key]?.choices?.B?.label || "⚡ 方案乙";
+                        }
+                    }
+
+                    if (teamKey === activeTeamNow) {
+                        statusText = `<div style="text-align:left; color:#fff; margin-bottom:12px; font-size:13px; background:rgba(0,0,0,0.3); padding:10px; border:1px dashed rgba(0,240,255,0.3);">${currentIntro}</div><span style="color:#00ff00; font-size:14px; font-weight:900; animation: flash 1s infinite;">▶ 🚨 輪到你們決策！請下達因果法案。</span>`;
+                        canAction = true;
+                    } else {
+                        statusText = `<div style="text-align:left; color:#aaa; margin-bottom:12px; font-size:13px; opacity:0.8;">${currentIntro}</div>等待中... 目前正由 <span style="color:#00f0ff;">[ ${activeTeamName} ]</span> 進行選擇。`;
+                        canAction = false;
+                    }
+                }
+            }
+
+            // 計算圓形進度環的視覺填滿百分比（限制在 0-100 計算外圈，避免 SVG 錯誤，但中央數字顯示實際值）
+            const fP = Math.max(0, Math.min(100, data.funds));
+            const sP = Math.max(0, Math.min(100, data.stability));
+            const tP = Math.max(0, Math.min(100, data.tech));
+
+            mainView.innerHTML = `
+                <div class="hud-screen" id="hudScreen">
+                    <svg class="hud-border-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <path d="M 0,8 L 8,0 L 92,0 L 100,8 L 100,92 L 92,100 L 8,100 L 0,92 Z" />
+                    </svg>
+                    <div class="top-left-panel">
+                        <div class="team-title">${data.name}</div>
+                        <div id="netIndicator" class="net-status-badge">${cloudOnline ? '🌐 雲端連線正常':'⚠️ 雲端斷線/更新中'}</div>
+                    </div>
+                    
+                    <!-- 📊 圓形儀表板區 (對標形象圖片樣式調整) -->
+                    <div class="mid-left-panel">
+                        <div class="dial-container">
+                            <div class="dial-svg-wrapper">
+                                <svg viewBox="0 0 60 60">
+                                    <circle class="dial-bg" cx="30" cy="30" r="25"></circle>
+                                    <circle class="dial-fill" cx="30" cy="30" r="25" style="stroke-dashoffset: ${157 - (157 * fP) / 100}; stroke: #00f0ff; filter: drop-shadow(0 0 5px #00f0ff);"></circle>
+                                </svg>
+                                <div class="dial-text">${data.funds}%</div>
+                            </div>
+                            <span class="v-bar-label">資產</span>
+                        </div>
+                        <div class="dial-container" style="color: #ff7300;">
+                            <div class="dial-svg-wrapper">
+                                <svg viewBox="0 0 60 60">
+                                    <circle class="dial-bg" cx="30" cy="30" r="25" style="stroke: rgba(255,115,0,0.08);"></circle>
+                                    <circle class="dial-fill" cx="30" cy="30" r="25" style="stroke-dashoffset: ${157 - (157 * sP) / 100}; stroke: #ff7300; filter: drop-shadow(0 0 5px #ff7300);"></circle>
+                                </svg>
+                                <div class="dial-text">${data.stability}%</div>
+                            </div>
+                            <span class="v-bar-label">生命</span>
+                        </div>
+                        <div class="dial-container" style="color: #00ffaa;">
+                            <div class="dial-svg-wrapper">
+                                <svg viewBox="0 0 60 60">
+                                    <circle class="dial-bg" cx="30" cy="30" r="25" style="stroke: rgba(0,255,170,0.08);"></circle>
+                                    <circle class="dial-fill" cx="30" cy="30" r="25" style="stroke-dashoffset: ${157 - (157 * tP) / 100}; stroke: #00ffaa; filter: drop-shadow(0 0 5px #00ffaa);"></circle>
+                                </svg>
+                                <div class="dial-text">${data.tech}%</div>
+                            </div>
+                            <span class="v-bar-label">科技</span>
+                        </div>
+                    </div>
+
+                    <div class="bottom-left-panel">
+                        <svg width="100%" height="100%" style="stroke:currentColor; fill:none; opacity:0.3; stroke-width:0.5;">
+                            <circle cx="50" cy="50" r="30" stroke-dasharray="4 4"/>
+                            <path d="M10,50 L90,50 M50,10 L50,90"/>
+                        </svg>
+                    </div>
+                    <div class="center-core">
+                        <svg class="radar-group" viewBox="0 0 200 200">
+                            <circle class="radar-circle radar-rotate-fast" cx="100" cy="100" r="85" stroke-dasharray="5 10 30 5"/>
+                            <polygon class="radar-circle radar-rotate-slow" points="100,45 148,72 148,128 100,155 52,128 52,72" stroke-dasharray="4 4"/>
+                            <circle class="radar-circle" cx="100" cy="100" r="15" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="top-right-panel">
+                        <div class="mission-content">
+                            本階段狀態：<br>${identityText}<br><br>
+                            ${statusText}
+                        </div>
+                        <div class="action-box" style="display: ${canAction ? 'block' : 'none'};">
+                            <button class="hud-btn" onclick="executeMatrixChoice('A')">${btnALabel}</button>
+                            <button class="hud-btn" onclick="executeMatrixChoice('B')">${btnBLabel}</button>
+                        </div>
+                    </div>
+                    <div class="bottom-right-panel">
+                        <div class="status-line"><span>ROUND: 0${rIdx} / 04</span><span>v${systemState.version || 0}</span></div>
+                        <button class="panel-sync-btn" id="panelSyncBtn" onclick="triggerManualSync()">⚡ 強制重整</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 🧠 計算選擇結果並同步
+        function executeMatrixChoice(choiceType) {
+            mutateAndSyncState(() => {
+                const rIdx = systemState.currentRound;
+                const rData = systemState.rounds[rIdx];
+                if (!rData.history) rData.history = [];
+
+                const turnOrder = [rData.w1, rData.w2, rData.l1, rData.l2];
+                const activeTeam = turnOrder[rData.currentTurnIdx];
+                let logDesc = "";
+
+                if (rIdx === 1) {
+                    let choiceObj = null;
+                    if (rData.currentTurnIdx === 0) {
+                        choiceObj = round1Content[0].choices[choiceType];
+                    } else if (rData.currentTurnIdx === 1) {
+                        const govChoice = rData.history[0] || 'A';
+                        choiceObj = round1Content[1][govChoice]?.choices[activeTeam]?.[choiceType];
+                    } else if (rData.currentTurnIdx === 2) {
+                        const govChoice = rData.history[0] || 'A';
+                        const secFaction = turnOrder[1];
+                        const secChoice = rData.history[1] || 'A';
+                        const key = `${govChoice}_${secFaction}_${secChoice}`;
+                        choiceObj = round1Content[2][key]?.choices[choiceType];
+                    } else if (rData.currentTurnIdx === 3) {
+                        const govChoice = rData.history[0] || 'A';
+                        const secFaction = turnOrder[1];
+                        const secChoice = rData.history[1] || 'A';
+                        const sciChoice = rData.history[2] || 'A';
+                        const key = `${govChoice}_${secFaction}_${secChoice}_${sciChoice}`;
+                        choiceObj = round1Content[3][key]?.choices[choiceType];
+                    }
+
+                    if (choiceObj) {
+                        choiceObj.effect(systemState);
+                        rData.history.push(choiceType);
+                        logDesc = `【${systemState.teams[activeTeam].textName}】選${choiceType}。${choiceObj.desc}`;
+                    } else {
+                        logDesc = `未定義之分支決策路徑。`;
+                    }
+                } else {
+                    // 非第一輪的默認兜底算法
+                    if (activeTeam === 'A') {
+                        if (choiceType === 'A') {
+                            systemState.teams.A.stability = clamp(systemState.teams.A.stability + 15);
+                            logDesc = "【政府高層】選擇方案甲。";
+                        } else {
+                            systemState.teams.A.funds = clamp(systemState.teams.A.funds + 20);
+                            logDesc = "【政府高層】選擇方案乙。";
+                        }
+                    } else if (activeTeam === 'B') {
+                        if (choiceType === 'A') { systemState.teams.B.tech = clamp(systemState.teams.B.tech + 20); logDesc = "【社團科學家】選擇方案甲。"; }
+                        else { systemState.teams.B.stability = clamp(state.teams.B.stability + 20); logDesc = "【社團科學家】選擇方案乙。"; }
+                    } else if (activeTeam === 'C') {
+                        if (choiceType === 'A') { systemState.teams.C.funds = clamp(systemState.teams.C.funds + 20); logDesc = "【工廠資方】選擇方案甲。"; }
+                        else { systemState.teams.C.tech = clamp(systemState.teams.C.tech + 20); logDesc = "【工廠資方】選擇方案乙。"; }
+                    } else if (activeTeam === 'D') {
+                        if (choiceType === 'A') { systemState.teams.D.stability = clamp(systemState.teams.D.stability + 20); logDesc = "【底層勞工】選擇方案甲。"; }
+                        else { systemState.teams.D.tech = clamp(systemState.teams.D.tech + 20); logDesc = "【底層勞工】選擇方案乙。"; }
+                    }
+                    rData.history.push(choiceType);
+                }
+
+                systemState.rounds[rIdx].currentTurnIdx++;
+                systemState.logs.unshift(`[R${rIdx}-順位${rData.currentTurnIdx}] ${logDesc}`);
+            });
+        }
+
+        // 🏛️ 渲染後台主控畫面
+        function renderHostView() {
+            const rIdx = systemState.currentRound || 1;
+            const rData = systemState.rounds[rIdx];
+            const n_w1 = systemState.teams[rData.w1]?.textName || "";
+            const n_w2 = systemState.teams[rData.w2]?.textName || "";
+            const n_l1 = systemState.teams[rData.l1]?.textName || "";
+            const n_l2 = systemState.teams[rData.l2]?.textName || "";
+
+            mainView.innerHTML = `
+                <div class="host-screen">
+                    <div class="host-top-bar">
+                        <div class="host-header">🌌 量子核心主控台 
+                            <span class="sync-indicator">📡 劇本動態分歧同步版 (v${systemState.version || 0})</span>
+                            <span id="netIndicator" class="net-status-badge" style="margin-left:15px;">${cloudOnline ? '🌐 雲端連線正常':'⚠️ 雲端斷線/更新中'}</span>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                           <button class="reset-btn" onclick="resetSystem()">🚨 RESET</button>
+                        </div>
+                    </div>
+                    
+                    <div class="round-tabs">
+                        ${[1,2,3,4].map(num => `<button class="tab-btn ${rIdx === num ? 'active' : ''}" onclick="switchRound(${num})">第 0${num} 輪</button>`).join('')}
+                    </div>
+
+                    <div class="score-board">
+                        <div class="score-card" style="border-color: #ffb700;">
+                            <div class="score-card-title" style="color: #ffb700;">🏛️ 政府高層 (A)</div>
+                            <div class="score-card-vals"><span>資產: ${systemState.teams.A.funds}</span><span>生命: ${systemState.teams.A.stability}</span><span>科技: ${systemState.teams.A.tech}</span></div>
+                        </div>
+                        <div class="score-card" style="border-color: #00f0ff;">
+                            <div class="score-card-title" style="color: #00f0ff;">🧪 社團科學家 (B)</div>
+                            <div class="score-card-vals"><span>資產: ${systemState.teams.B.funds}</span><span>生命: ${systemState.teams.B.stability}</span><span>科技: ${systemState.teams.B.tech}</span></div>
+                        </div>
+                        <div class="score-card" style="border-color: #d400ff;">
+                            <div class="score-card-title" style="color: #d400ff;">🏢 工廠資方 (C)</div>
+                            <div class="score-card-vals"><span>資產: ${systemState.teams.C.funds}</span><span>生命: ${systemState.teams.C.stability}</span><span>科技: ${systemState.teams.C.tech}</span></div>
+                        </div>
+                        <div class="score-card" style="border-color: #ff3333;">
+                            <div class="score-card-title" style="color: #ff3333;">🛠️ 底層勞工 (D)</div>
+                            <div class="score-card-vals"><span>資產: ${systemState.teams.D.funds}</span><span>生命: ${systemState.teams.D.stability}</span><span>科技: ${systemState.teams.D.tech}</span></div>
+                        </div>
+                    </div>
+
+                    <div class="host-grid">
+                        <div class="control-panel-box">
+                            <div class="panel-title">配置本輪順位 (狀態: <span style="color:#ff7300">${rData.status}</span>)</div>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label>👑 第一順位</label>
+                                    <select class="host-select" id="w1">
+                                        <option value="A" ${rData.w1==='A'?'selected':''}>A 政府高層</option>
+                                        <option value="B" ${rData.w1==='B'?'selected':''}>B 社團科學家</option>
+                                        <option value="C" ${rData.w1==='C'?'selected':''}>C 工廠資方</option>
+                                        <option value="D" ${rData.w1==='D'?'selected':''}>D 底層勞工</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label>👑 第二順位</label>
+                                    <select class="host-select" id="w2">
+                                        <option value="C" ${rData.w2==='C'?'selected':''}>C 工廠資方</option>
+                                        <option value="A" ${rData.w2==='A'?'selected':''}>A 政府高層</option>
+                                        <option value="B" ${rData.w2==='B'?'selected':''}>B 社團科學家</option>
+                                        <option value="D" ${rData.w2==='D'?'selected':''}>D 底層勞工</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label>⚠️ 第三順位</label>
+                                    <select class="host-select" id="l1">
+                                        <option value="B" ${rData.l1==='B'?'selected':''}>B 社團科學家</option>
+                                        <option value="A" ${rData.l1==='A'?'selected':''}>A 政府高層</option>
+                                        <option value="C" ${rData.l1==='C'?'selected':''}>C 工廠資方</option>
+                                        <option value="D" ${rData.l1==='D'?'selected':''}>D 底層勞工</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label>⚠️ 第四順位</label>
+                                    <select class="host-select" id="l2">
+                                        <option value="D" ${rData.l2==='D'?'selected':''}>D 底層勞工</option>
+                                        <option value="A" ${rData.l2==='A'?'selected':''}>A 政府高層</option>
+                                        <option value="B" ${rData.l2==='B'?'selected':''}>B 社團科學家</option>
+                                        <option value="C" ${rData.l2==='C'?'selected':''}>C 工廠資方</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button class="primary-btn" onclick="applyRoundSettings()">廣播同步並開啟本輪選擇</button>
+
+                            <div class="action-bar">
+                                <div class="panel-title">本輪選擇路徑監控歷史：[ ${(rData.history || []).join(' → ') || '尚未作答'} ]</div>
+                                <div class="flow-tracker" style="${rData.status === '闖關中' ? 'opacity:0.4; pointer-events:none;' : ''}">
+                                    <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===0?'active':(rData.currentTurnIdx>0?'done':'')}">
+                                        <span>① [ ${n_w1} ]</span> ${rData.status==='闖關中'?'關卡中':(rData.currentTurnIdx===0?'作答中':`✅ 選擇: ${rData.history[0] || ''}`)}
+                                    </div>
+                                    <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===1?'active':(rData.currentTurnIdx>1?'done':'')}">
+                                        <span>② [ ${n_w2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===1?'作答中':(rData.currentTurnIdx>1?`✅ 選擇: ${rData.history[1] || ''}`:'⏳ 等待'))}
+                                    </div>
+                                    <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===2?'active':(rData.currentTurnIdx>2?'done':'')}">
+                                        <span>③ [ ${n_l1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===2?'作答中':(rData.currentTurnIdx>2?`✅ 選擇: ${rData.history[2] || ''}`:'⏳ 等待'))}
+                                    </div>
+                                    <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===3?'active':(rData.currentTurnIdx>3?'done':'')}">
+                                        <span>④ [ ${n_l2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===3?'作答中':(rData.currentTurnIdx>3?`✅ 選擇: ${rData.history[3] || ''}`:'⏳ 等待'))}
+                                    </div>
+                                </div>
+                                <button class="primary-btn" style="background:#00f0ff; color:#000; margin-top:12px;" ${rData.status === '闖關中' || rData.currentTurnIdx > 3 ? 'disabled' : ''} onclick="forceNextTurn()">⏭️ 強制推進下一順位</button>
+                            </div>
+                        </div>
+
+                        <div class="control-panel-box">
+                            <div class="panel-title">📊 即時世界線日誌</div>
+                            <div class="log-box" id="hostLogs">
+                                ${systemState.logs.map(l => `> ${l}<br>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function switchRound(num) {
+            mutateAndSyncState(() => { systemState.currentRound = num; });
+        }
+
+        function applyRoundSettings() {
+            mutateAndSyncState(() => {
+                const rIdx = systemState.currentRound;
+                systemState.rounds[rIdx].status = '連鎖選擇中';
+                systemState.rounds[rIdx].w1 = document.getElementById('w1').value;
+                systemState.rounds[rIdx].w2 = document.getElementById('w2').value;
+                systemState.rounds[rIdx].l1 = document.getElementById('l1').value;
+                systemState.rounds[rIdx].l2 = document.getElementById('l2').value;
+                systemState.rounds[rIdx].currentTurnIdx = 0; 
+                systemState.rounds[rIdx].history = [];
+                
+                const n_w1 = systemState.teams[systemState.rounds[rIdx].w1].textName;
+                systemState.logs.unshift(`[系統通知] 第 0${rIdx} 輪順位發布。控制權移交給第一順位【${n_w1}】。`);
+            });
+        }
+
+        function forceNextTurn() {
+            mutateAndSyncState(() => {
+                const rIdx = systemState.currentRound;
+                if (systemState.rounds[rIdx].currentTurnIdx < 4) {
+                    if (!systemState.rounds[rIdx].history) systemState.rounds[rIdx].history = [];
+                    systemState.rounds[rIdx].history.push("SKIP");
+                    systemState.rounds[rIdx].currentTurnIdx++;
+                    systemState.logs.unshift(`[管理介入] 主持人手動跳過並推進了目前順位。`);
+                }
+            });
+        }
+
+        function resetSystem() {
+            if(confirm("🚨 確定要將雲端系統全域重置為預設狀態嗎？")) {
+                mutateAndSyncState(() => {
+                    const freshState = JSON.parse(JSON.stringify(initialSystemState));
+                    systemState.currentRound = freshState.currentRound;
+                    systemState.teams = freshState.teams;
+                    systemState.rounds = freshState.rounds;
+                    systemState.logs = ["[系統重置] 全域廣播同步核心重置完成。數據已初始化。"];
+                });
+            }
+        }
+    </script>
 </body>
 </html>
