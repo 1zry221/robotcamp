@@ -187,452 +187,682 @@
         const clamp = (val) => val; 
         
         const round1Content = {
-            background: "AI 核心過載的瞬間，巨大的能量脈衝導致中央電網瞬間癱瘓，半數區域陷入一片黑暗。殘存的緊急電力所剩無幾，這寶貴的能源究竟該送往何處，考驗著所有人的神經。",
-            0: {
-                choices: {
-                    A: {
-                        label: "⚡ 方案甲：強行調回中樞 (全城戒嚴)",
-                        desc: "政府宣布全城進入緊急狀態，將所有剩餘電力強行調回政府中樞與武裝部隊，全面保障政權運作。",
-                        effect: (state) => {
-                            state.teams.A.funds = clamp(state.teams.A.funds + 10); state.teams.A.stability = clamp(state.teams.A.stability + 10);
-                            state.teams.B.stability = clamp(state.teams.B.stability - 10); state.teams.C.stability = clamp(state.teams.C.stability - 10); state.teams.D.stability = clamp(state.teams.D.stability - 10);
-                        }
-                    },
-                    B: {
-                        label: "⚡ 方案乙：特赦行政令 (縮減科研配額)",
-                        desc: "政府以「維護公眾利益與能源重新分配」為由，對科學家發出行政限令，強制縮減其能源配額並挪為國用。",
-                        effect: (state) => {
-                            state.teams.A.funds = clamp(state.teams.A.funds + 15);
-                            state.teams.B.funds = clamp(state.teams.B.funds - 20); state.teams.B.stability = clamp(state.teams.B.stability - 15);
-                        }
-                    }
+    background: "AI 核心過載的瞬間，巨大的能量脈衝導致中央電網瞬間癱瘓，半數區域陷入一片黑暗。殘存的緊急電力所剩無幾，這寶貴的能源究竟該送往何處，考驗著所有人的神經。",
+    
+    // =========================================================================
+    // 【路徑一：政府第一順位開局】
+    // =========================================================================
+    "G": {
+        choices: {
+            A: {
+                label: "⚡ 政府 A：強行調回中樞 (全城戒嚴)",
+                desc: "宣布全城進入緊急狀態，將所有剩餘電力強行調回政府中樞與武裝部隊，全面保障政權運作。民間陷入黑暗，資產階級停擺、科學家被查封、勞工在街頭挨凍。這引發了地下的反抗怒火。",
+                effect: (state) => {
+                    state.teams.A.funds = clamp(state.teams.A.funds + 10); state.teams.A.stability = clamp(state.teams.A.stability + 10);
+                    state.teams.B.stability = clamp(state.teams.B.stability - 10);
+                    state.teams.C.stability = clamp(state.teams.C.stability - 10);
+                    state.teams.D.stability = clamp(state.teams.D.stability - 10);
                 }
             },
-            1: {
-                "A": {
-                    text: "政府宣布全城戒嚴，民用電網全斷。政府大樓燈火通明，但民間陷入黑暗，資產階級停擺、科學家被查封、勞工在街頭挨凍。這引發了地下的反抗怒火。",
-                    choices: {
-                        C: {
-                            A: {
-                                label: "⚡ 方案甲：主動獻上大量資金幫政府維穩",
-                                desc: "資本向政府的戒嚴妥協，主動獻上大量資金幫政府維穩，換取特權民生用電。",
-                                effect: (state) => { state.teams.C.stability = clamp(state.teams.C.stability + 15); state.teams.C.funds = clamp(state.teams.C.funds - 15); state.teams.A.funds = clamp(state.teams.A.funds + 15); state.teams.D.stability = clamp(state.teams.D.stability - 10); }
-                            },
-                            B: {
-                                label: "⚡ 方案乙：黑市買私電自保並金援科學家",
-                                desc: "資本花大錢向黑市買私電自保。同時，決定砸大錢金援被查封的科學家，暗中提供科學家研發資金。",
-                                effect: (state) => { state.teams.C.stability = clamp(state.teams.C.stability + 15); state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.B.funds = clamp(state.teams.B.funds + 10); state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.A.stability = clamp(state.teams.A.stability - 10); }
-                            }
-                        },
-                        D: {
-                            A: {
-                                label: "⚡ 方案甲：配合順從並上繳備用發電機",
-                                desc: "面對政府黑洞洞的槍口與戒嚴部隊，勞工決定配合順從，共體時艱，主動上繳了家中的備用發電機與燃料。",
-                                effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability - 10); state.teams.D.funds = clamp(state.teams.D.funds + 5); state.teams.A.funds = clamp(state.teams.A.funds + 10); }
-                            },
-                            B: {
-                                label: "⚡ 方案乙：拒絕配合並秘密偷接黑市電網",
-                                desc: "勞工拒絕配合徵收，砸下大筆積蓄向地下黑市購買私電、秘密偷接電網，在戒嚴的死寂中勉強點亮自己的小屋。",
-                                effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability + 5); state.teams.D.funds = clamp(state.teams.D.funds - 10); state.teams.A.funds = clamp(state.teams.A.funds - 10); }
-                            }
-                        }
-                    }
-                },
-                "B": {
-                    text: "政府發布特赦行政令，以「維護國家安全、避免浪費能源」為由，強行切斷科學家的備用電力，並將其研究資產充公。科學家瞬間面臨破產與滅頂之災，而其餘陣營則人人自危。",
-                    choices: {
-                        C: {
-                            A: {
-                                label: "⚡ 方案甲：主動走向政府提出政商一體同盟",
-                                desc: "資本為了自保，決定主動走向政府提出「政商一體」的合作案。提供大量商業資金與物資支持維穩行動。",
-                                effect: (state) => { state.teams.C.stability = clamp(state.teams.C.stability + 15); state.teams.C.funds = clamp(state.teams.C.funds - 15); state.teams.A.funds = clamp(state.teams.A.funds + 10); state.teams.D.stability = clamp(state.teams.D.stability - 15); }
-                            },
-                            B: {
-                                label: "⚡ 方案乙：黑市買私電並成為科學家秘密金主",
-                                desc: "資本決定在黑市砸下巨資購買高價的獨立私電系統。同時為了牽制政府，決定成為科學家的秘密金主。",
-                                effect: (state) => { state.teams.C.stability = clamp(state.teams.C.stability + 15); state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.B.funds = clamp(state.teams.B.funds + 10); state.teams.A.funds = clamp(state.teams.A.funds - 15); }
-                            }
-                        },
-                        D: {
-                            A: {
-                                label: "⚡ 方案甲：砸血汗錢在黑市搬回零件淘金",
-                                desc: "勞工決定砸下血汗錢在黑市「撈油水」。把零件 and 核心代碼搬回貧民窟，點燃民間科技火種。",
-                                effect: (state) => { state.teams.D.tech = clamp(state.teams.D.tech + 20); state.teams.D.funds = clamp(state.teams.D.funds - 10); state.teams.B.funds = clamp(state.teams.B.funds - 10); }
-                            },
-                            B: {
-                                label: "⚡ 方案乙：不湊熱鬧，當聽話齒輪上下班囤資",
-                                desc: "勞工決定不湊這場熱鬧，繼續當個聽話的齒輪，按時上下班並囤積物資。",
-                                effect: (state) => { state.teams.D.funds = clamp(state.teams.D.funds + 15); state.teams.D.stability = clamp(state.teams.D.stability + 5); state.teams.A.funds = clamp(state.teams.A.funds + 10); }
-                            }
-                        }
-                    }
-                }
-            },
-            2: {
-                "A_C_A": {
-                    text: "政府的軍隊接管了街頭，資本的摩天大樓則獲得特許電力閃爍著冷酷的光芒，政商鐵三角正式成形。在此高壓下，科學家的技術被全面封禁，而最底層的勞工則面臨被無限壓榨的生存絕境。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：交出實驗室最高控制權與核心代碼",
-                            desc: "科學家選擇交出實驗室的最高控制權與核心代碼，換取特許電力的供應與人身安全。",
-                            effect: (state) => { state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.B.funds = clamp(state.teams.B.funds - 10); state.teams.A.tech = clamp(state.teams.A.tech + 15); state.teams.C.tech = clamp(state.teams.C.tech + 15); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：將數位病毒植入電網並暗中聯絡勞工",
-                            desc: "科學家將毀滅性的病毒植入中央電網與金融中樞。並秘密聯絡勞工去接管政府供電站。",
-                            effect: (state) => { state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.A.tech = clamp(state.teams.A.tech - 20); state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.D.stability = clamp(state.teams.D.stability + 10); }
-                        }
-                    }
-                },
-                "A_C_B": {
-                    text: "政府的戒嚴遭遇了資本的反抗。同時，資本家用大筆資金暗中扶植被查封的科學家。此時，全城的焦點都落在科學家身上，而最底層的勞工則在兩大集團的夾縫中等待局勢洗牌。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：履行秘密協議，獨家供技給資本家",
-                            desc: "科學家決定將新研發的技術與高效能源代碼，獨家提供給金援你們的資本家。",
-                            effect: (state) => { state.teams.B.tech = clamp(state.teams.B.tech + 10); state.teams.B.funds = clamp(state.teams.B.funds + 15); state.teams.A.tech = clamp(state.teams.A.tech - 15); state.teams.C.tech = clamp(state.teams.C.tech + 15); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：拒做私有工具，將代碼開源廣播市民",
-                            desc: "科學家拒絕成為財閥工具，將代碼以「開源」形式向全城廣播，在民間建立崇高聲望。",
-                            effect: (state) => { state.teams.B.tech = clamp(state.teams.B.tech - 10); state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.D.tech = clamp(state.teams.D.tech + 15); state.teams.D.stability = clamp(state.teams.D.stability + 20); }
-                        }
-                    }
-                },
-                "A_D_A": {
-                    text: "政府的軍事戒嚴大獲成功，在勞工的順聽配合下，統治威權達到頂峰。此時，政府調轉槍頭，開始全面清算獨立的科研機構，被切斷實驗室能源的科學家即將迎來他們的命運抉擇。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：敞開實驗室大門，併入國家科研體制",
-                            desc: "科學家選擇向政府軍隊敞開實驗室大門，交出最高核心代碼，併入國家科研體制。",
-                            effect: (state) => { state.teams.B.funds = clamp(state.teams.B.funds - 10); state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.A.tech = clamp(state.teams.A.tech + 20); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：拒絕成為獨裁幫兇，攜儀器流亡黑區",
-                            desc: "科學家拒絕成為監控幫兇。在戒嚴部隊破門前的一刻，攜帶輕便儀器逃往廢棄黑區。",
-                            effect: (state) => { state.teams.B.funds = clamp(state.teams.B.funds - 15); state.teams.B.tech = clamp(state.teams.B.tech + 10); state.teams.A.tech = clamp(state.teams.A.tech - 15); }
-                        }
-                    }
-                },
-                "A_D_B": {
-                    text: "政府雖然宣稱掌控全城，但廢棄街區的夜空中，依然閃爍著勞工私接黑市電網的零星燈火。此時，政府將目標轉向獨立實驗室，而夾在中間的科學家，必須在招安與流亡之間做出抉擇。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：研發反偷電偵測演算法精準自保",
-                            desc: "科學家協助政府研發全新的「智能反偷電偵測演算法」，精準切斷勞工的地下黑市電線。",
-                            effect: (state) => { state.teams.B.funds = clamp(state.teams.B.funds - 10); state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.A.tech = clamp(state.teams.A.tech + 20); state.teams.D.tech = clamp(state.teams.D.tech - 10); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：攜加密代碼與圖紙，逃入勞工地下聚落",
-                            desc: "科學家帶著最核心的量子加密代碼與圖紙，逃入了勞工秘密建立的地下黑市聚落。",
-                            effect: (state) => { state.teams.B.funds = clamp(state.teams.B.funds - 15); state.teams.B.tech = clamp(state.teams.B.tech + 10); state.teams.A.tech = clamp(state.teams.A.tech - 15); state.teams.D.tech = clamp(state.teams.D.tech + 15); }
-                        }
-                    }
-                },
-                "B_C_A": {
-                    text: "政商兩大巨頭在沒有戒嚴的表象下，暗中達成利益同盟，這讓被抄家查封的科學家陷入破產邊緣，而最底層的勞工則迎來了更隱蔽、卻更殘酷的經濟壓榨。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：專利技術低價賣財閥，換資金庇護",
-                            desc: "科學家為了活命並重啟實驗室，將壓箱寶的專利技術低價賣給財閥，換取急需的啟動資金與庇護。",
-                            effect: (state) => { state.teams.B.stability = clamp(state.teams.B.stability + 10); state.teams.B.funds = clamp(state.teams.B.funds + 20); state.teams.C.tech = clamp(state.teams.C.tech + 20); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：查封前將自動化與防衛代碼開源廣播",
-                            desc: "科學家看透政商勾結的醜陋，在被徹底查封前，將所有自動化生產與防衛代碼開源廣播給全城。",
-                            effect: (state) => { state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.B.tech = clamp(state.teams.B.tech - 15); state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.D.stability = clamp(state.teams.D.stability + 10); state.teams.D.tech = clamp(state.teams.D.tech + 10); }
-                        }
-                    }
-                },
-                "B_C_B": {
-                    text: "政府的行政清算遭遇了資本的全面金錢反制。財閥用大筆資金在地下秘密扶植被查封的科學家。而夾在政府與財閥兩大巨頭之間的勞工，則在觀望這場體制外的神仙打架。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：拿財閥錢並交付技術，建地下帝國",
-                            desc: "科學家拿了財閥的錢，將技術獨家交付給資本家。讓資本擁有完全屏蔽查稅與監控的商業帝國。",
-                            effect: (state) => { state.teams.B.funds = clamp(state.teams.B.funds + 20); state.teams.B.tech = clamp(state.teams.B.tech + 10); state.teams.C.tech = clamp(state.teams.C.tech + 20); state.teams.A.funds = clamp(state.teams.A.funds - 20); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：完成技術突破但拒成私財，開源廣播",
-                            desc: "科學家利用資金完成能源技術突破，但拒絕讓科學成為私財，私下將代碼向全城開源廣播。",
-                            effect: (state) => { state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.B.tech = clamp(state.teams.B.tech - 5); state.teams.D.tech = clamp(state.teams.D.tech + 10); state.teams.D.stability = clamp(state.teams.D.stability + 10); state.teams.A.funds = clamp(state.teams.A.funds - 15); }
-                        }
-                    }
-                },
-                "B_D_A": {
-                    text: "政府的鋼鐵重錘極其精準地砸碎了全城的獨立實驗室。然而，本該與科學家守望相助的勞工，此時卻瘋狂收購外流的科研禁品，點燃了自己的科技火種，但科學家卻被逼上了絕路。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：攜技術投靠唯一的避難所摩天大樓",
-                            desc: "科學家帶著尚未被查封的終極加密技術，秘密進入資本財閥的摩天大樓換取庇護。",
-                            effect: (state) => { state.teams.B.funds = clamp(state.teams.B.funds + 15); state.teams.B.tech = clamp(state.teams.B.tech - 10); state.teams.C.tech = clamp(state.teams.C.tech + 15); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：最後時刻玉石俱焚，開源生存密碼",
-                            desc: "科學家在實驗室被攻破的最後一刻玉石俱焚，將生存密碼與免費電力技術無償發送給市民。",
-                            effect: (state) => { state.teams.B.stability = clamp(state.teams.B.stability - 5); state.teams.B.tech = clamp(state.teams.B.tech + 10); state.teams.D.stability = clamp(state.teams.D.stability + 5); state.teams.D.tech = clamp(state.teams.D.tech + 10); state.teams.A.tech = clamp(state.teams.A.tech - 20); }
-                        }
-                    }
-                },
-                "B_D_B": {
-                    text: "政府的緝捕隊正在科研區瘋狂破門。而隔壁街區的勞工工廠依然馬力全開，底層市民選擇當個聽話的齒輪。沒有民間的掩護，也沒有黑市的接應，科學家的象牙塔被徹底孤立。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：出賣技術主權，秘密投靠資本換庇護",
-                            desc: "科學家看透底層冷漠與強權殘暴，進入資本摩天大樓，出賣技術主權換取庇護。",
-                            effect: (state) => { state.teams.B.funds = clamp(state.teams.B.funds + 20); state.teams.B.stability = clamp(state.teams.B.stability + 5); state.teams.C.tech = clamp(state.teams.C.tech + 25); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：最後時刻數據自爆，癱瘓基建設施",
-                            desc: "科學家在被捕前釋放毀滅性數據病毒，這場技術自爆瞬間癱瘓了城市的基礎設施。",
-                            effect: (state) => { state.teams.B.tech = clamp(state.teams.B.tech + 10); state.teams.B.stability = clamp(state.teams.B.stability - 10); state.teams.A.tech = clamp(state.teams.A.tech - 25); state.teams.D.tech = clamp(state.teams.D.tech - 10); state.teams.C.tech = clamp(state.teams.C.tech - 5); }
-                        }
-                    }
-                }
-            },
-            3: {
-                "A_C_A_A": {
-                    text: "政府的軍隊、資本的資金與科學家的技術徹底合流，組成堅不可摧的統治鐵三角。在這座燈火通明的極權城市中，沒有任何談判籌碼的勞工，正被逼入毫無退路的命運終點。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：走回工廠趕工，血汗換取微薄口糧",
-                            desc: "勞工選擇在毫無保障、高壓過載環境下趕工，用血汗換取微薄的配給糧食。",
-                            effect: (state) => { state.teams.D.funds = clamp(state.teams.D.funds + 15); state.teams.D.stability = clamp(state.teams.D.stability - 10); state.teams.A.funds = clamp(state.teams.A.funds + 10); state.teams.C.funds = clamp(state.teams.C.funds + 10); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：發起全城大罷工，離崗使生產力歸零",
-                            desc: "勞工發起大罷工，集體離開崗位，讓整座城市的生產力在一夜之間歸零。",
-                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability - 5); state.teams.A.funds = clamp(state.teams.A.funds - 25); state.teams.C.funds = clamp(state.teams.C.funds - 25); state.teams.B.funds = clamp(state.teams.B.funds - 10); }
-                        }
-                    }
-                },
-                "A_C_A_B": {
-                    text: "政府與資本聯手築起鋼鐵般的特權防線，但科學家在暗中釋放了數位病毒，癱瘓了中央電網，並將能源偷偷導向底層。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：組自衛隊衝入工廠，自行運作分物資",
-                            desc: "有了支援，勞工不再忍耐，組成自衛隊衝入被切斷中控的工廠，自行運作分發資源。",
-                            effect: (state) => { state.teams.D.funds = clamp(state.teams.D.funds + 20); state.teams.D.stability = clamp(state.teams.D.stability - 10); state.teams.A.stability = clamp(state.teams.A.stability - 15); state.teams.C.funds = clamp(state.teams.C.funds - 25); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：不正面硬碰硬，建立自給自足黑電社區",
-                            desc: "勞工利用科學家導引過來的非法電力，建立起自給自足的地下社區。",
-                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability + 15); state.teams.D.tech = clamp(state.teams.D.tech + 10); state.teams.A.funds = clamp(state.teams.A.funds - 5); state.teams.B.stability = clamp(state.teams.B.stability + 10); }
-                        }
-                    }
-                },
-                "A_C_B_A": {
-                    text: "政府的軍事戒嚴與資本的地下金融持續對峙，而科學家已將核心技術獨家交給資本家，形成了全新的特權階級，而被兩大巨頭夾在中間的勞工，生存空間被進一步壓縮。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：簽署地下僱傭約，進資本秘密工廠",
-                            desc: "勞工進入資本家被技術屏蔽的秘密工廠工作，換取庇護資源。",
-                            effect: (state) => { state.teams.D.funds = clamp(state.teams.D.funds + 15); state.teams.D.stability = clamp(state.teams.D.stability + 10); state.teams.A.funds = clamp(state.teams.A.funds - 10); state.teams.C.funds = clamp(state.teams.C.funds + 10); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：發起全面怠工，拒絕配合任何頂層",
-                            desc: "勞工不配合政府強徵，也不進資本地下工廠，退出所有生產線。",
-                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability - 5); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.C.funds = clamp(state.teams.C.funds - 20); }
-                        }
-                    }
-                },
-                "A_C_B_B": {
-                    text: "政府與資本的頂層對峙陷入僵局，而科學家的開源廣播，讓最底層的勞工瞬間掌握了能源主導權，從任人宰割的燃料，變成了左右城市命運的關鍵棋子。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：組建貧民窟微電網，實現自給自足",
-                            desc: "勞工在廢棄街區自行組建微型微電網與農業溫室，實現自給自足。",
-                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability + 15); state.teams.D.funds = clamp(state.teams.D.funds + 15); state.teams.D.tech = clamp(state.teams.D.tech + 10); state.teams.A.funds = clamp(state.teams.A.funds - 10); state.teams.C.funds = clamp(state.teams.C.funds - 10); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：武器化民用科技，對政府與資本反擊",
-                            desc: "勞工將民用科技武器化，對政府戒嚴部隊與資本防衛系統發起全面反擊。",
-                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability - 10); state.teams.D.tech = clamp(state.teams.D.tech + 15); state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.A.stability = clamp(state.teams.A.stability - 15); state.teams.C.funds = clamp(state.teams.C.funds - 20); }
-                        }
-                    }
-                },
-                "A_D_A_A": {
-                    text: "政府靠著鐵腕戒嚴全面掌控了局勢，勞工選擇順從並交出資源，科學家也帶著核心技術向國家臣服。此時，被完全孤立在體制外的資本財閥，正面臨資產被國家逐步蠶食的生死關頭。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：工廠股份上繳，換取經濟委員會席次",
-                            desc: "資本主動將能源工廠、物流鏈與股份上繳，換取在國家經濟委員會中的特權席次。",
-                            effect: (state) => { state.teams.C.stability = clamp(state.teams.C.stability + 15); state.teams.C.tech = clamp(state.teams.C.tech + 10); state.teams.C.funds = clamp(state.teams.C.funds - 25); state.teams.A.funds = clamp(state.teams.A.funds + 15); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：海外秘密網絡發動，將財富強制出境",
-                            desc: "資本不甘心拱手讓人，動用秘密網絡，將物資、黃金與數位貨幣透過地下黑市轉移出境。",
-                            effect: (state) => { state.teams.C.stability = clamp(state.teams.C.stability - 15); state.teams.C.funds = clamp(state.teams.C.funds + 15); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.D.funds = clamp(state.teams.D.funds + 10); }
-                        }
-                    }
-                },
-                "A_D_A_B": {
-                    text: "政府全面掌控了街頭，勞工也選擇順從並交出資源。然而，科學家拒絕向國家臣服。而手中握有龐大資金卻缺乏技術的資本財閥，正站在向體制投降或投資地下反抗勢力的十字路口。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：充當政府耳目蒐情報，換獨家經營權",
-                            desc: "資本暗中蒐集流亡科學家動向並交給部隊，換取政府發放的「獨家特許經營權」。",
-                            effect: (state) => { state.teams.C.stability = clamp(state.teams.C.stability + 10); state.teams.C.funds = clamp(state.teams.C.funds + 15); state.teams.A.tech = clamp(state.teams.A.tech + 15); state.teams.B.stability = clamp(state.teams.B.stability - 10); state.teams.B.tech = clamp(state.teams.B.tech - 10); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：鋌而走險地下輸資，助科研重啟",
-                            desc: "資本決定鋌而走險，透過地下渠道輸送物資與設備給流亡科學家，重啟地下研發。",
-                            effect: (state) => { state.teams.C.tech = clamp(state.teams.C.tech + 20); state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.A.stability = clamp(state.teams.A.stability - 10); state.teams.B.funds = clamp(state.teams.B.funds + 20); state.teams.B.stability = clamp(state.teams.B.stability + 10); }
-                        }
-                    }
-                },
-                "A_D_B_A": {
-                    text: "政府獲得了科學家的技術投誠，開始精準切斷勞工的地下私電。此時，「政、科」聯手將絞索套在了底層脖子上，而在一旁觀戰的資本財閥，迎來了決定局勢走向的最終機會。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：重金收購國債，換未來電網私有權",
-                            desc: "資本砸重金收購國債為軍隊提供後盾，換取未來對全城電網的私有化經營權。",
-                            effect: (state) => { state.teams.C.stability = clamp(state.teams.C.stability + 10); state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.A.funds = clamp(state.teams.A.funds + 10); state.teams.D.stability = clamp(state.teams.D.stability - 15); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：建企業庇護所，出資幫勞工升級設備",
-                            desc: "資本在地下黑區建立企業庇護所出資幫勞工，藉此截獲大量廉價且感激的勞動力。",
-                            effect: (state) => { state.teams.C.tech = clamp(state.teams.C.tech + 10); state.teams.C.funds = clamp(state.teams.C.funds - 15); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.D.stability = clamp(state.teams.D.stability + 10); state.teams.D.funds = clamp(state.teams.D.funds + 10); }
-                        }
-                    }
-                },
-                "A_D_B_B": {
-                    text: "政府的鋼鐵戒嚴未能徹底封鎖全城，科學家帶著核心技術遁入地下，與正在黑市偷電的勞工合流。此時，手握全城最多閒置資金的資本財閥，正面臨兩難...",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：出賣地下聚集地給軍隊換大筆賞金",
-                            desc: "資本向戒嚴部隊舉報勞工與科學家的地下聚集地，換取大筆賞金與免稅特權。",
-                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds + 10); state.teams.A.tech = clamp(state.teams.A.tech + 10); state.teams.D.stability = clamp(state.teams.D.stability - 10); state.teams.B.stability = clamp(state.teams.B.stability - 10); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：海外秘密帳戶開動，資助民間反抗",
-                            desc: "資本賭一把大的，動用海外帳戶全面資助民間研發與生活，對政府行政造成毀滅打擊。",
-                            effect: (state) => { state.teams.C.tech = clamp(state.teams.C.tech + 20); state.teams.C.funds = clamp(state.teams.C.funds - 10); state.teams.A.funds = clamp(state.teams.A.funds - 25); state.teams.A.stability = clamp(state.teams.A.stability - 10); state.teams.D.funds = clamp(state.teams.D.funds + 10); state.teams.B.funds = clamp(state.teams.B.funds + 10); }
-                        }
-                    }
-                },
-                "B_C_A_A": {
-                    text: "「政、商、科」三方在體制內完成了資源與技術的合流，而這場繁榮的代價，全由毫無技術、被徹底孤立的勞工在工廠底層用血汗獨自承擔。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：在設計監控系統下瘋狂加班換糧",
-                            desc: "勞工放棄對抗，在財閥與科學家設計的監控系統下不分晝夜瘋狂加班。",
-                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability - 20); state.teams.D.funds = clamp(state.teams.D.funds + 10); state.teams.A.funds = clamp(state.teams.A.funds + 10); state.teams.C.funds = clamp(state.teams.C.funds + 20); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：集體罷工並砸積蓄走私醫療糧食物資",
-                            desc: "勞工集體罷工，砸存蓄在地下黑市走私醫療與糧食，強行拉回生命安全線。",
-                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability + 15); state.teams.D.funds = clamp(state.teams.D.funds - 15); state.teams.A.funds = clamp(state.teams.A.funds - 10); state.teams.C.funds = clamp(state.teams.C.funds - 10); }
-                        }
-                    }
-                },
-                "B_C_A_B": {
-                    text: "政府與資本表面上達成了政商利益同盟，但科學家在被徹底查封前，將系統與自動化升級代碼無償廣播給了民間，讓原本遭到資本家瘋狂壓榨的勞工生命力大補血。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：篡改工廠核心機器，扣留利潤分發",
-                            desc: "勞工利用開源代碼篡改核心機器控制權，將產品與利潤直接扣留並重新分配。",
-                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability - 5); state.teams.D.funds = clamp(state.teams.D.funds + 20); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.C.funds = clamp(state.teams.C.funds - 25); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：發起全面科技不合作，屏蔽全城信號",
-                            desc: "勞工發起科技不合作，利用干擾裝置屏蔽全城訊號，讓整座城市生產力陷入死寂。",
-                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability + 10); state.teams.D.tech = clamp(state.teams.D.tech + 5); state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.C.funds = clamp(state.teams.C.funds - 20); }
-                        }
-                    }
-                },
-                "B_C_B_A": {
-                    text: "資本的金援與科學家的黑科技在體制外深度結合，讓政府的行政控制全面失靈。然而，這場科技內鬥，並沒有惠及底層，毫無資源的勞工依舊在夾縫中，等待最後的生存抉擇。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：進入技術屏蔽秘密工廠，換高科庇護",
-                            desc: "勞工進入財閥技術屏蔽的秘密工廠工作，換取穩定的物資與高科技庇護。",
-                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability + 10); state.teams.D.funds = clamp(state.teams.D.funds + 5); state.teams.A.funds = clamp(state.teams.A.funds - 10); state.teams.C.funds = clamp(state.teams.C.funds + 10); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：發起全面不合作運動，拒絕所有頂層",
-                            desc: "勞工決定既不幫政府維持城市運作，也不進入財閥的工廠生產線。",
-                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability - 5); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.C.funds = clamp(state.teams.C.funds - 15); }
-                        }
-                    }
-                },
-                "B_C_B_B": {
-                    text: "政府的行政控制被資本的金權防線擋下，而科學家的開源技術則直接交給了最底層。整座城市都是民用的微型電網，勞工不費吹灰之力就獲得了充足的能源與科技火種。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：拋棄上層建立去中心化物資共享社區",
-                            desc: "勞工拋棄上層，建立去中心化自治社區，糧食、電力與醫療全部共享。",
-                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability + 10); state.teams.D.funds = clamp(state.teams.D.funds + 20); state.teams.D.tech = clamp(state.teams.D.tech + 10); state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.C.funds = clamp(state.teams.C.funds - 20); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：聯手科學家對中樞與金庫數位實體清算",
-                            desc: "勞工聯手科學家發起全面清算，強行將上層壟斷的財富據為己有。",
-                            effect: (state) => { state.teams.D.stability = clamp(state.teams.D.stability - 10); state.teams.D.funds = clamp(state.teams.D.funds + 25); state.teams.A.funds = clamp(state.teams.A.funds - 25); state.teams.C.funds = clamp(state.teams.C.funds - 25); }
-                        }
-                    }
-                },
-                "B_D_A_A": {
-                    text: "獨立科學界徹底瓦解，但政府並未成功收歸國有。科學家帶著最後的核心專利，遁入了資本的摩天大樓。而此時的勞工雖然淘到了部分科技硬體，卻面臨資本與政府接下來的雙重收割。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：技術商品化，推出高昂訂閱微型電網",
-                            desc: "資本將科學家的技術商品化專利化，向全城推出昂貴的訂閱制電網與晶片。",
-                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds + 15); state.teams.A.tech = clamp(state.teams.A.tech - 20); state.teams.D.funds = clamp(state.teams.D.funds - 5); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：保安隊升級私人工隊，街頭與政府駁火",
-                            desc: "資本砸大筆資產將保安隊升級為私人工隊，在街頭公然與政府部隊開火。",
-                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.C.stability = clamp(state.teams.C.stability + 15); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.A.stability = clamp(state.teams.A.stability - 10); }
-                        }
-                    }
-                },
-                "B_D_A_B": {
-                    text: "全城此時充斥著科學家廣播的免費高科技 ，政府試圖壟斷科技的計畫徹底失敗。勞工平白獲得了這套最頂級的技術說明書。這場技術海嘯讓原本在一旁觀戰的資本瞬間被架空。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：提專利訴訟沒收勞工設備否認合法性",
-                            desc: "資本利用法律漏洞與政商關係，強行對使用開源技術的勞工提起專利訴訟並沒收設備。",
-                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds - 10); state.teams.C.tech = clamp(state.teams.C.tech + 10); state.teams.D.tech = clamp(state.teams.D.tech - 10); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：砸重金封鎖實體物流使其缺乏製造硬體",
-                            desc: "資本砸重金封鎖實體物流，讓勞工空有頂級代碼卻缺乏製造硬體。",
-                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds - 15); state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.D.tech = clamp(state.teams.D.tech - 10); state.teams.D.stability = clamp(state.teams.D.stability - 5); }
-                        }
-                    }
-                },
-                "B_D_B_A": {
-                    text: "獨立科學界在孤立無援中瓦解，但政府竹籃打水一場空。科學家們在被逮捕前，帶著最核心的技術專利投靠了資本。而當初選擇冷眼旁觀的勞工，已經徹底失去了科技底牌。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：技術商品化專利化，推昂貴訂閱電網",
-                            desc: "資本將技術專利商品化，面向走投無路的市民與勞工推昂貴訂閱制微電網。",
-                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds + 15); state.teams.A.tech = clamp(state.teams.A.tech - 20); state.teams.D.funds = clamp(state.teams.D.funds - 5); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：全面升級武裝工隊，公然與緝捕隊對抗",
-                            desc: "資本深知政府遲早會來搶人，全面升級企業工隊，在街頭對抗緝捕部隊。",
-                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.C.stability = clamp(state.teams.C.stability + 15); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.A.stability = clamp(state.teams.A.stability - 10); }
-                        }
-                    }
-                },
-                "B_D_B_B": {
-                    text: "科學家在實驗室被攻破的前一刻釋放了病毒，全城電網陷入大癱瘓。政府試圖奪取的技術化為烏有，只想安穩度日的勞工也遭到波及，唯有擁有獨立發電廠的資本，能維持安穩生活。",
-                    choices: {
-                        A: {
-                            label: "⚡ 方案甲：利用獨立能源實施高利貸式血腥救援",
-                            desc: "資本利用旗下獨立能源，對走投無路的勞工實施高利貸式的救援擴大壟斷。",
-                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds + 20); state.teams.C.stability = clamp(state.teams.C.stability + 10); state.teams.A.funds = clamp(state.teams.A.funds - 15); state.teams.D.funds = clamp(state.teams.D.funds - 20); }
-                        },
-                        B: {
-                            label: "⚡ 方案乙：扮演救世主重整基建，奪取未來控制權",
-                            desc: "資本動用海外乾淨伺服器與工程隊，協助整座城市基建重整並納入核心控制。",
-                            effect: (state) => { state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.C.tech = clamp(state.teams.C.tech + 30); state.teams.A.tech = clamp(state.teams.A.tech + 5); state.teams.A.funds = clamp(state.teams.A.funds - 10); state.teams.D.tech = clamp(state.teams.D.tech + 5); state.teams.D.funds = clamp(state.teams.D.funds - 10); }
-                        }
-                    }
+            B: {
+                label: "📜 政府 B：發布行政限令 (能源充公)",
+                desc: "以「維護公眾利益與能源重新分配」為由，對科學家發出行政限令，強制縮減其能源配額並挪為國用。科學家瞬間面臨破產與滅頂之災，而其餘陣營則人人自危。",
+                effect: (state) => {
+                    state.teams.A.funds = clamp(state.teams.A.funds + 15);
+                    state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.C.stability = clamp(state.teams.C.stability - 15);
                 }
             }
-        };
+        }
+    },
+    // 政府選 A -> 第二順位：資本
+    "GA": {
+        choices: {
+            A: {
+                label: "🤝 資本 A：向政府妥協 (政商同盟)",
+                desc: "向政府的戒嚴妥協，主動獻上大量資金幫政府維穩，換取特權民生用電。政府的軍隊接管了街頭，資本的摩天大樓則獲得特許電力閃爍著冷酷的光芒，政商鐵三角正式成形。科學家技術被全面封禁，勞工面臨生存絕境。",
+                effect: (state) => {
+                    state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.B.funds = clamp(state.teams.B.funds - 15);
+                    state.teams.A.funds = clamp(state.teams.A.funds + 15);
+                    state.teams.D.stability = clamp(state.teams.D.stability - 10);
+                }
+            },
+            B: {
+                label: "💰 資本 B：黑市私電與秘密金援",
+                desc: "花大錢向黑市買私電自保。同時，決定砸大錢金援被查封的科學家，暗中提供科學家研發資金。政府的戒嚴遭遇了資本的反抗。全城焦點落在科學家身上，勞工在夾縫中等待局勢洗牌。",
+                effect: (state) => {
+                    state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.B.funds = clamp(state.teams.B.funds - 20);
+                    state.teams.C.funds = clamp(state.teams.C.funds + 10);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.A.stability = clamp(state.teams.A.stability - 10);
+                }
+            }
+        }
+    },
+    // 政府 A -> 資本 A -> 第三順位：科學家
+    "GAA": {
+        choices: {
+            A: {
+                label: "🧪 科學家 A：交出控制權 (技術投誠)",
+                desc: "看著政府的軍隊與財團的資金已經聯手，你們選擇交出實驗室的最高控制權與核心代碼，換取特許電力的供應與人身安全。政、商、科徹底合流組成堅不可摧的鐵三角，勞工正被逼入毫無退路的命運終點。",
+                effect: (state) => {
+                    state.teams.C.stability = clamp(state.teams.C.stability + 15); state.teams.C.funds = clamp(state.teams.C.funds - 10);
+                    state.teams.A.tech = clamp(state.teams.A.tech + 15);
+                    state.teams.B.tech = clamp(state.teams.B.tech + 15);
+                }
+            },
+            B: {
+                label: "🦠 科學家 B：植入數位病毒 (聯合底層)",
+                desc: "利用最後的備用電源，將毀滅性的病毒植入中央電網與金融中樞。並秘密聯絡在街頭挨凍的勞工，指引他們去接管政府供電站。政府與資本聯手築起的特權防線被癱瘓，能源偷偷導向底層。",
+                effect: (state) => {
+                    state.teams.C.stability = clamp(state.teams.C.stability + 15);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.A.tech = clamp(state.teams.A.tech - 20);
+                    state.teams.B.funds = clamp(state.teams.B.funds - 20);
+                    state.teams.D.stability = clamp(state.teams.D.stability + 10);
+                }
+            }
+        }
+    },
+    // 政府 A -> 資本 A -> 科學家 A -> 第四順位：勞工
+    "GAAA": {
+        choices: {
+            A: {
+                label: "🛠️ 勞工 A：重回高壓工廠 (血汗妥協)",
+                desc: "面對軍隊、財團與科技監控的絕對力量，你們選擇走回工廠，在毫無安全保障、高壓過載的環境下日夜趕工，用血汗換取微薄的配給糧食。勞工重回高壓工廠，鐵三角統治牢不可破。",
+                effect: (state) => {
+                    state.teams.D.funds = clamp(state.teams.D.funds + 15); state.teams.D.stability = clamp(state.teams.D.stability - 10);
+                    state.teams.A.funds = clamp(state.teams.A.funds + 10);
+                    state.teams.B.funds = clamp(state.teams.B.funds + 10);
+                }
+            },
+            B: {
+                label: "✊ 勞工 B：發起全城大罷工",
+                desc: "既然橫豎都是死，勞工決定發起全城大罷工，集體離開崗位，讓整座城市的生產力在一夜之間歸零。全城生產力歸零，體制陷入強烈震盪。",
+                effect: (state) => {
+                    state.teams.D.stability = clamp(state.teams.D.stability - 5);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 25);
+                    state.teams.B.funds = clamp(state.teams.B.funds - 25);
+                    state.teams.C.funds = clamp(state.teams.C.funds - 10);
+                }
+            }
+        }
+    },
+    // 政府 A -> 資本 A -> 科學家 B -> 第四順位：勞工
+    "GAAB": {
+        choices: {
+            A: {
+                label: "⚔️ 勞工 A：組成武裝自衛隊",
+                desc: "有了科學家的支援，你們不再忍耐，組成自衛隊，強行衝入被切斷中央控制的工廠，開始自行運作並分發資源。勞工自衛隊強行接管工廠，開始自主分配。",
+                effect: (state) => {
+                    state.teams.D.funds = clamp(state.teams.D.funds + 20); state.teams.D.stability = clamp(state.teams.D.stability - 10);
+                    state.teams.A.stability = clamp(state.teams.A.stability - 15);
+                    state.teams.B.funds = clamp(state.teams.B.funds - 25);
+                }
+            },
+            B: {
+                label: "🏡 勞工 B：建立自給自足社區",
+                desc: "你們決定不與政府的軍隊正面硬碰硬，利用科學家導引過來的非法電力，建立起自給自足的地下社區。地下自給自足社區建立，脫離政府管控。",
+                effect: (state) => {
+                    state.teams.D.stability = clamp(state.teams.D.stability + 15); state.teams.D.tech = clamp(state.teams.D.tech + 10);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 5);
+                    state.teams.C.stability = clamp(state.teams.C.stability + 10);
+                }
+            }
+        }
+    },
+    // 政府 A -> 資本 B -> 第三順位：科學家
+    "GAB": {
+        choices: {
+            A: {
+                label: "🧪 科學家 A：合約履行 (專屬技術輸出)",
+                desc: "你們決定履行與資本家的秘密協議，將新研發的技術與高效能源代碼，獨家提供給金援你們的資本家。形成了全新的特權階級，而被兩大巨頭夾在中間的勞工，生存空間被進一步壓縮。",
+                effect: (state) => {
+                    state.teams.C.tech = clamp(state.teams.C.tech + 10); state.teams.C.funds = clamp(state.teams.C.funds + 15);
+                    state.teams.A.tech = clamp(state.teams.A.tech - 15);
+                    state.teams.B.tech = clamp(state.teams.B.tech + 15);
+                }
+            },
+            B: {
+                label: "📡 科學家 B：開源代碼廣播 (民間火種)",
+                desc: "你們不打算成為財閥的私有工具，利用這筆資金完成了技術突破後，將代碼以「開源」形式向全城廣播，在民間建立起崇高的聲望。科學家的開源廣播，讓最底層的勞工瞬間掌握了能源主導權，從任人宰割的燃料變成了關鍵棋子。",
+                effect: (state) => {
+                    state.teams.C.tech = clamp(state.teams.C.tech - 10); state.teams.C.stability = clamp(state.teams.C.stability + 15);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 15);
+                    state.teams.D.tech = clamp(state.teams.D.tech + 15); state.teams.D.stability = clamp(state.teams.D.stability + 20);
+                }
+            }
+        }
+    },
+    // 政府 A -> 資本 B -> 科學家 A -> 第四順位：勞工
+    "GABA": {
+        choices: {
+            A: {
+                label: "🛠️ 勞工 A：簽署地下僱傭合約",
+                desc: "你們決定簽署專屬的地下僱傭合約，進入資本家被技術屏蔽的秘密工廠工作。勞工依附資本秘密工廠，政商科對抗持續。",
+                effect: (state) => {
+                    state.teams.D.funds = clamp(state.teams.D.funds + 15); state.teams.D.stability = clamp(state.teams.D.stability + 10);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 10);
+                    state.teams.B.funds = clamp(state.teams.B.funds + 10);
+                }
+            },
+            B: {
+                label: "🛑 勞工 B：發起全面怠工",
+                desc: "你們決定發起全面怠工，既不配合政府的強行徵用，也不進入資本家的地下工廠，退出所有生產線。生產線全面停擺，上下層陷入冷戰對峙。",
+                effect: (state) => {
+                    state.teams.D.stability = clamp(state.teams.D.stability - 5);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 15);
+                    state.teams.B.funds = clamp(state.teams.B.funds - 20);
+                }
+            }
+        }
+    },
+    // 政府 A -> 資本 B -> 科學家 B -> 第四順位：勞工
+    "GABB": {
+        choices: {
+            A: {
+                label: "🏡 勞工 A：微型民用電網自治",
+                desc: "你們在貧民窟與廢棄街區自行組建微型微電網與自動化農業溫室，實現了完全的自給自足。民用微電網成形，底層實現全面自治。",
+                effect: (state) => {
+                    state.teams.D.stability = clamp(state.teams.D.stability + 15); state.teams.D.funds = clamp(state.teams.D.funds + 15); state.teams.D.tech = clamp(state.teams.D.tech + 10);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 10);
+                    state.teams.B.funds = clamp(state.teams.B.funds - 10);
+                }
+            },
+            B: {
+                label: "💥 勞工 B：科技武器化全面反擊",
+                desc: "你們決定利用科學家給的代碼，將民用科技武器化，對政府的戒嚴部隊與資本家的防衛系統發起全面反擊。科技武裝暴動爆發，城市陷入全面內戰。",
+                effect: (state) => {
+                    state.teams.D.stability = clamp(state.teams.D.stability - 10); state.teams.D.tech = clamp(state.teams.D.tech + 15);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.A.stability = clamp(state.teams.A.stability - 15);
+                    state.teams.B.funds = clamp(state.teams.B.funds - 20);
+                }
+            }
+        }
+    },
+    // 政府選 B -> 第二順位：勞工
+    "GB": {
+        choices: {
+            A: {
+                label: "🛠️ 勞工 A：配合順從 (上繳發電機)",
+                desc: "面對政府黑洞洞的槍口與戒嚴部隊，勞工決定配合順從，共體時艱，主動上繳了家中的備用發電機與囤積的燃料。政府的軍事戒嚴大獲成功，統治威權達到頂峰。此時，政府調轉槍頭，開始全面清算獨立科學機構。",
+                effect: (state) => {
+                    state.teams.D.stability = clamp(state.teams.D.stability - 10); state.teams.D.funds = clamp(state.teams.D.funds + 5);
+                    state.teams.A.funds = clamp(state.teams.A.funds + 10);
+                }
+            },
+            B: {
+                label: "🔌 勞工 B：黑市買電 (秘密私接)",
+                desc: "你們拒絕配合徵收，而是砸下大筆積蓄，向地下黑市購買私電、秘密偷接電網，在戒嚴的死寂中勉強點亮自己的溫暖小屋。廢棄街區的夜空中依然閃爍著勞工私接黑市電網的零星燈火。此時，政府將目標轉向獨立實驗室。",
+                effect: (state) => {
+                    state.teams.D.stability = clamp(state.teams.D.stability + 5); state.teams.D.funds = clamp(state.teams.D.funds - 10);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 10);
+                }
+            }
+        }
+    },
+    // 政府 B -> 勞工 A -> 第三順位：科學家
+    "GBA": {
+        choices: {
+            A: {
+                label: "🧪 科學家 A：國家科研體制收編",
+                desc: "看到連最龐大的勞工群體都選擇順從，你們選擇向政府軍隊敞開實驗室大門，交出最高核心代碼，併入國家科研體制。政府鐵腕全面掌控局勢，科學家臣服。被孤立在體制外的資本財閥正面臨資產被國家蠶食的生死關頭。",
+                effect: (state) => {
+                    state.teams.C.funds = clamp(state.teams.C.funds - 10); state.teams.C.stability = clamp(state.teams.C.stability + 15);
+                    state.teams.A.tech = clamp(state.teams.A.tech + 20);
+                }
+            },
+            B: {
+                label: "🏃 科學家 B：攜帶儀器流亡邊緣黑區",
+                desc: "科學家拒絕成為極權政府監控人民的幫兇。在戒嚴部隊破門前的一刻，你們攜帶輕便儀器逃往城市邊緣的廢棄黑區。政府掌控街頭，但科學家拒絕臣服，手握龐大資金卻缺乏技術的資本財閥站在命運十字路口。",
+                effect: (state) => {
+                    state.teams.C.funds = clamp(state.teams.C.funds - 15); state.teams.C.tech = clamp(state.teams.C.tech + 10);
+                    state.teams.A.tech = clamp(state.teams.A.tech - 15);
+                }
+            }
+        }
+    },
+    // 政府 B -> 勞工 A -> 科學家 A -> 第四順位：資本
+    "GBAA": {
+        choices: {
+            A: {
+                label: "💰 資本 A：全數上繳換取委員會特權",
+                desc: "看清局勢後，你們主動將旗下的能源工廠、物流鏈與金融股份上繳給政府，換取在國家經濟委員會中的特權席次。資本全面收編，威權國家經濟體制確立。",
+                effect: (state) => {
+                    state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.B.tech = clamp(state.teams.B.tech + 10); state.teams.B.funds = clamp(state.teams.B.funds - 25);
+                    state.teams.A.funds = clamp(state.teams.A.funds + 15);
+                }
+            },
+            B: {
+                label: "🌐 資本 B：動用海外網絡轉移資產",
+                desc: "你們不甘心將一生心血拱手讓給政府，動用積攢的海外秘密網絡，將工廠設備、黃金與數位貨幣透過地下黑市強行轉移出境。資產外逃，政府遭遇嚴重的經濟流失。",
+                effect: (state) => {
+                    state.teams.B.stability = clamp(state.teams.B.stability - 15); state.teams.B.funds = clamp(state.teams.B.funds + 15);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 15);
+                    state.teams.D.funds = clamp(state.teams.D.funds + 10);
+                }
+            }
+        }
+    },
+    // 政府 B -> 勞工 A -> 科學家 B -> 第四順位：資本
+    "GBAB": {
+        choices: {
+            A: {
+                label: "🦅 資本 A：充當政府耳目蒐集動向",
+                desc: "你們決定充當政府的耳目，暗中蒐集流亡科學家的動向，並將情報交給戒嚴部隊，換取政府發放的「獨家特許經營權」。資本充當鷹犬，獵捕地下流亡科學家。",
+                effect: (state) => {
+                    state.teams.B.stability = clamp(state.teams.B.stability + 10); state.teams.B.funds = clamp(state.teams.B.funds + 15);
+                    state.teams.A.tech = clamp(state.teams.A.tech + 15);
+                    state.teams.C.stability = clamp(state.teams.C.stability - 10); state.teams.C.tech = clamp(state.teams.C.tech - 10);
+                }
+            },
+            B: {
+                label: "📦 資本 B：地下渠道物資輸送科學家",
+                desc: "你們深知一旦政府把科學家抓完，下一個就是財閥，決定鋌而走險，透過地下渠道輸送物資與設備給流亡的科學家，讓他們在地下重啟研發。財閥秘密資助流亡科學家，抗衡極權政府。",
+                effect: (state) => {
+                    state.teams.B.tech = clamp(state.teams.B.tech + 20); state.teams.B.funds = clamp(state.teams.B.funds - 20);
+                    state.teams.A.stability = clamp(state.teams.A.stability - 10);
+                    state.teams.C.funds = clamp(state.teams.C.funds + 20); state.teams.C.stability = clamp(state.teams.C.stability + 10);
+                }
+            }
+        }
+    },
+    // 政府 B -> 勞工 B -> 第三順位：科學家
+    "GBB": {
+        choices: {
+            A: {
+                label: "🧪 科學家 A：研發智能反偷電偵測演算法",
+                desc: "你們為了自保，交出了實驗室，並協助政府研發全新的「智能反偷電偵測演算法」，能精準切斷勞工的地下黑市電線。政、科聯手將絞索套在底層脖子上，資本財閥迎來決定局勢的最終機會。",
+                effect: (state) => {
+                    state.teams.C.funds = clamp(state.teams.C.funds - 10); state.teams.C.stability = clamp(state.teams.C.stability + 15);
+                    state.teams.A.tech = clamp(state.teams.A.tech + 20);
+                    state.teams.D.tech = clamp(state.teams.D.tech - 10);
+                }
+            },
+            B: {
+                label: "💾 科學家 B：密碼流亡 (遁入黑市聚落)",
+                desc: "你們拒絕成為獨裁者的幫兇，在實驗室被查封前，帶著最核心的量子加密代碼與圖紙，逃入了勞工秘密建立的地下黑市聚落。科學家與黑市勞工合流，手握最多資金的資本財閥正面臨兩難。",
+                effect: (state) => {
+                    state.teams.C.funds = clamp(state.teams.C.funds - 15); state.teams.C.tech = clamp(state.teams.C.tech + 10);
+                    state.teams.A.tech = clamp(state.teams.A.tech - 15);
+                    state.teams.D.tech = clamp(state.teams.D.tech + 15);
+                }
+            }
+        }
+    },
+    // 政府 B -> 勞工 B -> 科學家 A -> 第四順位：資本
+    "GBBA": {
+        choices: {
+            A: {
+                label: "📈 資本 A：砸重金購國債求電網私有化",
+                desc: "你們看準政府與科學家已經牢牢控制大局，砸下重金收購國債，為軍隊提供財政後盾，換取未來對全城電網的私有化經營權。政科資鐵三角再次成形，勞工空間被完全摧毀。",
+                effect: (state) => {
+                    state.teams.B.stability = clamp(state.teams.B.stability + 10); state.teams.B.funds = clamp(state.teams.B.funds - 20);
+                    state.teams.A.funds = clamp(state.teams.A.funds + 10);
+                    state.teams.D.stability = clamp(state.teams.D.stability - 15);
+                }
+            },
+            B: {
+                label: "🛡️ 資本 B：黑區建立企業庇護所",
+                desc: "眼看勞工被政府與科學家逼入絕境，你們決定在地下黑區建立「企業庇護所」，出資幫勞工升級設備，截獲了大量廉價且感激苔零的勞動力。企業收容勞動力，在地下建立全新生產基地。",
+                effect: (state) => {
+                    state.teams.B.tech = clamp(state.teams.B.tech + 10); state.teams.B.funds = clamp(state.teams.B.funds - 15);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 15);
+                    state.teams.D.stability = clamp(state.teams.D.stability + 10); state.teams.D.funds = clamp(state.teams.D.funds + 10);
+                }
+            }
+        }
+    },
+    // 政府 B -> 勞工 B -> 科學家 B -> 第四順位：資本
+    "GBBB": {
+        choices: {
+            A: {
+                label: "🩸 資本 A：出賣地下聚集地換免稅特權",
+                desc: "你們決定做一筆無本萬利的血腥生意，利用渠道偵測到了勞工與科學家的地下聚集地，並將其賣給戒嚴部隊，換取大筆賞金與免稅特權。資本出賣地下反抗聚落，換取血腥利益。",
+                effect: (state) => {
+                    state.teams.B.funds = clamp(state.teams.B.funds + 10);
+                    state.teams.A.tech = clamp(state.teams.A.tech + 10);
+                    state.teams.D.stability = clamp(state.teams.D.stability - 10);
+                    state.teams.C.stability = clamp(state.teams.C.stability - 10);
+                }
+            },
+            B: {
+                label: "🚀 資本 B：全面金援地下反抗陣線",
+                desc: "資本家看準了這股民間力量的潛力，決定賭一把大的。你們動用海外秘密帳戶，全面資助科學家與勞工的研發與生活，對政府造成毀滅性打擊。地下聯合陣線成形，對政府展開全面反擊。",
+                effect: (state) => {
+                    state.teams.B.tech = clamp(state.teams.B.tech + 20); state.teams.B.funds = clamp(state.teams.B.funds - 10);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 25); state.teams.A.stability = clamp(state.teams.A.stability - 10);
+                    state.teams.D.funds = clamp(state.teams.D.funds + 10);
+                    state.teams.C.funds = clamp(state.teams.C.funds + 10);
+                }
+            }
+        }
+    },
+
+    // =========================================================================
+    // 【路徑二：科學家第一順位開局】
+    // =========================================================================
+    "S": {
+        choices: {
+            A: {
+                label: "🖥️ 科學家 A：維持伺服器 (數據保全)",
+                desc: "你們認為技術成果高於一切，切斷了民生供電，將殘存能源全部用來維持高端伺服器運作，防止 AI 核心的核心數據因斷電而永久遺失。民間與政府陷入黑暗，唯有資本大樓核心閃爍幽光。",
+                effect: (state) => {
+                    state.teams.C.tech = clamp(state.teams.C.tech + 10);
+                    state.teams.B.tech = clamp(state.teams.B.tech + 10);
+                    state.teams.A.stability = clamp(state.teams.A.stability - 10);
+                    state.teams.D.stability = clamp(state.teams.D.stability - 5);
+                }
+            },
+            B: {
+                label: "📡 科學家 B：燃燒發電機全面開源",
+                desc: "你們選擇與市民站在一起，燃燒了實驗室最後的備用發電機，拒絕了財閥的收購，將如何重組電網技術直接開源廣播。打亂了政府管制計畫，也讓準備收割數據的資本撲了個空。",
+                effect: (state) => {
+                    state.teams.C.tech = clamp(state.teams.C.tech + 20); state.teams.C.stability = clamp(state.teams.C.stability - 10);
+                    state.teams.D.stability = clamp(state.teams.D.stability + 15);
+                }
+            }
+        }
+    },
+    // 科學家選 A -> 第二順位：資本
+    "SA": {
+        choices: {
+            A: {
+                label: "💵 資本 A：天價電力訂閱割韭菜",
+                desc: "啟動了旗下的私人微型發電廠，但拒絕無償提供。你們向陷入混亂的政府與凍餒的勞工開出天價的「電力訂閱制」，瘋狂吸納全城的財富。政府指揮系統陷入混亂，勞工面臨抽血邊緣。",
+                effect: (state) => {
+                    state.teams.B.funds = clamp(state.teams.B.funds + 20);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 15);
+                    state.teams.D.stability = clamp(state.teams.D.stability - 10);
+                }
+            },
+            B: {
+                label: "🛡️ 資本 B：開啟電磁防禦與自動砲塔",
+                desc: "推測政府在斷電後會動用武力強闖大樓掠奪數據，於是砸下大筆資產，將電力用來啟動摩天大樓的電磁防禦網與自動防衛砲塔。資本大樓閃爍冷光，拒絕向任何人分享能源。",
+                effect: (state) => {
+                    state.teams.B.funds = clamp(state.teams.B.funds - 15); state.teams.B.stability = clamp(state.teams.B.stability + 20);
+                    state.teams.A.tech = clamp(state.teams.A.tech - 15); state.teams.A.stability = clamp(state.teams.A.stability - 5);
+                }
+            }
+        }
+    },
+    // 科學家 A -> 資本 A -> 第三順位：政府
+    "SAA": {
+        choices: {
+            A: {
+                label: "⚔️ 政府 A：緊急武力戒嚴 (收歸國有)",
+                desc: "你們拒絕被資本家勒索，直接宣布全城進入緊急戒嚴，派出執法隊強行攻破資本的數據中心，將 AI 核心控制權「收歸國有」。政府強行沒收控制權，勞工被徹底逼入絕境。",
+                effect: (state) => {
+                    state.teams.A.tech = clamp(state.teams.A.tech + 20);
+                    state.teams.B.funds = clamp(state.teams.B.funds - 10); state.teams.B.tech = clamp(state.teams.B.tech - 10);
+                }
+            },
+            B: {
+                label: "📜 政府 B：勞工資產充公購買電力",
+                desc: "你們不願與掌握經濟命脈的資本硬碰硬，於是強行將勞工僅存的資產充公，用來向資本購買基本電力維穩。政府派出稅收隊與執法者，強行搜刮勞工僅存積蓄。",
+                effect: (state) => {
+                    state.teams.A.stability = clamp(state.teams.A.stability + 10);
+                    state.teams.D.funds = clamp(state.teams.D.funds - 20);
+                    state.teams.B.funds = clamp(state.teams.B.funds + 10);
+                }
+            }
+        }
+    },
+    // 科學家 A -> 資本 A -> 政府 A -> 第四順位：勞工
+    "SAAA": {
+        choices: {
+            A: {
+                label: "⚡ 勞工 A：強行物理分流軍事電網",
+                desc: "你們連夜組織突擊隊，用粗糙的變壓器和高壓電纜，直接從政府的軍事電網上啃食電力。勞工盜接軍用電網，勉強求生。",
+                effect: (state) => {
+                    state.teams.D.stability = clamp(state.teams.D.stability + 20);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 10); state.teams.A.tech = clamp(state.teams.A.tech - 5);
+                }
+            },
+            B: {
+                label: "💥 勞工 B：武裝洗劫資本實體倉庫",
+                desc: "你們燃燒了最後的生命，手持鐵撬與土製炸彈衝上街頭，洗劫資本被查封的實體倉庫，並與政府的部隊發生激烈巷戰。街頭暴動爆發，實體倉庫被洗劫一空。",
+                effect: (state) => {
+                    state.teams.D.funds = clamp(state.teams.D.funds + 15); state.teams.D.stability = clamp(state.teams.D.stability - 10);
+                    state.teams.A.stability = clamp(state.teams.A.stability - 20);
+                    state.teams.B.funds = clamp(state.teams.B.funds - 15);
+                }
+            }
+        }
+    },
+    // 科學家 A -> 資本 A -> 政府 B -> 第四順位：勞工
+    "SAAB": {
+        choices: {
+            A: {
+                label: "⚡ 勞工 A：強行物理分流軍事電網",
+                desc: "你們連夜組織突擊隊，用粗糙的變壓器 and 高壓電纜，直接從政府的軍事電網上啃食電力。勞工強行分流軍事能源，引發官民對立。",
+                effect: (state) => {
+                    state.teams.D.stability = clamp(state.teams.D.stability + 20);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 10); state.teams.A.tech = clamp(state.teams.A.tech - 5);
+                }
+            },
+            B: {
+                label: "🤝 勞工 B：工具打包變賣簽奴工合約",
+                desc: "你們將貧民窟僅存的機械工具與外圍科技代碼低價打包，變賣給資本財閥，並簽下勞動合約以換取薪資。勞工向資本出賣最後工具，淪為合約奴工。",
+                effect: (state) => {
+                    state.teams.D.funds = clamp(state.teams.D.funds + 20); state.teams.D.tech = clamp(state.teams.D.tech - 10);
+                    state.teams.B.tech = clamp(state.teams.B.tech + 10);
+                }
+            }
+        }
+    },
+    // 科學家 A -> 資本 B -> 第三順位：政府
+    "SAB": {
+        choices: {
+            A: {
+                label: "🚫 政府 A：強行凍結財閥金融與供水",
+                desc: "你們利用執政優勢，宣布財閥大樓為非法據點，全面切斷其外部物資與基礎供水，並強行凍結其金融網絡。資本大樓遭到凍結，局勢僵持，管理真空形成。",
+                effect: (state) => {
+                    state.teams.A.funds = clamp(state.teams.A.funds + 10); state.teams.A.tech = clamp(state.teams.A.tech + 10);
+                    state.teams.B.funds = clamp(state.teams.B.funds - 20);
+                }
+            },
+            B: {
+                label: "📜 政府 B：無酬強制徵調勞工搶修",
+                desc: "你們向陷入混亂的勞工發布徵調令，強行要求底層市民在無酬勞的情況下，冒著寒冬加班搶修政府控制的核心電網。底層市民面臨沉重勞動壓力，資本大樓冷眼旁觀。",
+                effect: (state) => {
+                    state.teams.A.stability = clamp(state.teams.A.stability + 15); state.teams.A.funds = clamp(state.teams.A.funds - 10);
+                    state.teams.D.funds = clamp(state.teams.D.funds - 15); state.teams.D.stability = clamp(state.teams.D.stability - 10);
+                }
+            }
+        }
+    },
+    // 科學家 A -> 資本 B -> 政府 A -> 第四順位：勞工
+    "SABA": {
+        choices: {
+            A: {
+                label: "🏡 勞工 A：自行整合建立民間避難所",
+                desc: "你們不再等待政府修復電網，而是自行整合街區物資，建立起民間的物資交換所與避難點。管理真空下形成去中心化自治。",
+                effect: (state) => {
+                    state.teams.D.stability = clamp(state.teams.D.stability + 15); state.teams.D.funds = clamp(state.teams.D.funds - 10);
+                    state.teams.A.tech = clamp(state.teams.A.tech - 10);
+                }
+            },
+            B: {
+                label: "💰 勞工 B：暗中為資本運送物資賺高薪",
+                desc: "你們選擇暗中為物資匱乏的資本大樓運送維護設備並提供勞務，以此換取高額的現金酬勞。走私與勞務換取高額回報，資本大樓獲得喘息。",
+                effect: (state) => {
+                    state.teams.D.funds = clamp(state.teams.D.funds + 20); state.teams.D.tech = clamp(state.teams.D.tech - 10);
+                    state.teams.B.tech = clamp(state.teams.B.tech + 10);
+                }
+            }
+        }
+    },
+    // 科學家 A -> 資本 B -> 政府 B -> 第四順位：勞工
+    "SABB": {
+        choices: {
+            A: {
+                label: "🛠️ 勞工 A：積極配合修復重建基建",
+                desc: "你們積極配合官方的修復工作，成為重建工程的核心主力。勞工全面投入基建修復，國家掌控力緩慢回升。",
+                effect: (state) => {
+                    state.teams.D.stability = clamp(state.teams.D.stability + 15); state.teams.D.funds = clamp(state.teams.D.funds + 10);
+                    state.teams.A.tech = clamp(state.teams.A.tech + 15);
+                }
+            },
+            B: {
+                label: "📉 勞工 B：消極怠工並私賣基建工具",
+                desc: "你們在政府的工地上消極應付，私底下將拆卸下來的技術工具與線路圖，低價打包轉賣給正在擴充防禦要塞的資本。基建技術非法外流至資本方。",
+                effect: (state) => {
+                    state.teams.D.funds = clamp(state.teams.D.funds + 20); state.teams.D.tech = clamp(state.teams.D.tech - 15);
+                    state.teams.B.tech = clamp(state.teams.B.tech + 10);
+                }
+            }
+        }
+    },
+    // 科學家選 B -> 第二順位：勞工
+    "SB": {
+        choices: {
+            A: {
+                label: "🔥 勞工 A：砸開倉庫強行燒煤取暖",
+                desc: "你們放棄了對高大上 AI 電網的幻想，砸開舊時代的工業倉庫，強行燒煤取暖。城市上空黑煙滾滾，勞工恢復生命力，但公共環境惡化。",
+                effect: (state) => {
+                    state.teams.D.stability = clamp(state.teams.D.stability + 25); state.teams.D.tech = clamp(state.teams.D.tech - 10);
+                    state.teams.A.stability = clamp(state.teams.A.stability - 15);
+                }
+            },
+            B: {
+                label: "🛑 勞工 B：聯合拒絕工廠設備維護",
+                desc: "你們意識到自己的勞動力是唯一的籌碼，宣布在恢復供電前拒絕進入任何工廠維護設備。資本不得不釋出資金安撫勞工，公共基建徹底癱瘓。",
+                effect: (state) => {
+                    state.teams.D.funds = clamp(state.teams.D.funds + 10); state.teams.D.tech = clamp(state.teams.D.tech + 10);
+                    state.teams.B.funds = clamp(state.teams.B.funds - 20);
+                }
+            }
+        }
+    },
+    // 科學家 B -> 勞工 A -> 第三順位：政府
+    "SBA": {
+        choices: {
+            A: {
+                label: "🚫 政府 A：派遣防暴警察強力取締燒煤",
+                desc: "你們下達緊急禁令，派遣防暴警察強行取締貧民窟的燃煤點，沒收柴油發電機。街頭黑煙被驅散，但勞工再度陷入瀕死極寒，政府自身資源耗盡。",
+                effect: (state) => {
+                    state.teams.A.stability = clamp(state.teams.A.stability + 10); state.teams.A.tech = clamp(state.teams.A.tech + 5);
+                    state.teams.D.stability = clamp(state.teams.D.stability - 20);
+                }
+            },
+            B: {
+                label: "📜 政府 B：強制徵調燒煤工作坊搶修",
+                desc: "既然勞工自己設法弄到了動力與熱能，你們便強行徵調這些民間工作坊，逼迫他們無酬為官方搶修公共線路。大批勞工被迫在黑煙與寒冬中高強度勞動。",
+                effect: (state) => {
+                    state.teams.A.stability = clamp(state.teams.A.stability + 15); state.teams.A.funds = clamp(state.teams.A.funds - 10);
+                    state.teams.D.funds = clamp(state.teams.D.funds - 10); state.teams.D.stability = clamp(state.teams.D.stability - 10);
+                }
+            }
+        }
+    },
+    // 科學家 B -> 勞工 A -> 政府 A -> 第四順位：資本
+    "SBAA": {
+        choices: {
+            A: {
+                label: "💵 資本 A：天價應急電力訂閱服務",
+                desc: "你們啟動了企業大樓內部的微型乾淨能源發電廠，並向快要凍死的勞工與缺乏資源的政府開出天價的「電力訂閱服務」。資本大肆吸納民間財富。",
+                effect: (state) => {
+                    state.teams.B.funds = clamp(state.teams.B.funds + 10);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 10);
+                    state.teams.D.stability = clamp(state.teams.D.stability - 10);
+                }
+            },
+            B: {
+                label: "🏰 資本 B：冷眼旁觀全面升級熱能屏障",
+                desc: "你們冷眼旁觀外面的混亂與寒冬，將所有電力用來啟動企業總部的自動防衛系統與熱能屏障，將大樓打造成與世隔絕的極樂淨土。大樓轉為封閉淨土，任由外界毀滅。",
+                effect: (state) => {
+                    state.teams.B.funds = clamp(state.teams.B.funds - 20); state.teams.B.stability = clamp(state.teams.B.stability + 20);
+                    state.teams.A.tech = clamp(state.teams.A.tech - 15);
+                }
+            }
+        }
+    },
+    // 科學家 B -> 勞工 A -> 政府 B -> 第四順位：資本
+    "SBAB": {
+        choices: {
+            A: {
+                label: "💵 資本 A：向官方高價租售重型工程機具",
+                desc: "你們看準了政府急於完工的心理，拒絕無償幫忙，反而向政府與瀕臨極限的勞工高價租售企業旗下的重型工程機具與應急熱能。資本狠撈一筆，加速政府國庫失血。",
+                effect: (state) => {
+                    state.teams.B.funds = clamp(state.teams.B.funds + 10);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 15);
+                    state.teams.D.stability = clamp(state.teams.D.stability - 10);
+                }
+            },
+            B: {
+                label: "🏰 資本 B：全面收縮防線避免技術遭奪",
+                desc: "你們深知政府修復基建後下一步就是奪回科技主導權，於是你們砸下資產，將所有剩餘電力用來啟動總部的自動防衛系統。等待政府基建完工後的清算。",
+                effect: (state) => {
+                    state.teams.B.funds = clamp(state.teams.B.funds - 10); state.teams.B.stability = clamp(state.teams.B.stability + 15);
+                    state.teams.A.tech = clamp(state.teams.A.tech - 15);
+                }
+            }
+        }
+    },
+    // 科學家 B -> 勞工 B -> 第三順位：政府
+    "SBB": {
+        choices: {
+            A: {
+                label: "⚔️ 政府 A：武力全面強行重啟工廠",
+                desc: "動用武力宣布全城進入緊急狀態，派遣防暴警察進駐工廠與街區，強行驅散罷工人群並沒收其私人物資。罷工运动遭武力鎮壓，勞工再度陷入絕境。",
+                effect: (state) => {
+                    state.teams.A.stability = clamp(state.teams.A.stability + 20);
+                    state.teams.D.stability = clamp(state.teams.D.stability - 15);
+                }
+            },
+            B: {
+                label: "📜 政府 B：編入國家工程隊無酬搶修",
+                desc: "你們將這些「罷工閒置」的勞工成批編入國家工程隊，逼迫他們在寒冬中無酬為官方搶修公共線路。打破勞資僵局，資本自動化產線繼續停擺。",
+                effect: (state) => {
+                    state.teams.A.stability = clamp(state.teams.A.stability + 15);
+                    state.teams.D.funds = clamp(state.teams.D.funds - 10); state.teams.D.stability = clamp(state.teams.D.stability - 10);
+                }
+            }
+        }
+    },
+    // 科學家 B -> 勞工 B -> 政府 A -> 第四順位：資本
+    "SBBA": {
+        choices: {
+            A: {
+                label: "💵 資本 A：藉由復工產出進行高價壟斷",
+                desc: "順應政府的強行復工，你們便順水推舟，將生產出來的乾淨能源與物資進行高價壟斷。資本借勢搭便車，將復工產出高價壟斷。",
+                effect: (state) => {
+                    state.teams.B.funds = clamp(state.teams.B.funds + 15);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 10);
+                    state.teams.D.stability = clamp(state.teams.D.stability - 10);
+                }
+            },
+            B: {
+                label: "🏰 資本 B：資金全部投入大樓私有武裝",
+                desc: "你們決定將剛復工的部分產能與資金，全數投入摩天大樓的私有武裝與電磁屏障重組中。私有武裝升級完成，資本自立為王。",
+                effect: (state) => {
+                    state.teams.B.funds = clamp(state.teams.B.funds - 10); state.teams.B.stability = clamp(state.teams.B.stability + 20);
+                    state.teams.A.tech = clamp(state.teams.A.tech - 15);
+                }
+            }
+        }
+    },
+    // 科學家 B -> 勞工 B -> 政府 B -> 第四順位：資本
+    "SBBB": {
+        choices: {
+            A: {
+                label: "💵 資本 A：向官方高價租售重型工程機具",
+                desc: "你們看準了政府急於完工的心理，拒絕無償幫忙，反而向政府與瀕臨極限的勞工高價租售企業旗下的重型工程機具與應急熱能。高價重機具榨乾政府預算。",
+                effect: (state) => {
+                    state.teams.B.funds = clamp(state.teams.B.funds + 10);
+                    state.teams.A.funds = clamp(state.teams.A.funds - 15);
+                    state.teams.D.stability = clamp(state.teams.D.stability - 10);
+                }
+            },
+            B: {
+                label: "🏰 資本 B：要塞系統上線隔離外界",
+                desc: "你們深知政府修復基建後下一步就是奪回科技主導權，於是你們砸下資產，將所有剩餘電力用來啟動總部的自動防衛系統。要塞系統全面上線，與外界隔絕。",
+                effect: (state) => {
+                    state.teams.B.funds = clamp(state.teams.B.funds - 10); state.teams.B.stability = clamp(state.teams.B.stability + 15);
+                    state.teams.A.tech = clamp(state.teams.A.tech - 15);
+                }
+            }
+        }
+    }
+};
 
         let systemState = JSON.parse(JSON.stringify(initialSystemState));
         let cloudOnline = false;
