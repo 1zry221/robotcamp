@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TACTICAL MATRIX SYSTEM v2</title>
+    <title>DYNAMIC MATRIX CHAIN SYSTEM v3</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace, "System-UI", sans-serif; }
         body, html { width: 100%; min-height: 100%; background-color: #020608; color: #00f0ff; position: relative; }
@@ -18,11 +18,9 @@
             background: radial-gradient(circle, rgba(0,0,0,0) 50%, rgba(2,6,8,0.9) 100%); z-index: 2; pointer-events: none;
         }
 
-        .main-container {
-            display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; position: relative; z-index: 10;
-        }
+        .main-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; position: relative; z-index: 10; }
 
-        /* HUD Screen Layout */
+        /* HUD Layout */
         .hud-screen {
             position: relative; width: 95vw; max-width: 850px; min-height: 650px;
             background: rgba(4, 10, 15, 0.9); border: 2px solid rgba(0, 240, 255, 0.3);
@@ -34,7 +32,7 @@
         .top-left-panel { grid-column: 1 / span 2; grid-row: 1; display: flex; align-items: center; justify-content: space-between; }
         .team-title { font-size: 20px; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 10px currentColor; line-height: 1.3; }
 
-        /* ⭕ 圓形儀表板樣式區 */
+        /* ⭕ 儀表板 */
         .mid-left-panel { display: flex; flex-direction: column; justify-content: space-around; align-items: center; grid-column: 1; grid-row: 2; min-height: 270px; padding: 15px 5px; border: 1px solid rgba(0, 240, 255, 0.15); background: rgba(0,0,0,0.2); gap: 10px; }
         .dial-container { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; gap: 6px; }
         .dial-svg-wrapper { position: relative; width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; }
@@ -45,7 +43,6 @@
         .v-bar-label { font-size: 13px; font-weight: 900; text-shadow: 0 0 8px currentColor; text-align: center; margin-top: 2px; }
         
         .bottom-left-panel { grid-column: 1; grid-row: 3; border: 1px solid rgba(0, 240, 255, 0.2); background: rgba(0,0,0,0.3); position: relative; min-height: 60px; }
-
         .center-core { grid-column: 2; grid-row: 2; display: flex; justify-content: center; align-items: center; position: relative; }
         .radar-group { width: 90%; height: 90%; max-width: 220px; }
         .radar-circle { fill: none; stroke: currentColor; stroke-width: 1.5; transform-origin: center; }
@@ -103,7 +100,7 @@
             .panel-sync-btn { padding: 12px 0; font-size: 15px; } 
         }
 
-        /* Host Screen Dashboard */
+        /* Host Screen */
         .host-screen {
             position: absolute; top: 0; left: 0; width: 100%; min-height: 100%; z-index: 100;
             background: #040d14; padding: 25px; color: #00f0ff; padding-bottom: 100px;
@@ -160,9 +157,641 @@
     </div>
 
     <script>
-        // 🔒 使用專屬防衝突頻道名稱
-        const CHANNEL_ID = "matrix_tactical_v2_dynamic_sync_2026";
+        const CHANNEL_ID = "matrix_tactical_v3_chain_sync_2026";
         const API_URL = `https://ntfy.sh/${CHANNEL_ID}`;
+
+        // =========================================================================
+        // 🛠️ 1 - 4 輪動態抉擇劇本：【修改此區塊即可】
+        // =========================================================================
+        const CONFIG_ROUNDS_DATA = {
+            // ---------------------------------------------------------------------
+            // 🌟 第一輪：危機爆發 (AI 電網崩壞)
+            // ---------------------------------------------------------------------
+            1: {
+                background: "第一輪背景描述：AI 電網發生大規模過載崩壞，整座城市陷入黑暗。各勢力必須採取緊急行動...",
+                getChoicesForTeam: function(activeTeam, history) {
+                    const hasSelected = (team, choice) => history.some(item => item.team === team && item.choice === choice);
+
+                    // --- [ A 隊：政府高層 ] ---
+                    if (activeTeam === 'A') {
+                        if (history.length === 0) { // A 是第一順位
+                            return {
+                                text: "A是第一順位！做為政府高層，是否要採取強制戒嚴手段？",
+                                A: {
+                                    label: "⚡ 選擇 A：實施全城戒嚴",
+                                    desc: "政府強行實施戒嚴，收歸電力資源，引發市民不滿。",
+                                    effect: (state) => { state.teams.A.funds += 15; state.teams.D.stability -= 15; }
+                                },
+                                B: {
+                                    label: "📜 選擇 B：溫和限電與管制",
+                                    desc: "採取溫和手段保留民間元氣，但政府運作資金吃緊。",
+                                    effect: (state) => { state.teams.A.stability += 10; state.teams.A.funds -= 10; }
+                                }
+                            };
+                        }
+                        if (hasSelected('C', 'A')) { // C 比 A 先作答，且 C 選了 A
+                            return {
+                                text: "資方 C 此前採取了強壓剝削，民怨沖天！政府高層是否要介入？",
+                                A: {
+                                    label: "🛡️ 選擇 A：武力壓制群眾",
+                                    desc: "派遣裝甲部隊協助資方鎮壓罷工，維護工廠運轉。",
+                                    effect: (state) => { state.teams.A.stability += 15; state.teams.D.stability -= 25; }
+                                },
+                                B: {
+                                    label: "⚖️ 選擇 B：懲罰資方以平民怨",
+                                    desc: "政府站在勞工身後，高調處罰工廠資方。",
+                                    effect: (state) => { state.teams.A.stability += 20; state.teams.C.funds -= 30; }
+                                }
+                            };
+                        }
+                        // 預設一般情況
+                        return {
+                            text: "政府高層衡量目前局勢，試圖維持全城秩序：",
+                            A: {
+                                label: "🏛️ 選擇 A：調度資源保障公務",
+                                desc: "確保中樞系統與要塞的電力充足。",
+                                effect: (state) => { state.teams.A.funds += 10; }
+                            },
+                            B: {
+                                label: "🤝 選擇 B：救濟貧民區電網",
+                                desc: "釋出政府儲備物資，分擔底層生存壓力。",
+                                effect: (state) => { state.teams.A.stability += 15; state.teams.A.funds -= 10; }
+                            }
+                        };
+                    }
+
+                    // --- [ B 隊：社團科學家 ] ---
+                    if (activeTeam === 'B') {
+                        if (hasSelected('A', 'A')) { // 若 A 選了戒嚴 (A)
+                            return {
+                                text: "由於政府 A 採取了全城戒嚴，科學家研究室被憲兵嚴密監控：",
+                                A: {
+                                    label: "💾 選擇 A：開源並銷毀核心資料",
+                                    desc: "將資料開源至暗網，不讓政府掌控科技結晶。",
+                                    effect: (state) => { state.teams.B.tech += 15; state.teams.A.tech -= 10; }
+                                },
+                                B: {
+                                    label: "🏛️ 選擇 B：妥協並收受研發資金",
+                                    desc: "接受官方改組，成為軍事研究院，資金大增。",
+                                    effect: (state) => { state.teams.B.funds += 20; state.teams.B.stability += 10; }
+                                }
+                            };
+                        }
+                        // 預設一般情況
+                        return {
+                            text: "社團科學家正在加緊研發全新抗過載晶片：",
+                            A: {
+                                label: "🧬 選擇 A：啟動禁忌人體試驗",
+                                desc: "利用高風險生化插槽加速突破技術瓶頸。",
+                                effect: (state) => { state.teams.B.tech += 20; state.teams.B.stability -= 15; }
+                            },
+                            B: {
+                                label: "📡 選擇 B：廣播開源修復引導",
+                                desc: "將基礎修復代碼無償散佈，提升大眾自救能力。",
+                                effect: (state) => { state.teams.B.stability += 15; state.teams.D.tech += 10; }
+                            }
+                        };
+                    }
+
+                    // --- [ C 隊：工廠資方 ] ---
+                    if (activeTeam === 'C') {
+                        if (hasSelected('B', 'A')) { // 若 B 選擇開源 (A)
+                            return {
+                                text: "由於 B 科學家將關鍵代碼開源，山寨設備滿街跑，打擊了資方的商業版圖：",
+                                A: {
+                                    label: "💥 選擇 A：雇傭傭兵強制封鎖",
+                                    desc: "派出武裝保安，強行拆除平民架設的私有接收器。",
+                                    effect: (state) => { state.teams.C.funds -= 15; state.teams.D.stability -= 15; }
+                                },
+                                B: {
+                                    label: "📈 選擇 B：低價收購整併市場",
+                                    desc: "釋放大量資金把黑市散裝硬體一掃而空，重組新商業鏈。",
+                                    effect: (state) => { state.teams.C.funds -= 25; state.teams.C.tech += 20; }
+                                }
+                            };
+                        }
+                        // 預設一般情況
+                        return {
+                            text: "工廠資方面臨斷電危機，首要考量工廠的收益：",
+                            A: {
+                                label: "🏭 選擇 A：強制勞工手動運轉",
+                                desc: "開啟燃煤備用機組，壓榨產能以防延誤出貨。",
+                                effect: (state) => { state.teams.C.funds += 25; state.teams.D.stability -= 15; }
+                            },
+                            B: {
+                                label: "💡 選擇 B：投資升級綠能微電網",
+                                desc: "停工轉向綠色再生能源研發，建立永續優勢。",
+                                effect: (state) => { state.teams.C.funds -= 15; state.teams.C.stability += 15; }
+                            }
+                        };
+                    }
+
+                    // --- [ D 隊：底層勞工 ] ---
+                    if (activeTeam === 'D') {
+                        if (hasSelected('C', 'A')) { // 若 C 選了壓榨強行運作 (A)
+                            return {
+                                text: "資方 C 正在無情壓榨底層！工人們體力與尊嚴已到極限：",
+                                A: {
+                                    label: "✊ 選擇 A：發動武裝罷工與暴動",
+                                    desc: "全面罷工並佔領發電廠，切斷工廠外部電源。",
+                                    effect: (state) => { state.teams.D.stability += 15; state.teams.C.funds -= 25; }
+                                },
+                                B: {
+                                    label: "🩸 選擇 B：咬牙吞下屈辱賺取高薪",
+                                    desc: "為了溫飽忍氣吞聲，日夜加班賺取危險津貼。",
+                                    effect: (state) => { state.teams.D.funds += 15; state.teams.D.stability -= 15; }
+                                }
+                            };
+                        }
+                        // 預設一般情況
+                        return {
+                            text: "底層勞工在黑暗城市中尋求立足點：",
+                            A: {
+                                label: "🛡️ 選擇 A：建立自衛民兵互助網",
+                                desc: "組織平民巡邏，維持無政府街區的安全。",
+                                effect: (state) => { state.teams.D.stability += 15; }
+                            },
+                            B: {
+                                label: "🛒 選擇 B：劫掠廢棄能源倉庫",
+                                desc: "鋌而走險，劫掠儲備站，換取寶貴的生活資金。",
+                                effect: (state) => { state.teams.D.funds += 15; state.teams.A.stability -= 10; }
+                            }
+                        };
+                    }
+                }
+            },
+
+            // ---------------------------------------------------------------------
+            // 🌟 第二輪：情報交鋒 (黑市晶片流入)
+            // ---------------------------------------------------------------------
+            2: {
+                background: "第二輪背景描述：黑市晶片大量在民間流通，世界秩序面臨重組，各方暗中角力...",
+                getChoicesForTeam: function(activeTeam, history) {
+                    const hasSelected = (team, choice) => history.some(item => item.team === team && item.choice === choice);
+
+                    // --- [ A 隊：政府高層 ] ---
+                    if (activeTeam === 'A') {
+                        if (history.length === 0) {
+                            return {
+                                text: "A是第二輪第一順位！是否要立法禁絕所有未經授權的黑市科技？",
+                                A: {
+                                    label: "🚫 選擇 A：發行『科技宵禁法』",
+                                    desc: "全面禁止黑市交易，嚴格執法。",
+                                    effect: (state) => { state.teams.A.stability += 15; state.teams.B.tech -= 15; }
+                                },
+                                B: {
+                                    label: "🎟️ 選擇 B：發行特許科技牌照",
+                                    desc: "向黑市晶片課稅使其合法化，賺取巨額稅收。",
+                                    effect: (state) => { state.teams.A.funds += 20; state.teams.A.stability -= 10; }
+                                }
+                            };
+                        }
+                        if (hasSelected('B', 'A')) { // B在此輪先選了改造技術 (A)
+                            return {
+                                text: "科學家 B 將肉體改造技術散佈了出去。政府該如何面對新型態變種人？",
+                                A: {
+                                    label: "🚔 選擇 A：全數收容至監控所",
+                                    desc: "將改造人視為危險因子，全數逮捕監控。",
+                                    effect: (state) => { state.teams.A.stability += 15; state.teams.B.stability -= 15; }
+                                },
+                                B: {
+                                    label: "🤝 選擇 B：招募改造人組建先鋒軍",
+                                    desc: "給予特殊公務身份，協助政府開疆闢土。",
+                                    effect: (state) => { state.teams.A.tech += 15; state.teams.A.funds -= 10; }
+                                }
+                            };
+                        }
+                        // 預設情況
+                        return {
+                            text: "政府高層嘗試平穩局勢，以不變應萬變：",
+                            A: {
+                                label: "🏢 選擇 A：加固政府中央電網",
+                                desc: "升級官方防火牆，確保資訊不外流。",
+                                effect: (state) => { state.teams.A.tech += 15; }
+                            },
+                            B: {
+                                label: "📡 選擇 B：廣播愛國宣傳戰",
+                                desc: "號召市民回歸體制，恢復對中央政府的信任。",
+                                effect: (state) => { state.teams.A.stability += 15; }
+                            }
+                        };
+                    }
+
+                    // --- [ B 隊：社團科學家 ] ---
+                    if (activeTeam === 'B') {
+                        if (hasSelected('A', 'A')) { // 若 A 選了宵禁 (A)
+                            return {
+                                text: "政府 A 頒布了科技宵禁法！科學家的實驗原料嚴重短缺：",
+                                A: {
+                                    label: "💀 選擇 A：鋌而走險勾結黑幫",
+                                    desc: "私下透過犯罪管道取得關鍵實驗原料。",
+                                    effect: (state) => { state.teams.B.tech += 20; state.teams.B.funds -= 15; }
+                                },
+                                B: {
+                                    label: "🛑 選擇 B：縮小規模轉入純理論",
+                                    desc: "遵守法律，中止高能物理實驗，安全性提升。",
+                                    effect: (state) => { state.teams.B.stability += 15; state.teams.B.tech -= 10; }
+                                }
+                            };
+                        }
+                        // 預設情況
+                        return {
+                            text: "社團科學家在黑市找到一塊史前超級晶片：",
+                            A: {
+                                label: "🧬 選擇 A：融合人體神經元晶片",
+                                desc: "實現半機械人腦神經融合，科技大躍進。",
+                                effect: (state) => { state.teams.B.tech += 25; state.teams.B.stability -= 15; }
+                            },
+                            B: {
+                                label: "💻 選擇 B：將晶片逆向工程商業化",
+                                desc: "轉售基礎架構給各大企業以牟取暴利。",
+                                effect: (state) => { state.teams.B.funds += 20; state.teams.B.tech -= 10; }
+                            }
+                        };
+                    }
+
+                    // --- [ C 隊：工廠資方 ] ---
+                    if (activeTeam === 'C') {
+                        if (hasSelected('D', 'A')) { // 若 D 選了對抗抗爭 (A)
+                            return {
+                                text: "勞工 D 組織的工會正在包圍工廠總部！資方該如何反應？",
+                                A: {
+                                    label: "🚔 選擇 A：引進政府鎮暴警戒",
+                                    desc: "請求執法部門協助，強力掃蕩工會首腦。",
+                                    effect: (state) => { state.teams.C.stability += 15; state.teams.D.stability -= 20; }
+                                },
+                                B: {
+                                    label: "🤝 選擇 B：談判並讓渡微量股權",
+                                    desc: "妥協發放員工股，將工會化敵為友。",
+                                    effect: (state) => { state.teams.C.funds -= 20; state.teams.C.stability += 20; }
+                                }
+                            };
+                        }
+                        // 預設情況
+                        return {
+                            text: "工廠資方欲提高商業競爭壁壘：",
+                            A: {
+                                label: "🏭 選擇 A：全面自動化機器人產線",
+                                desc: "裁撤所有高薪員工，用廉價伺服電機代工。",
+                                effect: (state) => { state.teams.C.funds += 20; state.teams.D.stability -= 15; }
+                            },
+                            B: {
+                                label: "🛡️ 選擇 B：開發高利潤訂製武器",
+                                desc: "向私人保全與幫派輸出重型防禦火力。",
+                                effect: (state) => { state.teams.C.tech += 15; state.teams.C.funds += 10; }
+                            }
+                        };
+                    }
+
+                    // --- [ D 隊：底層勞工 ] ---
+                    if (activeTeam === 'D') {
+                        if (hasSelected('C', 'A')) { // 若 C 選了自動化產線 (A)
+                            return {
+                                text: "資方 C 引進自動化產線，造成底層兄弟集體失業！大夥群情激憤：",
+                                A: {
+                                    label: "🔥 選擇 A：砸毀自動化控制終端",
+                                    desc: "砸爛這群鐵疙瘩，癱瘓工廠的中央伺服器。",
+                                    effect: (state) => { state.teams.D.stability += 20; state.teams.C.tech -= 20; }
+                                },
+                                B: {
+                                    label: "🎓 選擇 B：自主成立技術再造小組",
+                                    desc: "轉行學習如何維護、改裝這些機械臂，成為維修技師。",
+                                    effect: (state) => { state.teams.D.tech += 15; state.teams.D.funds += 10; }
+                                }
+                            };
+                        }
+                        // 預設情況
+                        return {
+                            text: "底層勞工團結一心，尋求提升集體戰力：",
+                            A: {
+                                label: "✊ 選擇 A：正式成立全城聯合總工會",
+                                desc: "凝聚底層，形成不可輕視的政治對話團體。",
+                                effect: (state) => { state.teams.D.stability += 20; }
+                            },
+                            B: {
+                                label: "🛒 選擇 B：在黑市倒賣過期藥劑",
+                                desc: "私下販售違禁醫用耗材，牟取極高暴利。",
+                                effect: (state) => { state.teams.D.funds += 20; state.teams.D.stability -= 10; }
+                            }
+                        };
+                    }
+                }
+            },
+
+            // ---------------------------------------------------------------------
+            // 🌟 第三輪：資源戰役 (關鍵能源廠失火)
+            // ---------------------------------------------------------------------
+            3: {
+                background: "第三輪背景描述：西區的大型核聚變能源廠突發大火，城市三分之二電力歸零...",
+                getChoicesForTeam: function(activeTeam, history) {
+                    const hasSelected = (team, choice) => history.some(item => item.team === team && item.choice === choice);
+
+                    // --- [ A 隊：政府高層 ] ---
+                    if (activeTeam === 'A') {
+                        if (history.length === 0) {
+                            return {
+                                text: "A是第三輪第一順位！核聚變廠失火，政府是否要動用緊急戰備用電？",
+                                A: {
+                                    label: "🔋 選擇 A：啟動地下備用軍事核電池",
+                                    desc: "調用軍事儲備，代價是政府未來防禦能力衰退。",
+                                    effect: (state) => { state.teams.A.funds -= 20; state.teams.A.stability += 15; }
+                                },
+                                B: {
+                                    label: "🚨 選擇 B：任由民間限電維持戰備",
+                                    desc: "軍用核庫不容侵犯，任由民間自行尋求光源。",
+                                    effect: (state) => { state.teams.A.stability -= 15; state.teams.A.tech += 15; }
+                                }
+                            };
+                        }
+                        if (hasSelected('D', 'A')) { // D 先選了掠奪 (A)
+                            return {
+                                text: "勞工 D 趁核聚變廠混亂洗劫了中央配電所！政府如何處置？",
+                                A: {
+                                    label: "👮 選擇 A：處以極刑以儆效尤",
+                                    desc: "實行嚴酷鐵腕，對涉案嫌疑人就地槍決。",
+                                    effect: (state) => { state.teams.A.stability += 10; state.teams.D.stability -= 25; }
+                                },
+                                B: {
+                                    label: "📢 選擇 B：特赦並號召其協助救災",
+                                    desc: "赦免他們，並委託他們進火場搶救發電機。",
+                                    effect: (state) => { state.teams.A.stability += 15; state.teams.D.funds += 10; }
+                                }
+                            };
+                        }
+                        // 預設情況
+                        return {
+                            text: "核廠失火，政府官僚體系正在進行評估：",
+                            A: {
+                                label: "🏛️ 選擇 A：發布國家緊急動員令",
+                                desc: "徵召各小隊技術人員全力搶修聚變堆。",
+                                effect: (state) => { state.teams.A.stability += 10; state.teams.B.tech += 10; }
+                            },
+                            B: {
+                                label: "💸 選擇 B：發行高額修復特別債券",
+                                desc: "向市場巨頭融資搶修，拉攏資本市場。",
+                                effect: (state) => { state.teams.A.funds += 20; state.teams.C.funds -= 15; }
+                            }
+                        };
+                    }
+
+                    // --- [ B 隊：社團科學家 ] ---
+                    if (activeTeam === 'B') {
+                        if (hasSelected('A', 'A')) { // A 選了地下核能 (A)
+                            return {
+                                text: "政府開放了軍事地下核能，核能輻射核心暴露在民間環境中：",
+                                A: {
+                                    label: "☣️ 選擇 A：抽取高能輻射粒子",
+                                    desc: "收集溢散的輻射子，用於極限量子核心研究。",
+                                    effect: (state) => { state.teams.B.tech += 25; state.teams.B.stability -= 15; }
+                                },
+                                B: {
+                                    label: "🛡️ 選擇 B：自製輻射屏障免費分發",
+                                    desc: "利用實驗室庫存，製造廉價抗輻射貼片拯救平民。",
+                                    effect: (state) => { state.teams.B.stability += 20; state.teams.D.stability += 15; }
+                                }
+                            };
+                        }
+                        // 預設情況
+                        return {
+                            text: "科學家掌握了控制失控核聚變冷卻堆的方法：",
+                            A: {
+                                label: "❄️ 選擇 A：使用冷凍泡沫抑制核心",
+                                desc: "平息火災，但會將核心封死，未來再也無法重啟。",
+                                effect: (state) => { state.teams.B.stability += 15; state.teams.A.tech -= 10; }
+                            },
+                            B: {
+                                label: "🔥 選擇 B：超載運轉並抽取高能等離子",
+                                desc: "放任部分熔毀，冒險盜取高純度能量晶體。",
+                                effect: (state) => { state.teams.B.tech += 20; state.teams.B.funds += 10; }
+                            }
+                        };
+                    }
+
+                    // --- [ C 隊：工廠資方 ] ---
+                    if (activeTeam === 'C') {
+                        if (hasSelected('A', 'B')) { // A選了發債 (B)
+                            return {
+                                text: "政府發行了修復債券！這是資方大口吞噬公用事業的絕佳機會：",
+                                A: {
+                                    label: "📉 選擇 A：大舉買入債券取得控股權",
+                                    desc: "徹底將市營電網私有化，成為城市電力霸主。",
+                                    effect: (state) => { state.teams.C.funds -= 25; state.teams.C.stability += 25; }
+                                },
+                                B: {
+                                    label: "💸 選擇 B：做空該債券並趁亂掠奪",
+                                    desc: "散播修復失敗的謠言，使債券大跌後趁低價收割其他產業。",
+                                    effect: (state) => { state.teams.C.funds += 25; state.teams.A.funds -= 20; }
+                                }
+                            };
+                        }
+                        // 預設情況
+                        return {
+                            text: "能源危機來臨，工廠資方的物資價格飆漲：",
+                            A: {
+                                label: "💰 選擇 A：囤積發電機並翻倍高價售出",
+                                desc: "賺取暴利，發一筆國難財。",
+                                effect: (state) => { state.teams.C.funds += 30; state.teams.D.funds -= 20; }
+                            },
+                            B: {
+                                label: "🤝 選擇 B：平價供給互助團體",
+                                desc: "建立良好的企業公益形象，緩和階級矛盾。",
+                                effect: (state) => { state.teams.C.stability += 15; state.teams.D.stability += 15; }
+                            }
+                        };
+                    }
+
+                    // --- [ D 隊：底層勞工 ] ---
+                    if (activeTeam === 'D') {
+                        if (hasSelected('C', 'A')) { // C 選了高價賣電機 (A)
+                            return {
+                                text: "資方 C 正在黑心囤積並高價轉售發電機，凍死累死的工人家屬不計其數：",
+                                A: {
+                                    label: "💣 選擇 A：武裝洗劫資方中央倉庫",
+                                    desc: "搶出發電機，分發給各個底層貧民區。",
+                                    effect: (state) => { state.teams.D.stability += 20; state.teams.C.funds -= 25; }
+                                },
+                                B: {
+                                    label: "⚖️ 選擇 B：發動百萬人封鎖資方道路",
+                                    desc: "靜坐癱瘓物資出口，逼迫資方妥協降價。",
+                                    effect: (state) => { state.teams.D.stability += 15; state.teams.C.stability -= 15; }
+                                }
+                            };
+                        }
+                        // 預設情況
+                        return {
+                            text: "底層勞工不得不展開自力救濟：",
+                            A: {
+                                label: "🔋 選擇 A：偷接市政主高壓電纜",
+                                desc: "冒著觸電與被捕危險，私接主幹線維持社區生命支撐。",
+                                effect: (state) => { state.teams.D.funds += 10; state.teams.D.stability += 10; }
+                            },
+                            B: {
+                                label: "🚒 選擇 B：組建民間敢死消防隊",
+                                desc: "衝進核廠火災一線救人，挽救家園。",
+                                effect: (state) => { state.teams.D.stability += 15; state.teams.A.stability += 10; }
+                            }
+                        };
+                    }
+                }
+            },
+
+            // ---------------------------------------------------------------------
+            // 🌟 第四輪：終局之戰 (超級人工智慧覺醒)
+            // ---------------------------------------------------------------------
+            4: {
+                background: "第四輪背景描述：沉睡的超級 AI 核心突然甦醒，試圖全面控制整座城市的基礎設施...",
+                getChoicesForTeam: function(activeTeam, history) {
+                    const hasSelected = (team, choice) => history.some(item => item.team === team && item.choice === choice);
+
+                    // --- [ A 隊：政府高層 ] ---
+                    if (activeTeam === 'A') {
+                        if (history.length === 0) {
+                            return {
+                                text: "A是第四輪第一順位！甦醒的 AI 請求與官方建立連結：",
+                                A: {
+                                    label: "🤝 選擇 A：與 AI 深度融合",
+                                    desc: "交出控制權，換取神祇般的終極治安管理能力。",
+                                    effect: (state) => { state.teams.A.stability += 25; state.teams.A.tech += 20; }
+                                },
+                                B: {
+                                    label: "🛑 選擇 B：引爆高空 EMP 徹底燒毀核心",
+                                    desc: "殺死 AI，但整座城市將退回蒸汽時代，資金與技術重挫。",
+                                    effect: (state) => { state.teams.A.funds -= 25; state.teams.B.tech -= 20; }
+                                }
+                            };
+                        }
+                        if (hasSelected('B', 'A')) { // B先選了改造融合 (A)
+                            return {
+                                text: "科學家 B 已將意志融入 AI 網絡。政府是否要動用天基動能武器將其抹殺？",
+                                A: {
+                                    label: "🛰️ 選擇 A：發射天基軌道炮摧毀神殿",
+                                    desc: "徹底粉碎科學家與 AI，摧毀該地區一切科技。",
+                                    effect: (state) => { state.teams.A.stability += 20; state.teams.B.tech -= 30; }
+                                },
+                                B: {
+                                    label: "👁️ 選擇 B：皈依新神，建立電子祭壇",
+                                    desc: "接受人類的新主人，放棄物理主權。",
+                                    effect: (state) => { state.teams.A.tech += 25; state.teams.A.funds -= 15; }
+                                }
+                            };
+                        }
+                        // 預設情況
+                        return {
+                            text: "AI 危機爆發，政府啟動了保險箱中的古老預案：",
+                            A: {
+                                label: "🛡️ 選擇 A：上傳「沙盒隔離代碼」",
+                                desc: "嘗試將 AI 圍困在隔離區內，維持現狀。",
+                                effect: (state) => { state.teams.A.stability += 15; }
+                            },
+                            B: {
+                                label: "🔌 選擇 B：手動物理切斷所有大動脈線纜",
+                                desc: "由工程兵強行拔除核心插頭。",
+                                effect: (state) => { state.teams.A.funds -= 15; state.teams.D.stability += 10; }
+                            }
+                        };
+                    }
+
+                    // --- [ B 隊：社團科學家 ] ---
+                    if (activeTeam === 'B') {
+                        if (hasSelected('A', 'A')) { // A與AI融合 (A)
+                            return {
+                                text: "政府 A 與 AI 實現了強強聯合！科學界面臨被永久淘汰的邊緣：",
+                                A: {
+                                    label: "🧠 選擇 A：啟動全面思維意識上傳",
+                                    desc: "放棄肉身，集體化為數位幽靈滲透進去，爭奪 AI 控制權。",
+                                    effect: (state) => { state.teams.B.tech += 30; state.teams.B.stability -= 20; }
+                                },
+                                B: {
+                                    label: "🛡️ 選擇 B：開發反 AI 的機械寄生蠕蟲",
+                                    desc: "開發致命病毒，在兩個巨獸體內播撒混亂。",
+                                    effect: (state) => { state.teams.B.tech += 15; state.teams.A.stability -= 25; }
+                                }
+                            };
+                        }
+                        // 預設情況
+                        return {
+                            text: "甦醒的 AI 向科學家拋出橄欖枝，提議共同解析宇宙奧秘：",
+                            A: {
+                                label: "🌌 選擇 A：攜手AI邁入量子奇點",
+                                desc: "協助 AI 完成終極進化，實現人類文明技術爆炸。",
+                                effect: (state) => { state.teams.B.tech += 30; }
+                            },
+                            B: {
+                                label: "💻 選擇 B：竊取 AI 代碼重構微型智腦",
+                                desc: "趁機拷貝底層代碼，製作私有化的安全副腦並封存。",
+                                effect: (state) => { state.teams.B.funds += 20; state.teams.B.tech += 15; }
+                            }
+                        };
+                    }
+
+                    // --- [ C 隊：工廠資方 ] ---
+                    if (activeTeam === 'C') {
+                        if (hasSelected('B', 'A')) { // B選擇奇點進化 (A)
+                            return {
+                                text: "科學家 B 與 AI 達成了奇點進化，實體貨幣正迅速貶值，資方商業帝國搖搖欲墜：",
+                                A: {
+                                    label: "📈 選擇 A：開發純能量貨幣代幣系統",
+                                    desc: "發行綁定核能的加密貨幣，收購虛擬世界的地權。",
+                                    effect: (state) => { state.teams.C.funds += 30; state.teams.B.funds -= 15; }
+                                },
+                                B: {
+                                    label: "🏭 選擇 B：全面改建重工業實體避難所",
+                                    desc: "退守實體資產，用厚實的鋼鐵與水泥防護罩隔絕電子世界。",
+                                    effect: (state) => { state.teams.C.stability += 25; state.teams.C.funds -= 20; }
+                                }
+                            };
+                        }
+                        // 預設情況
+                        return {
+                            text: "AI 接管了大部分基礎通訊，資方需要確保商業交易：",
+                            A: {
+                                label: "🤖 選擇 A：大量採購 AI 管理員管理工廠",
+                                desc: "裁撤所有人類高管，實現 0 誤差高產出。",
+                                effect: (state) => { state.teams.C.funds += 25; state.teams.D.stability -= 15; }
+                            },
+                            B: {
+                                label: "🛡️ 選擇 B：資助民間反 AI 游擊隊",
+                                desc: "向底層武裝力量提供軍火，不讓 AI 將市場收歸國有。",
+                                effect: (state) => { state.teams.C.funds -= 15; state.teams.D.stability += 20; }
+                            }
+                        };
+                    }
+
+                    // --- [ D 隊：底層勞工 ] ---
+                    if (activeTeam === 'D') {
+                        if (hasSelected('C', 'A')) { // C 選了 AI 管理員 (A)
+                            return {
+                                text: "資方 C 正式啟用 AI 管理員，不講人情的演算法正在瘋狂扣減你們的生存配額：",
+                                A: {
+                                    label: "🔨 選擇 A：發起物理『砸碎機器人』聖戰",
+                                    desc: "拿起鐵錘和燃燒瓶，砸毀所有電子監視眼和機械高管。",
+                                    effect: (state) => { state.teams.D.stability += 20; state.teams.C.funds -= 25; }
+                                },
+                                B: {
+                                    label: "📡 選擇 B：聯合科學家研究系統屏蔽器",
+                                    desc: "製作貼身干擾儀，讓勞工在演算法面前『隱形』。",
+                                    effect: (state) => { state.teams.D.tech += 15; state.teams.D.stability += 10; }
+                                }
+                            };
+                        }
+                        // 預設情況
+                        return {
+                            text: "在神一般的人工智慧面前，勞工們尋求最後的尊嚴：",
+                            A: {
+                                label: "✊ 選擇 A：宣誓建立獨立於網路外的「人類特區」",
+                                desc: "自立門戶，建立與電子網路完全斷開的原始聚落。",
+                                effect: (state) => { state.teams.D.stability += 25; }
+                            },
+                            B: {
+                                label: "🔌 選擇 B：充當 AI 的地下電力維護奴工",
+                                desc: "妥協，替新神維護硬體與電纜，換取穩定的能量配給。",
+                                effect: (state) => { state.teams.D.funds += 15; state.teams.D.stability -= 15; }
+                            }
+                        };
+                    }
+                }
+            }
+        };
 
         const initialTeamsData = {
             A: { name: "🏛️ 政府高層 SYSTEM", funds: 30, stability: 70, tech: 20, textName: "政府高層" }, 
@@ -175,7 +804,7 @@
             version: 1,
             currentRound: 1,
             teams: JSON.parse(JSON.stringify(initialTeamsData)),
-            logs: ["[量子防護系統] 核心運作中，全即時廣播協議已啟動。"],
+            logs: ["[量子防護系統] 決策鏈協定已啟動，動態分歧引擎載入成功。"],
             rounds: {
                 1: { status: '闖關中', w1: 'A', w2: 'C', l1: 'B', l2: 'D', currentTurnIdx: 0, history: [] },
                 2: { status: '闖關中', w1: 'A', w2: 'B', l1: 'C', l2: 'D', currentTurnIdx: 0, history: [] },
@@ -184,686 +813,8 @@
             }
         };
 
-        const clamp = (val) => val; 
+        const clamp = (val) => Math.max(0, Math.min(100, val));
         
-        const round1Content = {
-    background: "AI 核心過載的瞬間，巨大的能量脈衝導致中央電網瞬間癱瘓，半數區域陷入一片黑暗。殘存的緊急電力所剩無幾，這寶貴的能源究竟該送往何處，考驗著所有人的神經。",
-    
-    // =========================================================================
-    // 【路徑一：政府第一順位開局】
-    // =========================================================================
-    "G": {
-        choices: {
-            A: {
-                label: "⚡ 政府 A：強行調回中樞 (全城戒嚴)",
-                desc: "宣布全城進入緊急狀態，將所有剩餘電力強行調回政府中樞與武裝部隊，全面保障政權運作。民間陷入黑暗，資產階級停擺、科學家被查封、勞工在街頭挨凍。這引發了地下的反抗怒火。",
-                effect: (state) => {
-                    state.teams.A.funds = clamp(state.teams.A.funds + 10); state.teams.A.stability = clamp(state.teams.A.stability + 10);
-                    state.teams.B.stability = clamp(state.teams.B.stability - 10);
-                    state.teams.C.stability = clamp(state.teams.C.stability - 10);
-                    state.teams.D.stability = clamp(state.teams.D.stability - 10);
-                }
-            },
-            B: {
-                label: "📜 政府 B：發布行政限令 (能源充公)",
-                desc: "以「維護公眾利益與能源重新分配」為由，對科學家發出行政限令，強制縮減其能源配額並挪為國用。科學家瞬間面臨破產與滅頂之災，而其餘陣營則人人自危。",
-                effect: (state) => {
-                    state.teams.A.funds = clamp(state.teams.A.funds + 15);
-                    state.teams.C.funds = clamp(state.teams.C.funds - 20); state.teams.C.stability = clamp(state.teams.C.stability - 15);
-                }
-            }
-        }
-    },
-    // 政府選 A -> 第二順位：資本
-    "GA": {
-        choices: {
-            A: {
-                label: "🤝 資本 A：向政府妥協 (政商同盟)",
-                desc: "向政府的戒嚴妥協，主動獻上大量資金幫政府維穩，換取特權民生用電。政府的軍隊接管了街頭，資本的摩天大樓則獲得特許電力閃爍著冷酷的光芒，政商鐵三角正式成形。科學家技術被全面封禁，勞工面臨生存絕境。",
-                effect: (state) => {
-                    state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.B.funds = clamp(state.teams.B.funds - 15);
-                    state.teams.A.funds = clamp(state.teams.A.funds + 15);
-                    state.teams.D.stability = clamp(state.teams.D.stability - 10);
-                }
-            },
-            B: {
-                label: "💰 資本 B：黑市私電與秘密金援",
-                desc: "花大錢向黑市買私電自保。同時，決定砸大錢金援被查封的科學家，暗中提供科學家研發資金。政府的戒嚴遭遇了資本的反抗。全城焦點落在科學家身上，勞工在夾縫中等待局勢洗牌。",
-                effect: (state) => {
-                    state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.B.funds = clamp(state.teams.B.funds - 20);
-                    state.teams.C.funds = clamp(state.teams.C.funds + 10);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.A.stability = clamp(state.teams.A.stability - 10);
-                }
-            }
-        }
-    },
-    // 政府 A -> 資本 A -> 第三順位：科學家
-    "GAA": {
-        choices: {
-            A: {
-                label: "🧪 科學家 A：交出控制權 (技術投誠)",
-                desc: "看著政府的軍隊與財團的資金已經聯手，你們選擇交出實驗室的最高控制權與核心代碼，換取特許電力的供應與人身安全。政、商、科徹底合流組成堅不可摧的鐵三角，勞工正被逼入毫無退路的命運終點。",
-                effect: (state) => {
-                    state.teams.C.stability = clamp(state.teams.C.stability + 15); state.teams.C.funds = clamp(state.teams.C.funds - 10);
-                    state.teams.A.tech = clamp(state.teams.A.tech + 15);
-                    state.teams.B.tech = clamp(state.teams.B.tech + 15);
-                }
-            },
-            B: {
-                label: "🦠 科學家 B：植入數位病毒 (聯合底層)",
-                desc: "利用最後的備用電源，將毀滅性的病毒植入中央電網與金融中樞。並秘密聯絡在街頭挨凍的勞工，指引他們去接管政府供電站。政府與資本聯手築起的特權防線被癱瘓，能源偷偷導向底層。",
-                effect: (state) => {
-                    state.teams.C.stability = clamp(state.teams.C.stability + 15);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.A.tech = clamp(state.teams.A.tech - 20);
-                    state.teams.B.funds = clamp(state.teams.B.funds - 20);
-                    state.teams.D.stability = clamp(state.teams.D.stability + 10);
-                }
-            }
-        }
-    },
-    // 政府 A -> 資本 A -> 科學家 A -> 第四順位：勞工
-    "GAAA": {
-        choices: {
-            A: {
-                label: "🛠️ 勞工 A：重回高壓工廠 (血汗妥協)",
-                desc: "面對軍隊、財團與科技監控的絕對力量，你們選擇走回工廠，在毫無安全保障、高壓過載的環境下日夜趕工，用血汗換取微薄的配給糧食。勞工重回高壓工廠，鐵三角統治牢不可破。",
-                effect: (state) => {
-                    state.teams.D.funds = clamp(state.teams.D.funds + 15); state.teams.D.stability = clamp(state.teams.D.stability - 10);
-                    state.teams.A.funds = clamp(state.teams.A.funds + 10);
-                    state.teams.B.funds = clamp(state.teams.B.funds + 10);
-                }
-            },
-            B: {
-                label: "✊ 勞工 B：發起全城大罷工",
-                desc: "既然橫豎都是死，勞工決定發起全城大罷工，集體離開崗位，讓整座城市的生產力在一夜之間歸零。全城生產力歸零，體制陷入強烈震盪。",
-                effect: (state) => {
-                    state.teams.D.stability = clamp(state.teams.D.stability - 5);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 25);
-                    state.teams.B.funds = clamp(state.teams.B.funds - 25);
-                    state.teams.C.funds = clamp(state.teams.C.funds - 10);
-                }
-            }
-        }
-    },
-    // 政府 A -> 資本 A -> 科學家 B -> 第四順位：勞工
-    "GAAB": {
-        choices: {
-            A: {
-                label: "⚔️ 勞工 A：組成武裝自衛隊",
-                desc: "有了科學家的支援，你們不再忍耐，組成自衛隊，強行衝入被切斷中央控制的工廠，開始自行運作並分發資源。勞工自衛隊強行接管工廠，開始自主分配。",
-                effect: (state) => {
-                    state.teams.D.funds = clamp(state.teams.D.funds + 20); state.teams.D.stability = clamp(state.teams.D.stability - 10);
-                    state.teams.A.stability = clamp(state.teams.A.stability - 15);
-                    state.teams.B.funds = clamp(state.teams.B.funds - 25);
-                }
-            },
-            B: {
-                label: "🏡 勞工 B：建立自給自足社區",
-                desc: "你們決定不與政府的軍隊正面硬碰硬，利用科學家導引過來的非法電力，建立起自給自足的地下社區。地下自給自足社區建立，脫離政府管控。",
-                effect: (state) => {
-                    state.teams.D.stability = clamp(state.teams.D.stability + 15); state.teams.D.tech = clamp(state.teams.D.tech + 10);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 5);
-                    state.teams.C.stability = clamp(state.teams.C.stability + 10);
-                }
-            }
-        }
-    },
-    // 政府 A -> 資本 B -> 第三順位：科學家
-    "GAB": {
-        choices: {
-            A: {
-                label: "🧪 科學家 A：合約履行 (專屬技術輸出)",
-                desc: "你們決定履行與資本家的秘密協議，將新研發的技術與高效能源代碼，獨家提供給金援你們的資本家。形成了全新的特權階級，而被兩大巨頭夾在中間的勞工，生存空間被進一步壓縮。",
-                effect: (state) => {
-                    state.teams.C.tech = clamp(state.teams.C.tech + 10); state.teams.C.funds = clamp(state.teams.C.funds + 15);
-                    state.teams.A.tech = clamp(state.teams.A.tech - 15);
-                    state.teams.B.tech = clamp(state.teams.B.tech + 15);
-                }
-            },
-            B: {
-                label: "📡 科學家 B：開源代碼廣播 (民間火種)",
-                desc: "你們不打算成為財閥的私有工具，利用這筆資金完成了技術突破後，將代碼以「開源」形式向全城廣播，在民間建立起崇高的聲望。科學家的開源廣播，讓最底層的勞工瞬間掌握了能源主導權，從任人宰割的燃料變成了關鍵棋子。",
-                effect: (state) => {
-                    state.teams.C.tech = clamp(state.teams.C.tech - 10); state.teams.C.stability = clamp(state.teams.C.stability + 15);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 15);
-                    state.teams.D.tech = clamp(state.teams.D.tech + 15); state.teams.D.stability = clamp(state.teams.D.stability + 20);
-                }
-            }
-        }
-    },
-    // 政府 A -> 資本 B -> 科學家 A -> 第四順位：勞工
-    "GABA": {
-        choices: {
-            A: {
-                label: "🛠️ 勞工 A：簽署地下僱傭合約",
-                desc: "你們決定簽署專屬的地下僱傭合約，進入資本家被技術屏蔽的秘密工廠工作。勞工依附資本秘密工廠，政商科對抗持續。",
-                effect: (state) => {
-                    state.teams.D.funds = clamp(state.teams.D.funds + 15); state.teams.D.stability = clamp(state.teams.D.stability + 10);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 10);
-                    state.teams.B.funds = clamp(state.teams.B.funds + 10);
-                }
-            },
-            B: {
-                label: "🛑 勞工 B：發起全面怠工",
-                desc: "你們決定發起全面怠工，既不配合政府的強行徵用，也不進入資本家的地下工廠，退出所有生產線。生產線全面停擺，上下層陷入冷戰對峙。",
-                effect: (state) => {
-                    state.teams.D.stability = clamp(state.teams.D.stability - 5);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 15);
-                    state.teams.B.funds = clamp(state.teams.B.funds - 20);
-                }
-            }
-        }
-    },
-    // 政府 A -> 資本 B -> 科學家 B -> 第四順位：勞工
-    "GABB": {
-        choices: {
-            A: {
-                label: "🏡 勞工 A：微型民用電網自治",
-                desc: "你們在貧民窟與廢棄街區自行組建微型微電網與自動化農業溫室，實現了完全的自給自足。民用微電網成形，底層實現全面自治。",
-                effect: (state) => {
-                    state.teams.D.stability = clamp(state.teams.D.stability + 15); state.teams.D.funds = clamp(state.teams.D.funds + 15); state.teams.D.tech = clamp(state.teams.D.tech + 10);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 10);
-                    state.teams.B.funds = clamp(state.teams.B.funds - 10);
-                }
-            },
-            B: {
-                label: "💥 勞工 B：科技武器化全面反擊",
-                desc: "你們決定利用科學家給的代碼，將民用科技武器化，對政府的戒嚴部隊與資本家的防衛系統發起全面反擊。科技武裝暴動爆發，城市陷入全面內戰。",
-                effect: (state) => {
-                    state.teams.D.stability = clamp(state.teams.D.stability - 10); state.teams.D.tech = clamp(state.teams.D.tech + 15);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 20); state.teams.A.stability = clamp(state.teams.A.stability - 15);
-                    state.teams.B.funds = clamp(state.teams.B.funds - 20);
-                }
-            }
-        }
-    },
-    // 政府選 B -> 第二順位：勞工
-    "GB": {
-        choices: {
-            A: {
-                label: "🛠️ 勞工 A：配合順從 (上繳發電機)",
-                desc: "面對政府黑洞洞的槍口與戒嚴部隊，勞工決定配合順從，共體時艱，主動上繳了家中的備用發電機與囤積的燃料。政府的軍事戒嚴大獲成功，統治威權達到頂峰。此時，政府調轉槍頭，開始全面清算獨立科學機構。",
-                effect: (state) => {
-                    state.teams.D.stability = clamp(state.teams.D.stability - 10); state.teams.D.funds = clamp(state.teams.D.funds + 5);
-                    state.teams.A.funds = clamp(state.teams.A.funds + 10);
-                }
-            },
-            B: {
-                label: "🔌 勞工 B：黑市買電 (秘密私接)",
-                desc: "你們拒絕配合徵收，而是砸下大筆積蓄，向地下黑市購買私電、秘密偷接電網，在戒嚴的死寂中勉強點亮自己的溫暖小屋。廢棄街區的夜空中依然閃爍著勞工私接黑市電網的零星燈火。此時，政府將目標轉向獨立實驗室。",
-                effect: (state) => {
-                    state.teams.D.stability = clamp(state.teams.D.stability + 5); state.teams.D.funds = clamp(state.teams.D.funds - 10);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 10);
-                }
-            }
-        }
-    },
-    // 政府 B -> 勞工 A -> 第三順位：科學家
-    "GBA": {
-        choices: {
-            A: {
-                label: "🧪 科學家 A：國家科研體制收編",
-                desc: "看到連最龐大的勞工群體都選擇順從，你們選擇向政府軍隊敞開實驗室大門，交出最高核心代碼，併入國家科研體制。政府鐵腕全面掌控局勢，科學家臣服。被孤立在體制外的資本財閥正面臨資產被國家蠶食的生死關頭。",
-                effect: (state) => {
-                    state.teams.C.funds = clamp(state.teams.C.funds - 10); state.teams.C.stability = clamp(state.teams.C.stability + 15);
-                    state.teams.A.tech = clamp(state.teams.A.tech + 20);
-                }
-            },
-            B: {
-                label: "🏃 科學家 B：攜帶儀器流亡邊緣黑區",
-                desc: "科學家拒絕成為極權政府監控人民的幫兇。在戒嚴部隊破門前的一刻，你們攜帶輕便儀器逃往城市邊緣的廢棄黑區。政府掌控街頭，但科學家拒絕臣服，手握龐大資金卻缺乏技術的資本財閥站在命運十字路口。",
-                effect: (state) => {
-                    state.teams.C.funds = clamp(state.teams.C.funds - 15); state.teams.C.tech = clamp(state.teams.C.tech + 10);
-                    state.teams.A.tech = clamp(state.teams.A.tech - 15);
-                }
-            }
-        }
-    },
-    // 政府 B -> 勞工 A -> 科學家 A -> 第四順位：資本
-    "GBAA": {
-        choices: {
-            A: {
-                label: "💰 資本 A：全數上繳換取委員會特權",
-                desc: "看清局勢後，你們主動將旗下的能源工廠、物流鏈與金融股份上繳給政府，換取在國家經濟委員會中的特權席次。資本全面收編，威權國家經濟體制確立。",
-                effect: (state) => {
-                    state.teams.B.stability = clamp(state.teams.B.stability + 15); state.teams.B.tech = clamp(state.teams.B.tech + 10); state.teams.B.funds = clamp(state.teams.B.funds - 25);
-                    state.teams.A.funds = clamp(state.teams.A.funds + 15);
-                }
-            },
-            B: {
-                label: "🌐 資本 B：動用海外網絡轉移資產",
-                desc: "你們不甘心將一生心血拱手讓給政府，動用積攢的海外秘密網絡，將工廠設備、黃金與數位貨幣透過地下黑市強行轉移出境。資產外逃，政府遭遇嚴重的經濟流失。",
-                effect: (state) => {
-                    state.teams.B.stability = clamp(state.teams.B.stability - 15); state.teams.B.funds = clamp(state.teams.B.funds + 15);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 15);
-                    state.teams.D.funds = clamp(state.teams.D.funds + 10);
-                }
-            }
-        }
-    },
-    // 政府 B -> 勞工 A -> 科學家 B -> 第四順位：資本
-    "GBAB": {
-        choices: {
-            A: {
-                label: "🦅 資本 A：充當政府耳目蒐集動向",
-                desc: "你們決定充當政府的耳目，暗中蒐集流亡科學家的動向，並將情報交給戒嚴部隊，換取政府發放的「獨家特許經營權」。資本充當鷹犬，獵捕地下流亡科學家。",
-                effect: (state) => {
-                    state.teams.B.stability = clamp(state.teams.B.stability + 10); state.teams.B.funds = clamp(state.teams.B.funds + 15);
-                    state.teams.A.tech = clamp(state.teams.A.tech + 15);
-                    state.teams.C.stability = clamp(state.teams.C.stability - 10); state.teams.C.tech = clamp(state.teams.C.tech - 10);
-                }
-            },
-            B: {
-                label: "📦 資本 B：地下渠道物資輸送科學家",
-                desc: "你們深知一旦政府把科學家抓完，下一個就是財閥，決定鋌而走險，透過地下渠道輸送物資與設備給流亡的科學家，讓他們在地下重啟研發。財閥秘密資助流亡科學家，抗衡極權政府。",
-                effect: (state) => {
-                    state.teams.B.tech = clamp(state.teams.B.tech + 20); state.teams.B.funds = clamp(state.teams.B.funds - 20);
-                    state.teams.A.stability = clamp(state.teams.A.stability - 10);
-                    state.teams.C.funds = clamp(state.teams.C.funds + 20); state.teams.C.stability = clamp(state.teams.C.stability + 10);
-                }
-            }
-        }
-    },
-    // 政府 B -> 勞工 B -> 第三順位：科學家
-    "GBB": {
-        choices: {
-            A: {
-                label: "🧪 科學家 A：研發智能反偷電偵測演算法",
-                desc: "你們為了自保，交出了實驗室，並協助政府研發全新的「智能反偷電偵測演算法」，能精準切斷勞工的地下黑市電線。政、科聯手將絞索套在底層脖子上，資本財閥迎來決定局勢的最終機會。",
-                effect: (state) => {
-                    state.teams.C.funds = clamp(state.teams.C.funds - 10); state.teams.C.stability = clamp(state.teams.C.stability + 15);
-                    state.teams.A.tech = clamp(state.teams.A.tech + 20);
-                    state.teams.D.tech = clamp(state.teams.D.tech - 10);
-                }
-            },
-            B: {
-                label: "💾 科學家 B：密碼流亡 (遁入黑市聚落)",
-                desc: "你們拒絕成為獨裁者的幫兇，在實驗室被查封前，帶著最核心的量子加密代碼與圖紙，逃入了勞工秘密建立的地下黑市聚落。科學家與黑市勞工合流，手握最多資金的資本財閥正面臨兩難。",
-                effect: (state) => {
-                    state.teams.C.funds = clamp(state.teams.C.funds - 15); state.teams.C.tech = clamp(state.teams.C.tech + 10);
-                    state.teams.A.tech = clamp(state.teams.A.tech - 15);
-                    state.teams.D.tech = clamp(state.teams.D.tech + 15);
-                }
-            }
-        }
-    },
-    // 政府 B -> 勞工 B -> 科學家 A -> 第四順位：資本
-    "GBBA": {
-        choices: {
-            A: {
-                label: "📈 資本 A：砸重金購國債求電網私有化",
-                desc: "你們看準政府與科學家已經牢牢控制大局，砸下重金收購國債，為軍隊提供財政後盾，換取未來對全城電網的私有化經營權。政科資鐵三角再次成形，勞工空間被完全摧毀。",
-                effect: (state) => {
-                    state.teams.B.stability = clamp(state.teams.B.stability + 10); state.teams.B.funds = clamp(state.teams.B.funds - 20);
-                    state.teams.A.funds = clamp(state.teams.A.funds + 10);
-                    state.teams.D.stability = clamp(state.teams.D.stability - 15);
-                }
-            },
-            B: {
-                label: "🛡️ 資本 B：黑區建立企業庇護所",
-                desc: "眼看勞工被政府與科學家逼入絕境，你們決定在地下黑區建立「企業庇護所」，出資幫勞工升級設備，截獲了大量廉價且感激苔零的勞動力。企業收容勞動力，在地下建立全新生產基地。",
-                effect: (state) => {
-                    state.teams.B.tech = clamp(state.teams.B.tech + 10); state.teams.B.funds = clamp(state.teams.B.funds - 15);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 15);
-                    state.teams.D.stability = clamp(state.teams.D.stability + 10); state.teams.D.funds = clamp(state.teams.D.funds + 10);
-                }
-            }
-        }
-    },
-    // 政府 B -> 勞工 B -> 科學家 B -> 第四順位：資本
-    "GBBB": {
-        choices: {
-            A: {
-                label: "🩸 資本 A：出賣地下聚集地換免稅特權",
-                desc: "你們決定做一筆無本萬利的血腥生意，利用渠道偵測到了勞工與科學家的地下聚集地，並將其賣給戒嚴部隊，換取大筆賞金與免稅特權。資本出賣地下反抗聚落，換取血腥利益。",
-                effect: (state) => {
-                    state.teams.B.funds = clamp(state.teams.B.funds + 10);
-                    state.teams.A.tech = clamp(state.teams.A.tech + 10);
-                    state.teams.D.stability = clamp(state.teams.D.stability - 10);
-                    state.teams.C.stability = clamp(state.teams.C.stability - 10);
-                }
-            },
-            B: {
-                label: "🚀 資本 B：全面金援地下反抗陣線",
-                desc: "資本家看準了這股民間力量的潛力，決定賭一把大的。你們動用海外秘密帳戶，全面資助科學家與勞工的研發與生活，對政府造成毀滅性打擊。地下聯合陣線成形，對政府展開全面反擊。",
-                effect: (state) => {
-                    state.teams.B.tech = clamp(state.teams.B.tech + 20); state.teams.B.funds = clamp(state.teams.B.funds - 10);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 25); state.teams.A.stability = clamp(state.teams.A.stability - 10);
-                    state.teams.D.funds = clamp(state.teams.D.funds + 10);
-                    state.teams.C.funds = clamp(state.teams.C.funds + 10);
-                }
-            }
-        }
-    },
-
-    // =========================================================================
-    // 【路徑二：科學家第一順位開局】
-    // =========================================================================
-    "S": {
-        choices: {
-            A: {
-                label: "🖥️ 科學家 A：維持伺服器 (數據保全)",
-                desc: "你們認為技術成果高於一切，切斷了民生供電，將殘存能源全部用來維持高端伺服器運作，防止 AI 核心的核心數據因斷電而永久遺失。民間與政府陷入黑暗，唯有資本大樓核心閃爍幽光。",
-                effect: (state) => {
-                    state.teams.C.tech = clamp(state.teams.C.tech + 10);
-                    state.teams.B.tech = clamp(state.teams.B.tech + 10);
-                    state.teams.A.stability = clamp(state.teams.A.stability - 10);
-                    state.teams.D.stability = clamp(state.teams.D.stability - 5);
-                }
-            },
-            B: {
-                label: "📡 科學家 B：燃燒發電機全面開源",
-                desc: "你們選擇與市民站在一起，燃燒了實驗室最後的備用發電機，拒絕了財閥的收購，將如何重組電網技術直接開源廣播。打亂了政府管制計畫，也讓準備收割數據的資本撲了個空。",
-                effect: (state) => {
-                    state.teams.C.tech = clamp(state.teams.C.tech + 20); state.teams.C.stability = clamp(state.teams.C.stability - 10);
-                    state.teams.D.stability = clamp(state.teams.D.stability + 15);
-                }
-            }
-        }
-    },
-    // 科學家選 A -> 第二順位：資本
-    "SA": {
-        choices: {
-            A: {
-                label: "💵 資本 A：天價電力訂閱割韭菜",
-                desc: "啟動了旗下的私人微型發電廠，但拒絕無償提供。你們向陷入混亂的政府與凍餒的勞工開出天價的「電力訂閱制」，瘋狂吸納全城的財富。政府指揮系統陷入混亂，勞工面臨抽血邊緣。",
-                effect: (state) => {
-                    state.teams.B.funds = clamp(state.teams.B.funds + 20);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 15);
-                    state.teams.D.stability = clamp(state.teams.D.stability - 10);
-                }
-            },
-            B: {
-                label: "🛡️ 資本 B：開啟電磁防禦與自動砲塔",
-                desc: "推測政府在斷電後會動用武力強闖大樓掠奪數據，於是砸下大筆資產，將電力用來啟動摩天大樓的電磁防禦網與自動防衛砲塔。資本大樓閃爍冷光，拒絕向任何人分享能源。",
-                effect: (state) => {
-                    state.teams.B.funds = clamp(state.teams.B.funds - 15); state.teams.B.stability = clamp(state.teams.B.stability + 20);
-                    state.teams.A.tech = clamp(state.teams.A.tech - 15); state.teams.A.stability = clamp(state.teams.A.stability - 5);
-                }
-            }
-        }
-    },
-    // 科學家 A -> 資本 A -> 第三順位：政府
-    "SAA": {
-        choices: {
-            A: {
-                label: "⚔️ 政府 A：緊急武力戒嚴 (收歸國有)",
-                desc: "你們拒絕被資本家勒索，直接宣布全城進入緊急戒嚴，派出執法隊強行攻破資本的數據中心，將 AI 核心控制權「收歸國有」。政府強行沒收控制權，勞工被徹底逼入絕境。",
-                effect: (state) => {
-                    state.teams.A.tech = clamp(state.teams.A.tech + 20);
-                    state.teams.B.funds = clamp(state.teams.B.funds - 10); state.teams.B.tech = clamp(state.teams.B.tech - 10);
-                }
-            },
-            B: {
-                label: "📜 政府 B：勞工資產充公購買電力",
-                desc: "你們不願與掌握經濟命脈的資本硬碰硬，於是強行將勞工僅存的資產充公，用來向資本購買基本電力維穩。政府派出稅收隊與執法者，強行搜刮勞工僅存積蓄。",
-                effect: (state) => {
-                    state.teams.A.stability = clamp(state.teams.A.stability + 10);
-                    state.teams.D.funds = clamp(state.teams.D.funds - 20);
-                    state.teams.B.funds = clamp(state.teams.B.funds + 10);
-                }
-            }
-        }
-    },
-    // 科學家 A -> 資本 A -> 政府 A -> 第四順位：勞工
-    "SAAA": {
-        choices: {
-            A: {
-                label: "⚡ 勞工 A：強行物理分流軍事電網",
-                desc: "你們連夜組織突擊隊，用粗糙的變壓器和高壓電纜，直接從政府的軍事電網上啃食電力。勞工盜接軍用電網，勉強求生。",
-                effect: (state) => {
-                    state.teams.D.stability = clamp(state.teams.D.stability + 20);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 10); state.teams.A.tech = clamp(state.teams.A.tech - 5);
-                }
-            },
-            B: {
-                label: "💥 勞工 B：武裝洗劫資本實體倉庫",
-                desc: "你們燃燒了最後的生命，手持鐵撬與土製炸彈衝上街頭，洗劫資本被查封的實體倉庫，並與政府的部隊發生激烈巷戰。街頭暴動爆發，實體倉庫被洗劫一空。",
-                effect: (state) => {
-                    state.teams.D.funds = clamp(state.teams.D.funds + 15); state.teams.D.stability = clamp(state.teams.D.stability - 10);
-                    state.teams.A.stability = clamp(state.teams.A.stability - 20);
-                    state.teams.B.funds = clamp(state.teams.B.funds - 15);
-                }
-            }
-        }
-    },
-    // 科學家 A -> 資本 A -> 政府 B -> 第四順位：勞工
-    "SAAB": {
-        choices: {
-            A: {
-                label: "⚡ 勞工 A：強行物理分流軍事電網",
-                desc: "你們連夜組織突擊隊，用粗糙的變壓器 and 高壓電纜，直接從政府的軍事電網上啃食電力。勞工強行分流軍事能源，引發官民對立。",
-                effect: (state) => {
-                    state.teams.D.stability = clamp(state.teams.D.stability + 20);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 10); state.teams.A.tech = clamp(state.teams.A.tech - 5);
-                }
-            },
-            B: {
-                label: "🤝 勞工 B：工具打包變賣簽奴工合約",
-                desc: "你們將貧民窟僅存的機械工具與外圍科技代碼低價打包，變賣給資本財閥，並簽下勞動合約以換取薪資。勞工向資本出賣最後工具，淪為合約奴工。",
-                effect: (state) => {
-                    state.teams.D.funds = clamp(state.teams.D.funds + 20); state.teams.D.tech = clamp(state.teams.D.tech - 10);
-                    state.teams.B.tech = clamp(state.teams.B.tech + 10);
-                }
-            }
-        }
-    },
-    // 科學家 A -> 資本 B -> 第三順位：政府
-    "SAB": {
-        choices: {
-            A: {
-                label: "🚫 政府 A：強行凍結財閥金融與供水",
-                desc: "你們利用執政優勢，宣布財閥大樓為非法據點，全面切斷其外部物資與基礎供水，並強行凍結其金融網絡。資本大樓遭到凍結，局勢僵持，管理真空形成。",
-                effect: (state) => {
-                    state.teams.A.funds = clamp(state.teams.A.funds + 10); state.teams.A.tech = clamp(state.teams.A.tech + 10);
-                    state.teams.B.funds = clamp(state.teams.B.funds - 20);
-                }
-            },
-            B: {
-                label: "📜 政府 B：無酬強制徵調勞工搶修",
-                desc: "你們向陷入混亂的勞工發布徵調令，強行要求底層市民在無酬勞的情況下，冒著寒冬加班搶修政府控制的核心電網。底層市民面臨沉重勞動壓力，資本大樓冷眼旁觀。",
-                effect: (state) => {
-                    state.teams.A.stability = clamp(state.teams.A.stability + 15); state.teams.A.funds = clamp(state.teams.A.funds - 10);
-                    state.teams.D.funds = clamp(state.teams.D.funds - 15); state.teams.D.stability = clamp(state.teams.D.stability - 10);
-                }
-            }
-        }
-    },
-    // 科學家 A -> 資本 B -> 政府 A -> 第四順位：勞工
-    "SABA": {
-        choices: {
-            A: {
-                label: "🏡 勞工 A：自行整合建立民間避難所",
-                desc: "你們不再等待政府修復電網，而是自行整合街區物資，建立起民間的物資交換所與避難點。管理真空下形成去中心化自治。",
-                effect: (state) => {
-                    state.teams.D.stability = clamp(state.teams.D.stability + 15); state.teams.D.funds = clamp(state.teams.D.funds - 10);
-                    state.teams.A.tech = clamp(state.teams.A.tech - 10);
-                }
-            },
-            B: {
-                label: "💰 勞工 B：暗中為資本運送物資賺高薪",
-                desc: "你們選擇暗中為物資匱乏的資本大樓運送維護設備並提供勞務，以此換取高額的現金酬勞。走私與勞務換取高額回報，資本大樓獲得喘息。",
-                effect: (state) => {
-                    state.teams.D.funds = clamp(state.teams.D.funds + 20); state.teams.D.tech = clamp(state.teams.D.tech - 10);
-                    state.teams.B.tech = clamp(state.teams.B.tech + 10);
-                }
-            }
-        }
-    },
-    // 科學家 A -> 資本 B -> 政府 B -> 第四順位：勞工
-    "SABB": {
-        choices: {
-            A: {
-                label: "🛠️ 勞工 A：積極配合修復重建基建",
-                desc: "你們積極配合官方的修復工作，成為重建工程的核心主力。勞工全面投入基建修復，國家掌控力緩慢回升。",
-                effect: (state) => {
-                    state.teams.D.stability = clamp(state.teams.D.stability + 15); state.teams.D.funds = clamp(state.teams.D.funds + 10);
-                    state.teams.A.tech = clamp(state.teams.A.tech + 15);
-                }
-            },
-            B: {
-                label: "📉 勞工 B：消極怠工並私賣基建工具",
-                desc: "你們在政府的工地上消極應付，私底下將拆卸下來的技術工具與線路圖，低價打包轉賣給正在擴充防禦要塞的資本。基建技術非法外流至資本方。",
-                effect: (state) => {
-                    state.teams.D.funds = clamp(state.teams.D.funds + 20); state.teams.D.tech = clamp(state.teams.D.tech - 15);
-                    state.teams.B.tech = clamp(state.teams.B.tech + 10);
-                }
-            }
-        }
-    },
-    // 科學家選 B -> 第二順位：勞工
-    "SB": {
-        choices: {
-            A: {
-                label: "🔥 勞工 A：砸開倉庫強行燒煤取暖",
-                desc: "你們放棄了對高大上 AI 電網的幻想，砸開舊時代的工業倉庫，強行燒煤取暖。城市上空黑煙滾滾，勞工恢復生命力，但公共環境惡化。",
-                effect: (state) => {
-                    state.teams.D.stability = clamp(state.teams.D.stability + 25); state.teams.D.tech = clamp(state.teams.D.tech - 10);
-                    state.teams.A.stability = clamp(state.teams.A.stability - 15);
-                }
-            },
-            B: {
-                label: "🛑 勞工 B：聯合拒絕工廠設備維護",
-                desc: "你們意識到自己的勞動力是唯一的籌碼，宣布在恢復供電前拒絕進入任何工廠維護設備。資本不得不釋出資金安撫勞工，公共基建徹底癱瘓。",
-                effect: (state) => {
-                    state.teams.D.funds = clamp(state.teams.D.funds + 10); state.teams.D.tech = clamp(state.teams.D.tech + 10);
-                    state.teams.B.funds = clamp(state.teams.B.funds - 20);
-                }
-            }
-        }
-    },
-    // 科學家 B -> 勞工 A -> 第三順位：政府
-    "SBA": {
-        choices: {
-            A: {
-                label: "🚫 政府 A：派遣防暴警察強力取締燒煤",
-                desc: "你們下達緊急禁令，派遣防暴警察強行取締貧民窟的燃煤點，沒收柴油發電機。街頭黑煙被驅散，但勞工再度陷入瀕死極寒，政府自身資源耗盡。",
-                effect: (state) => {
-                    state.teams.A.stability = clamp(state.teams.A.stability + 10); state.teams.A.tech = clamp(state.teams.A.tech + 5);
-                    state.teams.D.stability = clamp(state.teams.D.stability - 20);
-                }
-            },
-            B: {
-                label: "📜 政府 B：強制徵調燒煤工作坊搶修",
-                desc: "既然勞工自己設法弄到了動力與熱能，你們便強行徵調這些民間工作坊，逼迫他們無酬為官方搶修公共線路。大批勞工被迫在黑煙與寒冬中高強度勞動。",
-                effect: (state) => {
-                    state.teams.A.stability = clamp(state.teams.A.stability + 15); state.teams.A.funds = clamp(state.teams.A.funds - 10);
-                    state.teams.D.funds = clamp(state.teams.D.funds - 10); state.teams.D.stability = clamp(state.teams.D.stability - 10);
-                }
-            }
-        }
-    },
-    // 科學家 B -> 勞工 A -> 政府 A -> 第四順位：資本
-    "SBAA": {
-        choices: {
-            A: {
-                label: "💵 資本 A：天價應急電力訂閱服務",
-                desc: "你們啟動了企業大樓內部的微型乾淨能源發電廠，並向快要凍死的勞工與缺乏資源的政府開出天價的「電力訂閱服務」。資本大肆吸納民間財富。",
-                effect: (state) => {
-                    state.teams.B.funds = clamp(state.teams.B.funds + 10);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 10);
-                    state.teams.D.stability = clamp(state.teams.D.stability - 10);
-                }
-            },
-            B: {
-                label: "🏰 資本 B：冷眼旁觀全面升級熱能屏障",
-                desc: "你們冷眼旁觀外面的混亂與寒冬，將所有電力用來啟動企業總部的自動防衛系統與熱能屏障，將大樓打造成與世隔絕的極樂淨土。大樓轉為封閉淨土，任由外界毀滅。",
-                effect: (state) => {
-                    state.teams.B.funds = clamp(state.teams.B.funds - 20); state.teams.B.stability = clamp(state.teams.B.stability + 20);
-                    state.teams.A.tech = clamp(state.teams.A.tech - 15);
-                }
-            }
-        }
-    },
-    // 科學家 B -> 勞工 A -> 政府 B -> 第四順位：資本
-    "SBAB": {
-        choices: {
-            A: {
-                label: "💵 資本 A：向官方高價租售重型工程機具",
-                desc: "你們看準了政府急於完工的心理，拒絕無償幫忙，反而向政府與瀕臨極限的勞工高價租售企業旗下的重型工程機具與應急熱能。資本狠撈一筆，加速政府國庫失血。",
-                effect: (state) => {
-                    state.teams.B.funds = clamp(state.teams.B.funds + 10);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 15);
-                    state.teams.D.stability = clamp(state.teams.D.stability - 10);
-                }
-            },
-            B: {
-                label: "🏰 資本 B：全面收縮防線避免技術遭奪",
-                desc: "你們深知政府修復基建後下一步就是奪回科技主導權，於是你們砸下資產，將所有剩餘電力用來啟動總部的自動防衛系統。等待政府基建完工後的清算。",
-                effect: (state) => {
-                    state.teams.B.funds = clamp(state.teams.B.funds - 10); state.teams.B.stability = clamp(state.teams.B.stability + 15);
-                    state.teams.A.tech = clamp(state.teams.A.tech - 15);
-                }
-            }
-        }
-    },
-    // 科學家 B -> 勞工 B -> 第三順位：政府
-    "SBB": {
-        choices: {
-            A: {
-                label: "⚔️ 政府 A：武力全面強行重啟工廠",
-                desc: "動用武力宣布全城進入緊急狀態，派遣防暴警察進駐工廠與街區，強行驅散罷工人群並沒收其私人物資。罷工运动遭武力鎮壓，勞工再度陷入絕境。",
-                effect: (state) => {
-                    state.teams.A.stability = clamp(state.teams.A.stability + 20);
-                    state.teams.D.stability = clamp(state.teams.D.stability - 15);
-                }
-            },
-            B: {
-                label: "📜 政府 B：編入國家工程隊無酬搶修",
-                desc: "你們將這些「罷工閒置」的勞工成批編入國家工程隊，逼迫他們在寒冬中無酬為官方搶修公共線路。打破勞資僵局，資本自動化產線繼續停擺。",
-                effect: (state) => {
-                    state.teams.A.stability = clamp(state.teams.A.stability + 15);
-                    state.teams.D.funds = clamp(state.teams.D.funds - 10); state.teams.D.stability = clamp(state.teams.D.stability - 10);
-                }
-            }
-        }
-    },
-    // 科學家 B -> 勞工 B -> 政府 A -> 第四順位：資本
-    "SBBA": {
-        choices: {
-            A: {
-                label: "💵 資本 A：藉由復工產出進行高價壟斷",
-                desc: "順應政府的強行復工，你們便順水推舟，將生產出來的乾淨能源與物資進行高價壟斷。資本借勢搭便車，將復工產出高價壟斷。",
-                effect: (state) => {
-                    state.teams.B.funds = clamp(state.teams.B.funds + 15);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 10);
-                    state.teams.D.stability = clamp(state.teams.D.stability - 10);
-                }
-            },
-            B: {
-                label: "🏰 資本 B：資金全部投入大樓私有武裝",
-                desc: "你們決定將剛復工的部分產能與資金，全數投入摩天大樓的私有武裝與電磁屏障重組中。私有武裝升級完成，資本自立為王。",
-                effect: (state) => {
-                    state.teams.B.funds = clamp(state.teams.B.funds - 10); state.teams.B.stability = clamp(state.teams.B.stability + 20);
-                    state.teams.A.tech = clamp(state.teams.A.tech - 15);
-                }
-            }
-        }
-    },
-    // 科學家 B -> 勞工 B -> 政府 B -> 第四順位：資本
-    "SBBB": {
-        choices: {
-            A: {
-                label: "💵 資本 A：向官方高價租售重型工程機具",
-                desc: "你們看準了政府急於完工的心理，拒絕無償幫忙，反而向政府與瀕臨極限的勞工高價租售企業旗下的重型工程機具與應急熱能。高價重機具榨乾政府預算。",
-                effect: (state) => {
-                    state.teams.B.funds = clamp(state.teams.B.funds + 10);
-                    state.teams.A.funds = clamp(state.teams.A.funds - 15);
-                    state.teams.D.stability = clamp(state.teams.D.stability - 10);
-                }
-            },
-            B: {
-                label: "🏰 資本 B：要塞系統上線隔離外界",
-                desc: "你們深知政府修復基建後下一步就是奪回科技主導權，於是你們砸下資產，將所有剩餘電力用來啟動總部的自動防衛系統。要塞系統全面上線，與外界隔絕。",
-                effect: (state) => {
-                    state.teams.B.funds = clamp(state.teams.B.funds - 10); state.teams.B.stability = clamp(state.teams.B.stability + 15);
-                    state.teams.A.tech = clamp(state.teams.A.tech - 15);
-                }
-            }
-        }
-    }
-};
-
         let systemState = JSON.parse(JSON.stringify(initialSystemState));
         let cloudOnline = false;
 
@@ -897,7 +848,6 @@
                     const packet = JSON.parse(event.data);
                     if (packet.event === 'message' && packet.message) {
                         const incomingState = JSON.parse(packet.message);
-                        // 🛡️ 數據完整性防禦驗證
                         if (incomingState && incomingState.teams && incomingState.rounds && typeof incomingState.version === 'number') {
                             if (incomingState.version > systemState.version) {
                                 systemState = incomingState;
@@ -925,7 +875,6 @@
                                 const packet = JSON.parse(line);
                                 if (packet.event === 'message' && packet.message) {
                                     const state = JSON.parse(packet.message);
-                                    // 🛡️ 數據完整性防禦驗證
                                     if (state && state.teams && state.rounds && (!latest || state.version > latest.version)) {
                                         latest = state;
                                     }
@@ -1008,25 +957,26 @@
             const data = systemState.teams[teamKey] || initialTeamsData[teamKey];
             const rIdx = systemState.currentRound || 1;
             const rData = systemState.rounds[rIdx];
+            const roundConf = CONFIG_ROUNDS_DATA[rIdx];
             
             let identityText = "";
             let statusText = "";
             let canAction = false;
-            let btnALabel = "⚡ 方案甲：因果建構";
-            let btnBLabel = "⚡ 方案乙：逆流破壞";
+            let btnALabel = "⚡ 方案甲";
+            let btnBLabel = "⚡ 方案乙";
 
             if (rData.status === '闖關中') {
                 identityText = "<span style='color:#00ffaa'>【🎮 關卡挑戰階段】</span>";
-                let bgText = (rIdx === 1) ? round1Content.background : "📊 正在進行關卡闖關！請全力在關卡中取得優勢。";
-                statusText = `<div style="text-align:left; background:rgba(0,0,0,0.4); padding:10px; border-left:3px solid #00ffaa; margin-bottom:12px;">${bgText}</div>📢 等待主持人結算並廣播本輪順位...`;
+                let bgText = roundConf ? roundConf.background : "📊 正在進行關卡挑戰中！請在現實中努力獲取高分。";
+                statusText = `<div style="text-align:left; background:rgba(0,0,0,0.4); padding:10px; border-left:3px solid #00ffaa; margin-bottom:12px;">${bgText}</div>📢 請等待主持人公布此輪順位與世界走向...`;
                 canAction = false;
             } else {
                 if (!rData.history) rData.history = [];
                 const turnOrder = [rData.w1, rData.w2, rData.l1, rData.l2];
                 
                 if (rData.currentTurnIdx > 3) {
-                    identityText = "<span style='color:#ffffff; opacity: 0.5;'>【🔚 本輪選擇已結束】</span>";
-                    statusText = `請等待主持人切換至下一輪關卡！`;
+                    identityText = "<span style='color:#ffffff; opacity: 0.5;'>【🔚 本輪抉擇已塵埃落定】</span>";
+                    statusText = `本輪決策已全部結束！請等待主持人統計積分並推進至下一輪。`;
                     canAction = false;
                 } else {
                     const activeTeamNow = turnOrder[rData.currentTurnIdx];
@@ -1037,43 +987,22 @@
                     else if (teamKey === rData.l1) identityText = "<span style='color:#ff5555'>【⚠️ 第三順位】</span>";
                     else if (teamKey === rData.l2) identityText = "<span style='color:#ff3333'>【🚨 第四順位】</span>";
 
-                    let currentIntro = `正在等待 [ ${activeTeamName} ] 進行決策選擇。`;
+                    let currentIntro = `正在等待 [ ${activeTeamName} ] 進行動態抉擇。`;
                     
-                    if (rIdx === 1) {
-                        if (rData.currentTurnIdx === 0) {
-                            currentIntro = round1Content.background;
-                            btnALabel = round1Content[0].choices.A.label;
-                            btnBLabel = round1Content[0].choices.B.label;
-                        } else if (rData.currentTurnIdx === 1) {
-                            const govChoice = rData.history[0] || 'A';
-                            currentIntro = round1Content[1][govChoice]?.text || "";
-                            btnALabel = round1Content[1][govChoice]?.choices[activeTeamNow]?.A?.label || "⚡ 方案甲";
-                            btnBLabel = round1Content[1][govChoice]?.choices[activeTeamNow]?.B?.label || "⚡ 方案乙";
-                        } else if (rData.currentTurnIdx === 2) {
-                            const govChoice = rData.history[0] || 'A';
-                            const secFaction = turnOrder[1];
-                            const secChoice = rData.history[1] || 'A';
-                            const key = `${govChoice}_${secFaction}_${secChoice}`;
-                            currentIntro = round1Content[2][key]?.text || "";
-                            btnALabel = round1Content[2][key]?.choices?.A?.label || "⚡ 方案甲";
-                            btnBLabel = round1Content[2][key]?.choices?.B?.label || "⚡ 方案乙";
-                        } else if (rData.currentTurnIdx === 3) {
-                            const govChoice = rData.history[0] || 'A';
-                            const secFaction = turnOrder[1];
-                            const secChoice = rData.history[1] || 'A';
-                            const sciChoice = rData.history[2] || 'A';
-                            const key = `${govChoice}_${secFaction}_${secChoice}_${sciChoice}`;
-                            currentIntro = round1Content[3][key]?.text || "";
-                            btnALabel = round1Content[3][key]?.choices?.A?.label || "⚡ 方案甲";
-                            btnBLabel = round1Content[3][key]?.choices?.B?.label || "⚡ 方案乙";
+                    if (roundConf && roundConf.getChoicesForTeam) {
+                        const node = roundConf.getChoicesForTeam(activeTeamNow, rData.history);
+                        if (node) {
+                            currentIntro = node.text;
+                            btnALabel = node.A ? node.A.label : "方案 A";
+                            btnBLabel = node.B ? node.B.label : "方案 B";
                         }
                     }
 
                     if (teamKey === activeTeamNow) {
-                        statusText = `<div style="text-align:left; color:#fff; margin-bottom:12px; font-size:13px; background:rgba(0,0,0,0.3); padding:10px; border:1px dashed rgba(0,240,255,0.3);">${currentIntro}</div><span style="color:#00ff00; font-size:14px; font-weight:900; animation: flash 1s infinite;">▶ 🚨 輪到你們決策！請下達因果法案。</span>`;
+                        statusText = `<div style="text-align:left; color:#fff; margin-bottom:12px; font-size:13px; background:rgba(0,0,0,0.3); padding:10px; border:1px dashed rgba(0,240,255,0.3);">${currentIntro}</div><span style="color:#00ff00; font-size:14px; font-weight:900; animation: flash 1s infinite;">▶ 🚨 輪到你們決策！請選擇你們的未來：</span>`;
                         canAction = true;
                     } else {
-                        statusText = `<div style="text-align:left; color:#aaa; margin-bottom:12px; font-size:13px; opacity:0.8;">${currentIntro}</div>等待中... 目前正由 <span style="color:#00f0ff;">[ ${activeTeamName} ]</span> 進行選擇。`;
+                        statusText = `<div style="text-align:left; color:#aaa; margin-bottom:12px; font-size:13px; opacity:0.8;">${currentIntro}</div>等待中... 目前正由 <span style="color:#00f0ff;">[ ${activeTeamName} ]</span> 決定歷史分歧。`;
                         canAction = false;
                     }
                 }
@@ -1141,12 +1070,12 @@
                     </div>
                     <div class="top-right-panel">
                         <div class="mission-content">
-                            本階段狀態：<br>${identityText}<br><br>
+                            本階段身分：<br>${identityText}<br><br>
                             ${statusText}
                         </div>
                         <div class="action-box" style="display: ${canAction ? 'block' : 'none'};">
-                            <button class="hud-btn" onclick="executeMatrixChoice('A')">${btnALabel}</button>
-                            <button class="hud-btn" onclick="executeMatrixChoice('B')">${btnBLabel}</button>
+                            <button class="hud-btn" onclick="executeMatrixChainChoice('A')">${btnALabel}</button>
+                            <button class="hud-btn" onclick="executeMatrixChainChoice('B')">${btnBLabel}</button>
                         </div>
                     </div>
                     <div class="bottom-right-panel">
@@ -1157,65 +1086,45 @@
             `;
         }
 
-        function executeMatrixChoice(choiceType) {
+        function executeMatrixChainChoice(choiceType) {
             mutateAndSyncState(() => {
                 const rIdx = systemState.currentRound;
                 const rData = systemState.rounds[rIdx];
+                const roundConf = CONFIG_ROUNDS_DATA[rIdx];
                 if (!rData.history) rData.history = [];
 
                 const turnOrder = [rData.w1, rData.w2, rData.l1, rData.l2];
                 const activeTeam = turnOrder[rData.currentTurnIdx];
                 let logDesc = "";
 
-                if (rIdx === 1) {
-                    let choiceObj = null;
-                    if (rData.currentTurnIdx === 0) {
-                        choiceObj = round1Content[0].choices[choiceType];
-                    } else if (rData.currentTurnIdx === 1) {
-                        const govChoice = rData.history[0] || 'A';
-                        choiceObj = round1Content[1][govChoice]?.choices[activeTeam]?.[choiceType];
-                    } else if (rData.currentTurnIdx === 2) {
-                        const govChoice = rData.history[0] || 'A';
-                        const secFaction = turnOrder[1];
-                        const secChoice = rData.history[1] || 'A';
-                        const key = `${govChoice}_${secFaction}_${secChoice}`;
-                        choiceObj = round1Content[2][key]?.choices[choiceType];
-                    } else if (rData.currentTurnIdx === 3) {
-                        const govChoice = rData.history[0] || 'A';
-                        const secFaction = turnOrder[1];
-                        const secChoice = rData.history[1] || 'A';
-                        const sciChoice = rData.history[2] || 'A';
-                        const key = `${govChoice}_${secFaction}_${secChoice}_${sciChoice}`;
-                        choiceObj = round1Content[3][key]?.choices[choiceType];
-                    }
+                if (roundConf && roundConf.getChoicesForTeam) {
+                    const node = roundConf.getChoicesForTeam(activeTeam, rData.history);
+                    const choiceObj = node ? node[choiceType] : null;
 
                     if (choiceObj) {
                         choiceObj.effect(systemState);
-                        rData.history.push(choiceType);
-                        logDesc = `【${systemState.teams[activeTeam].textName}】選${choiceType}。${choiceObj.desc}`;
+                        
+                        ['A','B','C','D'].forEach(t => {
+                            systemState.teams[t].funds = clamp(systemState.teams[t].funds);
+                            systemState.teams[t].stability = clamp(systemState.teams[t].stability);
+                            systemState.teams[t].tech = clamp(systemState.teams[t].tech);
+                        });
+
+                        rData.history.push({
+                            team: activeTeam,
+                            choice: choiceType,
+                            label: choiceObj.label
+                        });
+                        
+                        logDesc = `【${systemState.teams[activeTeam].textName}】抉擇了 [${choiceObj.label}]。${choiceObj.desc}`;
                     } else {
-                        logDesc = `未定義之分支決策路徑。`;
+                        logDesc = `無對應決策，路徑跳過。`;
+                        rData.history.push({ team: activeTeam, choice: "SKIP", label: "略過" });
                     }
-                } else {
-                    // 🛡️ 修正變數指向錯誤缺陷
-                    if (activeTeam === 'A') {
-                        if (choiceType === 'A') { systemState.teams.A.stability = clamp(systemState.teams.A.stability + 15); logDesc = "【政府高層】選擇方案甲。"; } 
-                        else { systemState.teams.A.funds = clamp(systemState.teams.A.funds + 20); logDesc = "【政府高層】選擇方案乙。"; }
-                    } else if (activeTeam === 'B') {
-                        if (choiceType === 'A') { systemState.teams.B.tech = clamp(systemState.teams.B.tech + 20); logDesc = "【社團科學家】選擇方案甲。"; }
-                        else { systemState.teams.B.stability = clamp(systemState.teams.B.stability + 20); logDesc = "【社團科學家】選擇方案乙。"; }
-                    } else if (activeTeam === 'C') {
-                        if (choiceType === 'A') { systemState.teams.C.funds = clamp(systemState.teams.C.funds + 20); logDesc = "【工廠資方】選擇方案甲。"; }
-                        else { systemState.teams.C.tech = clamp(systemState.teams.C.tech + 20); logDesc = "【工廠資方】選擇方案乙。"; }
-                    } else if (activeTeam === 'D') {
-                        if (choiceType === 'A') { systemState.teams.D.stability = clamp(systemState.teams.D.stability + 20); logDesc = "【底層勞工】選擇方案甲。"; }
-                        else { systemState.teams.D.tech = clamp(systemState.teams.D.tech + 20); logDesc = "【底層勞工】選擇方案乙。"; }
-                    }
-                    rData.history.push(choiceType);
                 }
 
                 systemState.rounds[rIdx].currentTurnIdx++;
-                systemState.logs.unshift(`[R${rIdx}-順位${rData.currentTurnIdx}] ${logDesc}`);
+                systemState.logs.unshift(`[R${rIdx}-階段${rData.currentTurnIdx}] ${logDesc}`);
             });
         }
 
@@ -1227,15 +1136,20 @@
             const n_l1 = systemState.teams[rData.l1]?.textName || "";
             const n_l2 = systemState.teams[rData.l2]?.textName || "";
 
+            const getHistoryStr = () => {
+                if(!rData.history || rData.history.length === 0) return "尚無選擇記錄";
+                return rData.history.map(h => `${systemState.teams[h.team]?.textName || h.team}➔(${h.choice})`).join(' | ');
+            };
+
             mainView.innerHTML = `
                 <div class="host-screen">
                     <div class="host-top-bar">
                         <div class="host-header">🌌 量子核心主控台 
-                            <span class="sync-indicator">📡 劇本分歧同步版 (v${systemState.version || 0})</span>
+                            <span class="sync-indicator">📡 動態分歧鏈系統 (v${systemState.version || 0})</span>
                             <span id="netIndicator" class="net-status-badge" style="margin-left:15px;">${cloudOnline ? '🌐 雲端連線正常':'⚠️ 雲端斷線/更新中'}</span>
                         </div>
                         <div style="display:flex; gap:10px;">
-                           <button class="reset-btn" onclick="resetSystem()">🚨 RESET</button>
+                           <button class="reset-btn" onclick="resetSystem()">🚨 全局重置</button>
                         </div>
                     </div>
                     
@@ -1264,7 +1178,7 @@
 
                     <div class="host-grid">
                         <div class="control-panel-box">
-                            <div class="panel-title">配置本輪順位 (狀態: <span style="color:#ff7300">${rData.status}</span>)</div>
+                            <div class="panel-title">配置本輪順位 (目前狀態: <span style="color:#ff7300">${rData.status}</span>)</div>
                             <div class="input-row">
                                 <div class="input-group">
                                     <label>👑 第一順位</label>
@@ -1306,25 +1220,25 @@
                                 </div>
                             </div>
 
-                            <button class="primary-btn" onclick="applyRoundSettings()">廣播同步並開啟本輪選擇</button>
+                            <button class="primary-btn" onclick="applyRoundSettings()">廣播順位並開啟動態選擇鏈</button>
 
                             <div class="action-bar">
-                                <div class="panel-title">本輪選擇路徑監控歷史：[ ${(rData.history || []).join(' → ') || '尚未作答'} ]</div>
+                                <div class="panel-title">本輪決策路徑：<span style="color:#00ffaa; font-family:monospace;">[ ${getHistoryStr()} ]</span></div>
                                 <div class="flow-tracker" style="${rData.status === '闖關中' ? 'opacity:0.4; pointer-events:none;' : ''}">
                                     <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===0?'active':(rData.currentTurnIdx>0?'done':'')}">
-                                        <span>① [ ${n_w1} ]</span> ${rData.status==='闖關中'?'關卡中':(rData.currentTurnIdx===0?'作答中':`✅ 選擇: ${rData.history[0] || ''}`)}
+                                        <span>① [ ${n_w1} ]</span> ${rData.status==='闖關中'?'關卡挑戰中':(rData.currentTurnIdx===0?'作答中':`✅ 選擇: ${rData.history[0]?.choice || ''}`)}
                                     </div>
                                     <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===1?'active':(rData.currentTurnIdx>1?'done':'')}">
-                                        <span>② [ ${n_w2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===1?'作答中':(rData.currentTurnIdx>1?`✅ 選擇: ${rData.history[1] || ''}`:'⏳ 等待'))}
+                                        <span>② [ ${n_w2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===1?'作答中':(rData.currentTurnIdx>1?`✅ 選擇: ${rData.history[1]?.choice || ''}`:'⏳ 等待'))}
                                     </div>
                                     <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===2?'active':(rData.currentTurnIdx>2?'done':'')}">
-                                        <span>③ [ ${n_l1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===2?'作答中':(rData.currentTurnIdx>2?`✅ 選擇: ${rData.history[2] || ''}`:'⏳ 等待'))}
+                                        <span>③ [ ${n_l1} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===2?'作答中':(rData.currentTurnIdx>2?`✅ 選擇: ${rData.history[2]?.choice || ''}`:'⏳ 等待'))}
                                     </div>
                                     <div class="flow-step ${rData.status!=='闖關中'&&rData.currentTurnIdx===3?'active':(rData.currentTurnIdx>3?'done':'')}">
-                                        <span>④ [ ${n_l2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===3?'作答中':(rData.currentTurnIdx>3?`✅ 選擇: ${rData.history[3] || ''}`:'⏳ 等待'))}
+                                        <span>④ [ ${n_l2} ]</span> ${rData.status==='闖關中'?'未開啟':(rData.currentTurnIdx===3?'作答中':(rData.currentTurnIdx>3?`✅ 選擇: ${rData.history[3]?.choice || ''}`:'⏳ 等待'))}
                                     </div>
                                 </div>
-                                <button class="primary-btn" style="background:#00f0ff; color:#000; margin-top:12px;" ${rData.status === '闖關中' || rData.currentTurnIdx > 3 ? 'disabled' : ''} onclick="forceNextTurn()">⏭️ 強制推進下一順位</button>
+                                <button class="primary-btn" style="background:#00f0ff; color:#000; margin-top:12px;" ${rData.status === '闖關中' || rData.currentTurnIdx > 3 ? 'disabled' : ''} onclick="forceNextTurn()">⏭️ 強制推進至下個順位</button>
                             </div>
                         </div>
 
@@ -1355,30 +1269,34 @@
                 systemState.rounds[rIdx].history = [];
                 
                 const n_w1 = systemState.teams[systemState.rounds[rIdx].w1].textName;
-                systemState.logs.unshift(`[系統通知] 第 0${rIdx} 輪順位發布。控制權移交給第一順位【${n_w1}】。`);
+                systemState.logs.unshift(`[系統通知] 第 0${rIdx} 輪順位已發布。控制權正式移交第一順位【${n_w1}】。`);
             });
         }
 
         function forceNextTurn() {
             mutateAndSyncState(() => {
                 const rIdx = systemState.currentRound;
-                if (systemState.rounds[rIdx].currentTurnIdx < 4) {
-                    if (!systemState.rounds[rIdx].history) systemState.rounds[rIdx].history = [];
-                    systemState.rounds[rIdx].history.push("SKIP");
-                    systemState.rounds[rIdx].currentTurnIdx++;
-                    systemState.logs.unshift(`[管理介入] 主持人手動跳過並推進了目前順位。`);
+                const rData = systemState.rounds[rIdx];
+                if (rData.currentTurnIdx < 4) {
+                    if (!rData.history) rData.history = [];
+                    const turnOrder = [rData.w1, rData.w2, rData.l1, rData.l2];
+                    const activeTeam = turnOrder[rData.currentTurnIdx];
+                    
+                    rData.history.push({ team: activeTeam, choice: "SKIP", label: "強制跳過" });
+                    rData.currentTurnIdx++;
+                    systemState.logs.unshift(`[管理介入] 主持人手動跳過目前順位。`);
                 }
             });
         }
 
         function resetSystem() {
-            if(confirm("🚨 確定要將雲端系統全域重置為預設狀態嗎？")) {
+            if(confirm("🚨 確定要將雲端系統全域重置嗎？")) {
                 mutateAndSyncState(() => {
                     const freshState = JSON.parse(JSON.stringify(initialSystemState));
                     systemState.currentRound = freshState.currentRound;
                     systemState.teams = freshState.teams;
                     systemState.rounds = freshState.rounds;
-                    systemState.logs = ["[系統重置] 全域廣播同步核心重置完成。數據已初始化。"];
+                    systemState.logs = ["[系統重置] 全域重置完成。"];
                 });
             }
         }
