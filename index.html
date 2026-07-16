@@ -216,30 +216,43 @@
                 // -----------------------------------------------------------------
                 step2: {
                     // 範例：上一手是 A (選 A)，現在輪到 B
-                    "A_A_B": {
+                    /*"A_A_B": {
                         text: "政府高層選擇了【全城戒嚴】，現在輪到科學家(B)抉擇：",
                         choices: {
                             A: { label: "🧪 A選項：妥協協助，為政府提供監控技術", desc: "幫助維穩，換取科研經費。", effect: (state) => { state.teams.B.funds += 15; state.teams.A.stability += 10; } },
                             B: { label: "💻 B選項：加入地下反抗，駭入戒嚴電網", desc: "暗中破壞，並開源程式。", effect: (state) => { state.teams.B.tech += 10; state.teams.A.stability -= 15; } }
                         }
-                    },
+                    },*/
                     // 範例：上一手是 A (選 A)，現在輪到 C (資方)
                     "A_A_C": {
-                        text: "政府高層選擇了【全城戒嚴】，現在輪到工廠資方(C)抉擇：",
+                        text: "政府宣布全城戒嚴，民用電網全斷。政府大樓燈火通明，但民間陷入黑暗，資產階級停擺、科學家被查封、勞工在街頭挨凍",
                         choices: {
-                            A: { label: "💰 A選項：高額政治獻金，換取工業用電特權", desc: "用錢買特權，產能迅速恢復。", effect: (state) => { state.teams.C.funds -= 20; state.teams.A.funds += 20; } },
-                            B: { label: "🚪 B選項：撤資抗議，將產線轉移國外", desc: "重創政府稅收與本地經濟。", effect: (state) => { state.teams.C.funds += 10; state.teams.A.funds -= 20; } }
+                            A: { label: "向政府的戒嚴妥協，主動獻上大量資金幫政府維穩，換取特權民生用電", effect: (state) => { state.teams.C.funds -= 15; state.teams.C.stability +=15; state.teams.A.funds += 15; state.teams.D.stability -=10; } },
+                            B: { label: "花大錢向黑市買私電自保。同時，你們決定砸大錢金援被查封的科學家，暗中提供科學家研發資金", effect: (state) => { state.teams.C.funds -= 20; state.teams.C.stability +=15; state.teams.A.funds -= 20; state.teams.A.stability -=10; state.teams.B.funds +=10; } }
                         }
                     },
                     // 範例：上一手是 A (選 B)，現在輪到 D (勞工)
-                    "A_B_D": {
-                        text: "政府高層選擇了【資源平均配給】，現在輪到底層勞工(D)抉擇：",
+                    "A_A_D": {
+                        text: "政府宣布全城戒嚴，民用電網全斷。政府大樓燈火通明，但民間陷入黑暗，資產階級停擺、科學家被查封、勞工在街頭挨凍",
                         choices: {
-                            A: { label: "🤝 A選項：配合配給，進入工廠加班重建", desc: "穩定市民生活，並獲得微薄報酬。", effect: (state) => { state.teams.D.funds += 10; state.teams.D.stability += 10; } },
-                            B: { label: "✊ B選項：質疑政府黑箱，要求開放配電委員會", desc: "要求權力共治，引發體制緊繃。", effect: (state) => { state.teams.D.stability += 15; state.teams.A.stability -= 10; } }
+                            A: { label: "面對政府黑洞洞的槍口與戒嚴部隊，勞工決定配合順從，共體時艱，主動上繳了家中的備用發電機與囤積的燃料", effect: (state) => { state.teams.D.funds += 5; state.teams.D.stability -= 10; state.teams.A.funds +=10; } },
+                            B: { label: "你們拒絕配合徵收，而是砸下大筆積蓄，向地下黑市購買私電、秘密偷接電網，在戒嚴的死寂中勉強點亮自己的溫暖小屋", effect: (state) => { state.teams.D.stability += 5; state.teams.D.funds -=10; state.teams.A.funds -= 10; } }
                         }
                     },
-
+                    "A_B_C": {
+                        text: "政府發布特赦行政令，以「維護國家安全、避免浪費能源」為由，強行切斷科學家的備用電力，並將其研究資產充公。科學家瞬間面臨破產與滅頂之災，而其餘陣營則人人自危",
+                        choices: {
+                            A: { label: "為了自保，你們決定主動走向政府，提出「政商一體」的合作案。提供大量的商業資金與後勤物資支持政府的維穩行動", effect: (state) => { state.teams.C.funds -= 15; state.teams.C.stability +=15; state.teams.A.funds += 10; state.teams.D.stability -=15; } },
+                            B: { label: "你們決定在黑市砸下巨資，購買高價的獨立私電系統。同時，為了牽制權力過大的政府，你們決定成為科學家的秘密金主", effect: (state) => { state.teams.C.funds -= 20; state.teams.C.stability +=15; state.teams.A.funds -= 20; state.teams.B.funds ==10; } }
+                        }
+                    },
+                    "A_B_D": {
+                        text: "政府發布特赦行政令，以「維護國家安全、避免浪費能源」為由，強行切斷科學家的備用電力，並將其研究資產充公。科學家瞬間面臨破產與滅頂之災，而其餘陣營則人人自危",
+                        choices: {
+                            A: { label: "勞工決定砸下血汗錢在黑市「撈油水」。你們把零件和核心代碼搬回貧民窟，雖然資產失血，但民間的科技火種瞬間被點燃", effect: (state) => { state.teams.D.funds -= 10; state.teams.D.tech += 20; state.teams.B.funds -=10; } },
+                            B: { label: "你們決定不湊這場熱鬧，繼續當個聽話的齒輪，按時上下班並囤積物資", effect: (state) => { state.teams.D.stability += 5; state.teams.D.funds +=15; state.teams.A.funds += 10; } }
+                        }
+                    },
                     // 💡 防呆後備節點 (如果主持人排出了未定義的陣營順位，會直接抓這個通用節點，避免網頁當掉)
                     "DEFAULT": {
                         text: "當前陣營面臨前方的分歧局勢，必須採取緊急行動：",
@@ -256,11 +269,18 @@
                 // -----------------------------------------------------------------
                 step3: {
                     // 範例：A選A -> B選A -> 現在輪到 C 抉擇
-                    "A_A_B_A_C": {
-                        text: "政府強行戒嚴(A)，科學家提供監控技術妥協(A)，此時輪到工廠資方(C)面臨新格局：",
+                    "A_A_C_A_B": {
+                        text: "政府的軍隊接管了街頭，資本的摩天大樓則獲得特許電力閃爍著冷酷的光芒，政商鐵三角正式成形。在此高壓下，科學家的技術被全面封禁，而最底層的勞工則面臨被無限壓榨的生存絕境",
                         choices: {
-                            A: { label: "🏢 A選項：投資高能監視器，與政府和科學界三方聯手", desc: "建立鐵三角統治階層，徹底壓榨底層。", effect: (state) => { state.teams.C.funds += 15; state.teams.D.stability -= 20; } },
-                            B: { label: "📡 B選項：杯葛政府，轉而秘密贊助勞工進行罷工", desc: "意圖削弱政府與學界新形成的威信。", effect: (state) => { state.teams.C.funds -= 15; state.teams.D.stability += 15; } }
+                            A: { label: "看著政府的軍隊與財團的資金已經聯手，你們選擇交出實驗室的最高控制權與核心代碼，換取特許電力的供應與人身安全", effect: (state) => { state.teams.B.stability += 15; state.teams.B.funds -=10; state.teams.A.tech += 15; state.teams.C.tech +=15 } },
+                            B: { label: "你們利用最後的備用電源，將毀滅性的病毒植入中央電網與金融中樞。並秘密聯絡在街頭挨凍的勞工，指引他們去接管政府供電站", effect: (state) => { state.teams.B.stability += 15; state.teams.A.funds -=20; state.teams.A.tech -=20; state.teams.C.funds -=20; state.teams.D.stability +=10; } }
+                        }
+                    },
+                    "A_A_C_B_B": {
+                        text: "政府的戒嚴遭遇了資本的反抗。同時，資本家用大筆資金暗中扶植被查封的科學家。此時，全城的焦點都落在科學家身上，而最底層的勞工則在兩大集團的夾縫中等待局勢洗牌",
+                        choices: {
+                            A: { label: "你們決定履行與資本家的秘密協議，將新研發的技術與高效能源代碼，獨家提供給金援你們的資本家", effect: (state) => { state.teams.B.tech += 10; state.teams.B.funds +=15; state.teams.A.tech -= 15; state.teams.C.tech +=15 } },
+                            B: { label: "你們不打算成為財閥的私有工具，利用這筆資金完成了技術突破後，將代碼以「開源」形式向全城廣播，在民間建立起崇高的聲望", effect: (state) => { state.teams.B.stability += 15; state.teams.B.tech -=10; state.teams.A.tech -=15; state.teams.D.tech +=15; state.teams.D.stability +=20; } }
                         }
                     },
                     "DEFAULT": {
