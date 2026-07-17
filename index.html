@@ -272,8 +272,8 @@
                     "A_A_C_A_B": {
                         text: "政府的軍隊接管了街頭，資本的摩天大樓則獲得特許電力閃爍著冷酷的光芒，政商鐵三角正式成形。在此高壓下，科學家的技術被全面封禁，而最底層的勞工則面臨被無限壓榨的生存絕境",
                         choices: {
-                            A: { label: "看著政府的軍隊與財團的資金已經聯手，你們選擇交出實驗室的最高控制權與核心代碼，換取特許電力的供應與人身安全", effect: (state) => { state.teams.B.stability += 15; state.teams.B.funds -=10; state.teams.A.tech += 15; state.teams.C.tech +=15 } },
-                            B: { label: "你們利用最後的備用電源，將毀滅性的病毒植入中央電網與金融中樞。並秘密聯絡在街頭挨凍的勞工，指引他們去接管政府供電站", effect: (state) => { state.teams.B.stability += 15; state.teams.A.funds -=20; state.teams.A.tech -=20; state.teams.C.funds -=20; state.teams.D.stability +=10; } }
+                            A: { label: "你們選擇交出實驗室的最高控制權與核心代碼，換取特許電力的供應與人身安全", effect: (state) => { state.teams.B.stability += 15; state.teams.B.funds -=10; state.teams.A.tech += 15; state.teams.C.tech +=15 } },
+                            B: { label: "你們利用僅剩的電源，將毀滅性的病毒植入中央電網與金融中樞。並秘密聯絡勞工，指引他們去接管政府供電站", effect: (state) => { state.teams.B.stability += 15; state.teams.A.funds -=20; state.teams.A.tech -=20; state.teams.C.funds -=20; state.teams.D.stability +=10; } }
                         }
                     },
                     "A_A_C_B_B": {
@@ -421,6 +421,13 @@
                         choices: {
                             A: { label: "你們立刻將科學家的技術商品化、專利化，向全城推出昂貴的訂閱制微型電網與醫療晶片", effect: (state) => { state.teams.C.funds +=15; state.teams.A.tech -=20; state.teams.D.funds -= 5; } },
                             B: { label: "你們深知政府遲早會來搶人，砸下大筆資產，把企業保安隊全面升級為「私人工隊」，公然在街頭與政府的緝捕隊駁火", effect: (state) => { state.teams.C.stability += 15; state.teams.C.funds -=20; state.teams.A.funds -=15; state.teams.A.stability -=10; } }
+                        }
+                    },
+                    "A_B_D_A_B_B_C": {
+                        text: "全城此時充斥著科學家廣播的免費高科技 ，政府試圖壟斷科技的計畫徹底失敗。勞工平白獲得了這套最頂級的技術說明書。這場技術海嘯讓原本在一旁觀戰的資本瞬間被架空",
+                        choices: {
+                            A: { label: "你們拒絕承認民間的技術合法性，強行對使用開源技術的勞工提起專利訴訟，並沒收他們的改裝設備", effect: (state) => { state.teams.C.funds -=10; state.teams.C.tech +=10; state.teams.D.tech -= 10; } },
+                            B: { label: "你們砸下重金封鎖了實體物流，勞工空有頂級開源代碼，卻缺乏硬體載體去製造武器和發電機", effect: (state) => { state.teams.C.funds -=15; state.teams.A.funds -=20; state.teams.D.stability -=5; state.teams.D.tech -=10; } }
                         }
                     },
                     "DEFAULT": {
