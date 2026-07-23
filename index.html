@@ -381,6 +381,13 @@
                             B: { label: "你們向陷入混亂的勞工發布徵調令，強行要求底層市民在無酬勞的情況下，冒著寒冬加班搶修政府控制的核心電網。", effect: (state) => { state.teams.A.stability += 15; state.teams.A.funds -= 10; state.teams.D.funds -= 15; state.teams.D.stability -= 10; } }
                         }
                     },
+                    "B_B_C_B_A": {
+                        text: "雖然中央電網依然癱瘓，但資本的資金注入讓科學家的後續研究得以繼續。然而，這種民間與商界的「技術跨界結盟」，讓手握行政權卻在科技上被架空的政府感到強烈的邊緣化危機。",
+                        choices: {
+                            A: { label: "你們動用法律力量，宣布民間的新能源技術為國家戰略資產，必須強制納入官方審查。", effect: (state) => { state.teams.A.tech += 20; state.teams.C.funds -= 25; } },
+                            B: { label: "你們向陷入混亂的勞工發布徵調令，強行要求底層市民在無酬勞的情況下，冒著寒冬加班搶修政府控制的核心電網。", effect: (state) => { state.teams.A.stability += 15; state.teams.A.funds -= 10; state.teams.D.funds -= 15; state.teams.D.stability -= 10; } }
+                         }
+                    },
                     "DEFAULT": {
                         text: "歷史走勢難測，第三順位陣營此時必須在有限的能量殘餘中做出決定：",
                         choices: {
